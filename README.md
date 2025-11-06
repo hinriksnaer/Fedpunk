@@ -4,11 +4,12 @@ Development dotfiles for a pleasant terminal setup across workstations and conta
 
 ---
 
-## What’s inside
+## What's inside
 
 ```
 
 btop/           → ~/.config/btop
+hyprland/       → ~/.config/hypr (Hyprland Wayland compositor)
 lazygit/        → ~/.config/lazygit
 neovim/         → My Custom Neovim Repo (Lua)
 starship/       → ~/.config (Starship prompt)
@@ -33,8 +34,9 @@ Make sure the following are installed (use your system package manager):
 - **starship**
 - **lazygit**
 - **btop**
+- **hyprland** (optional, for Wayland compositor setup)
 
-> The repo focuses on these tools; languages on GitHub indicate Neovim config is in Lua. :contentReference[oaicite:2]{index=2}
+> The repo focuses on these tools; languages on GitHub indicate Neovim config is in Lua.
 
 ---
 
