@@ -1,0 +1,32 @@
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Sets user-defined palette
+# Palettes must be defined _after_ this line
+palette = "ayumirage"
+
+# Starship modules
+[character]
+success_symbol = "[[󰄛](success) ❯](symbol)"
+error_symbol = "[[󰄛](error) ❯](symbol)"
+vimcmd_symbol = "[󰄛 ❮](status)"
+
+[git_branch]
+style = "bold branch"
+
+[directory]
+truncation_length = 4
+style = "bold directory"
+
+
+[palettes.ayumirage]
+error = "#f28779"
+success = "#D5FF80"
+directory = "#FAD07B"
+branch = "#f28779"
+symbol = "#73D0FF"
+status = "#DFBFFF"
+python = "#DCDCAA"
+go = "#9CDCFE"
+node = "#4EC9B0"
+rust = "#4EC9B0"
