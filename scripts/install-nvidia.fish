@@ -57,16 +57,14 @@ end
 
 # Create modprobe configuration for NVIDIA
 echo "→ Configuring NVIDIA kernel modules"
-sudo tee /etc/modprobe.d/nvidia.conf >/dev/null << 'EOF'
-# Disable nouveau (open source NVIDIA driver)
+echo "# Disable nouveau (open source NVIDIA driver)
 blacklist nouveau
 options nouveau modeset=0
 
 # NVIDIA driver options
 options nvidia-drm modeset=1
 options nvidia NVreg_UsePageAttributeTable=1
-options nvidia NVreg_InitializeSystemMemoryAllocations=0
-EOF
+options nvidia NVreg_InitializeSystemMemoryAllocations=0" | sudo tee /etc/modprobe.d/nvidia.conf >/dev/null
 
 # Add NVIDIA modules to initramfs
 echo "→ Adding NVIDIA modules to initramfs"
