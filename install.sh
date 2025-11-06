@@ -23,16 +23,33 @@ installers=(
   fish
   foot
   hyprland
+  nvidia
 )
 
 bash "./scripts/init.sh"
+
+# --- Helper function to run installer ---
+run_installer() {
+  local name="$1"
+  
+  # Prefer Fish scripts if Fish is available and script exists
+  if command -v fish >/dev/null 2>&1 && [ -f "./scripts/install-$name.fish" ]; then
+    echo "→ Installing $name (using Fish)"
+    fish "./scripts/install-$name.fish"
+  elif [ -f "./scripts/install-$name.sh" ]; then
+    echo "→ Installing $name (using Bash)"
+    bash "./scripts/install-$name.sh"
+  else
+    echo "⚠️ No installer found for $name"
+    return 1
+  fi
+}
 
 # --- If no args → run all installers ---
 if [ $# -eq 0 ]; then
   echo "→ No args provided, installing everything..."
   for name in "${installers[@]}"; do
-    echo "→ Installing $name"
-    bash "./scripts/install-$name.sh"
+    run_installer "$name"
   done
   exit 0
 fi
@@ -46,8 +63,7 @@ for arg in "$@"; do
 
       # Check if valid installer
       if [[ " ${installers[*]} " =~ " $name " ]]; then
-        echo "→ Installing $name"
-        bash "./scripts/install-$name.sh"
+        run_installer "$name"
       else
         echo "⚠️ Unknown option: $arg"
         echo "   Valid options: ${installers[*]/#/--}"

@@ -34,6 +34,7 @@ Make sure the following are installed (use your system package manager):
 - **lazygit**
 - **btop**
 - **hyprland** (optional, for Wayland window manager)
+- **nvidia drivers** (optional, for NVIDIA GPU support)
 
 > The repo focuses on these tools; languages on GitHub indicate Neovim config is in Lua. :contentReference[oaicite:2]{index=2}
 
