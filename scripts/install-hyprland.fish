@@ -26,11 +26,29 @@ set packages \
   pavucontrol \
   playerctl \
   wpctl \
-  polkit-gnome \
+  hyprpolkitagent \
   xdg-desktop-portal-hyprland \
-  xdg-desktop-portal-gtk
+  xdg-desktop-portal-gtk \
+  gvfs \
+  gvfs-mtp \
+  xdg-user-dirs \
+  xdg-utils \
+  pipewire-alsa \
+  pipewire-utils \
+  network-manager-applet \
+  policycoreutils
 
 sudo dnf install -qy $packages
+
+# Fix potential SELinux issues
+echo "→ Setting up user directories and fixing SELinux contexts"
+xdg-user-dirs-update
+
+# Ensure SELinux contexts are correct for new files
+if command -v restorecon >/dev/null 2>&1
+    sudo restorecon -R /home/(whoami)/.config 2>/dev/null || true
+    sudo restorecon -R /home/(whoami)/.local 2>/dev/null || true
+end
 
 # Create wallpapers directory and add a simple default wallpaper
 mkdir -p "$TARGET_DIR/.config/hypr/wallpapers"

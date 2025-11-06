@@ -1,89 +1,221 @@
-# dev-dotfiles
+# Fedpunk Linux Setup
 
-Development dotfiles for a pleasant terminal setup across workstations and containers.
+**A modern, fish-first development environment for Fedora Linux with Hyprland**
 
----
-
-## What’s inside
-
-```
-
-btop/           → ~/.config/btop
-fish/           → ~/.config/fish (Fish shell + Starship prompt)
-hyprland/       → ~/.config/hypr (Hyprland window manager)
-lazygit/        → ~/.config/lazygit
-neovim/         → My Custom Neovim Repo (Lua)
-tmux/           → ~/.config/tmux
-install.sh      → helper script to set things up
-
-````
-
-Repo layout derived from the GitHub tree. Exact file paths map to standard `$XDG_CONFIG_HOME` locations for each tool.
+Fedpunk transforms your Fedora installation into a sleek, productive development environment featuring the Hyprland Wayland compositor, Fish shell, and carefully curated development tools.
 
 ---
 
-## Prerequisites
+## 🚀 Features
 
-The installer will automatically handle most dependencies, but you'll need:
-
-- **git** (required for cloning)
-- **stow** (installed automatically by init.sh)
-
-**Tools that will be installed/configured:**
-- **fish** (installed first, enables improved installers)
-- **tmux**
-- **neovim**
-- **starship**
-- **lazygit**
-- **btop**
-- **hyprland** (optional, for Wayland window manager)
-- **nvidia drivers** (optional, for NVIDIA GPU support)
-
-> The repo focuses on these tools; languages on GitHub indicate Neovim config is in Lua. :contentReference[oaicite:2]{index=2}
+- **🐟 Fish-first architecture** - Modern shell with intelligent autocompletion and syntax highlighting
+- **🪟 Hyprland compositor** - Blazing fast tiling Wayland window manager
+- **⚡ NVIDIA support** - Proprietary driver installation with Wayland compatibility
+- **🛠️ Development tools** - Neovim, tmux, lazygit, and essential utilities
+- **🎨 Consistent theming** - Coordinated color schemes across all applications
+- **📦 Automated setup** - One command installs and configures everything
 
 ---
 
-## Quick start
+## 📋 System Requirements
 
+- **OS**: Fedora Linux (39+)
+- **Architecture**: x86_64
+- **Internet**: Required for package downloads
+- **Storage**: ~2GB free space
+- **Optional**: NVIDIA GPU (for NVIDIA driver installation)
+
+---
+
+## ⚡ Quick Start
+
+### Full Installation
 ```bash
-# 1) Clone
-git clone https://github.com/hinriksnaer/dev-dotfiles.git
-cd dev-dotfiles
-
-# 2) Run the installer (if you prefer manual linking, see below)
-#    Review the script before running.
+git clone https://github.com/yourusername/fedpunk.git
+cd fedpunk
 bash install.sh
-````
+```
 
-> The repository includes an `install.sh` script intended to help set things up. Open and review it to see exactly what it links or installs on your system. ([GitHub][1])
-
----
-
-## Updating
-
+### Selective Installation
 ```bash
-cd ~/path/to/dev-dotfiles
-git pull
-# re-run install.sh if it manages links, or re-link manually if needed
+# Install specific components
+bash install.sh --neovim --tmux --hyprland
+
+# Just the essentials
+bash install.sh --fish --neovim --tmux
+```
+
+### Direct Fish Usage
+```fish
+# If Fish is already installed
+fish install.fish --hyprland --nvidia
 ```
 
 ---
 
-## Troubleshooting
+## 📦 Components
 
-* **Configs not picked up?** Double-check symlink targets and that your tools reference the expected paths (e.g., Neovim uses `~/.config/nvim`).
-* **Permission issues?** If your system requires it, run link steps without `sudo` so files remain owned by your user.
-* **Conflicts with existing dotfiles?** Back up or move your old files before linking.
+| Component | Description | Configuration |
+|-----------|-------------|---------------|
+| **Fish Shell** | Modern shell with intelligent features | `~/.config/fish/` |
+| **Hyprland** | Tiling Wayland compositor | `~/.config/hypr/` |
+| **Neovim** | Modern vim-based editor | `~/.config/nvim/` |
+| **Tmux** | Terminal multiplexer | `~/.config/tmux/` |
+| **Lazygit** | Terminal git UI | `~/.config/lazygit/` |
+| **btop** | Resource monitor | `~/.config/btop/` |
+| **Foot** | Fast Wayland terminal | System default |
+| **NVIDIA** | Proprietary drivers | Auto-configured |
 
 ---
 
-## Contributing
+## 🔧 Installation Details
 
-PRs and issues welcome. Keep changes tool-scoped (e.g., Neovim tweaks under `neovim/`, shell changes under `zsh/`, etc.).
+### What Gets Installed
+
+**System Packages:**
+- Fish shell with Starship prompt
+- Hyprland compositor with essential tools
+- Development utilities (ripgrep, fzf, git)
+- Audio/video support (PipeWire, codecs)
+- Desktop integration (portals, authentication)
+
+**Configurations:**
+- Fish shell with custom functions and aliases
+- Hyprland with sensible keybindings and theming
+- Neovim with LSP and modern plugins
+- Tmux with plugin manager and themes
+- Git integration with Lazygit
+
+**Optional Components:**
+- NVIDIA proprietary drivers with Wayland support
+- Additional desktop applications
+
+### Architecture
+
+Fedpunk uses a **Fish-first approach**:
+
+1. `install.sh` - Minimal bash wrapper for compatibility
+2. `install.fish` - Main installer with Fish's clean syntax
+3. Individual tool installers in Fish for better maintainability
+4. Automatic dependency resolution and error handling
 
 ---
 
+## 🎨 Post-Installation
 
-## Credits
+### Starting Hyprland
+```bash
+# From display manager: Select "Hyprland" session
+# From TTY:
+Hyprland
+```
 
-Built by @hinriksnaer. Repo overview and directory list referenced from the GitHub source. ([GitHub][1])
+### Key Bindings (Hyprland)
+- `Super + Q` - Open terminal (Foot)
+- `Super + R` - Application launcher (wofi)
+- `Super + C` - Close window
+- `Super + 1-9` - Switch workspaces
+- `Print` - Screenshot to clipboard
+- `Super + M` - Exit Hyprland
+
+### Shell Usage
+```fish
+# Fish is now your default shell
+# Starship provides a modern prompt
+# Use 'help' for Fish documentation
+```
+
+---
+
+## 🔄 Updates
+
+```bash
+cd fedpunk
+git pull
+bash install.sh  # Re-run for updates
+```
+
+---
+
+## 🛠️ Customization
+
+### Adding Custom Packages
+Edit `scripts/install-*.fish` files to add your preferred packages.
+
+### Modifying Configurations
+All configurations use standard XDG paths:
+- `~/.config/` - Application configurations
+- `~/.local/bin/` - User binaries
+
+### Theming
+Configurations use consistent color schemes. Modify:
+- `fish/.config/starship.toml` - Prompt theming
+- `hyprland/.config/hypr/hyprland.conf` - Window manager theming
+- `btop/.config/btop/btop.conf` - Monitor theming
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Fish not found after installation:**
+```bash
+# Restart shell or:
+exec fish
+```
+
+**Hyprland won't start:**
+```bash
+# Check for NVIDIA driver conflicts:
+dmesg | grep nvidia
+# Ensure Wayland is properly configured
+```
+
+**Browser login issues:**
+```bash
+# Use device flow for GitHub CLI:
+gh auth login --web=false
+```
+
+**Permission errors:**
+```bash
+# Fix SELinux contexts:
+sudo restorecon -R ~/.config
+```
+
+---
+
+## 📖 Documentation
+
+- [Fish Shell Documentation](https://fishshell.com/docs/)
+- [Hyprland Wiki](https://wiki.hyprland.org/)
+- [Neovim Documentation](https://neovim.io/doc/)
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test the installation
+5. Submit a pull request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Fedora-Hyprland) - Inspiration and package references
+- [Fish Shell Community](https://fishshell.com/) - Amazing shell and ecosystem
+- [Hyprland Community](https://hyprland.org/) - Cutting-edge Wayland compositor
+
+---
+
+**Fedpunk - Where Fedora meets the future of Linux desktop computing**
