@@ -57,14 +57,15 @@ end
 
 # Create modprobe configuration for NVIDIA
 echo "→ Configuring NVIDIA kernel modules"
-echo "# Disable nouveau (open source NVIDIA driver)
-blacklist nouveau
-options nouveau modeset=0
-
-# NVIDIA driver options
-options nvidia-drm modeset=1
-options nvidia NVreg_UsePageAttributeTable=1
-options nvidia NVreg_InitializeSystemMemoryAllocations=0" | sudo tee /etc/modprobe.d/nvidia.conf >/dev/null
+printf "%s\n" \
+    "# Disable nouveau (open source NVIDIA driver)" \
+    "blacklist nouveau" \
+    "options nouveau modeset=0" \
+    "" \
+    "# NVIDIA driver options" \
+    "options nvidia-drm modeset=1" \
+    "options nvidia NVreg_UsePageAttributeTable=1" \
+    "options nvidia NVreg_InitializeSystemMemoryAllocations=0" | sudo tee /etc/modprobe.d/nvidia.conf >/dev/null
 
 # Add NVIDIA modules to initramfs
 echo "→ Adding NVIDIA modules to initramfs"
@@ -91,13 +92,14 @@ if test "$XDG_SESSION_TYPE" = "wayland"; or command -v hyprland >/dev/null 2>&1
     # Add Wayland NVIDIA environment variables to fish config
     if test -f "fish/.config/fish/config.fish"
         echo "→ Adding NVIDIA Wayland variables to fish config"
-        echo "
-# NVIDIA Wayland support
-set -gx LIBVA_DRIVER_NAME nvidia
-set -gx XDG_SESSION_TYPE wayland
-set -gx GBM_BACKEND nvidia-drm
-set -gx __GLX_VENDOR_LIBRARY_NAME nvidia
-set -gx WLR_NO_HARDWARE_CURSORS 1" >> fish/.config/fish/config.fish
+        printf "%s\n" \
+            "" \
+            "# NVIDIA Wayland support" \
+            "set -gx LIBVA_DRIVER_NAME nvidia" \
+            "set -gx XDG_SESSION_TYPE wayland" \
+            "set -gx GBM_BACKEND nvidia-drm" \
+            "set -gx __GLX_VENDOR_LIBRARY_NAME nvidia" \
+            "set -gx WLR_NO_HARDWARE_CURSORS 1" >> fish/.config/fish/config.fish
     end
 end
 
