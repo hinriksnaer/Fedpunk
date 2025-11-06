@@ -120,6 +120,8 @@ for arg in $components
                 run_installer $name
             else
                 echo "⚠️ Unknown component: $arg"
+                echo "   Available components: $all_components"
+                echo "   Extracted name: '$name'"
             end
         case '*'
             echo "⚠️ Invalid format: $arg (use --component)"
