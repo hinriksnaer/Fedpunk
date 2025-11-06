@@ -23,3 +23,10 @@ starship init fish | source
 
 # Activate virtual environment (optional)
 # source $HOME/.venv/bin/activate.fish
+
+# NVIDIA Wayland support
+set -gx LIBVA_DRIVER_NAME nvidia
+set -gx XDG_SESSION_TYPE wayland
+set -gx GBM_BACKEND nvidia-drm
+set -gx __GLX_VENDOR_LIBRARY_NAME nvidia
+set -gx WLR_NO_HARDWARE_CURSORS 1
