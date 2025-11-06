@@ -35,7 +35,8 @@ set terminal_tools \
   btop \
   lazygit \
   neovim \
-  tmux
+  tmux \
+  claude
 
 echo ""
 echo "→ Installing terminal tools..."
@@ -70,8 +71,10 @@ echo "  📊 btop - Resource monitor"
 echo "  🌊 lazygit - Git terminal UI"
 echo "  ✏️  Neovim - Modern text editor"
 echo "  🪟 tmux - Terminal multiplexer"
+echo "  🤖 Claude Code - AI coding assistant"
 echo ""
 echo "🚀 Next steps:"
 echo "  • Restart your terminal or run: exec fish"
+echo "  • Run 'claude auth login' to set up AI assistance"
 echo "  • Run 'install-desktop.fish' for Hyprland desktop environment"
 echo "  • Type 'nvim' to start configuring Neovim"

@@ -14,7 +14,8 @@ end
 # Desktop-focused installers
 set desktop_tools \
   foot \
-  hyprland
+  hyprland \
+  firefox
 
 # Optional components (ask user)
 set optional_tools \
@@ -58,16 +59,27 @@ else
     echo "ℹ️  No NVIDIA GPU detected, skipping NVIDIA drivers"
 end
 
+# Ask about additional browsers
+echo ""
+read -P "Install additional browsers (Chromium, Brave)? [y/N]: " browsers_choice
+if test "$browsers_choice" = "y" -o "$browsers_choice" = "Y"
+    fish "./scripts/install-browsers.fish"
+end
+
 echo ""
 echo "✅ Desktop setup complete!"
 echo ""
 echo "🎯 What's installed:"
 echo "  🪟 Hyprland - Wayland tiling compositor"
 echo "  🦶 Foot - Fast Wayland terminal"
+echo "  🦊 Firefox - Default web browser"
 echo "  🔔 Dunst - Notification daemon"
 echo "  🎨 Desktop portals and authentication"
 if lspci | grep -i nvidia >/dev/null; and test "$nvidia_choice" = "y" -o "$nvidia_choice" = "Y"
     echo "  🎮 NVIDIA proprietary drivers"
+end
+if test "$browsers_choice" = "y" -o "$browsers_choice" = "Y"
+    echo "  🌐 Additional browsers (Chromium/Brave)"
 end
 echo ""
 echo "🚀 Next steps:"

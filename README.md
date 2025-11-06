@@ -72,6 +72,7 @@ fish install-terminal.fish
 | Component | Description | Configuration |
 |-----------|-------------|---------------|
 | **Fish Shell** | Modern shell with intelligent features | `~/.config/fish/` |
+| **Claude Code** | AI coding assistant | `~/.config/claude/` |
 | **Neovim** | Modern vim-based editor | `~/.config/nvim/` |
 | **Tmux** | Terminal multiplexer | `~/.config/tmux/` |
 | **Lazygit** | Terminal git UI | `~/.config/lazygit/` |
@@ -82,6 +83,7 @@ fish install-terminal.fish
 |-----------|-------------|---------------|
 | **Hyprland** | Tiling Wayland compositor | `~/.config/hypr/` |
 | **Foot** | Fast Wayland terminal | System default |
+| **Firefox** | Default web browser | System default |
 | **Desktop Portals** | File dialogs, authentication | Auto-configured |
 | **NVIDIA** | Proprietary drivers (optional) | Auto-configured |
 
@@ -93,21 +95,25 @@ fish install-terminal.fish
 
 **System Packages:**
 - Fish shell with Starship prompt
+- Claude Code AI assistant with Fish integration
 - Hyprland compositor with essential tools
+- Firefox browser with privacy optimizations
 - Development utilities (ripgrep, fzf, git)
 - Audio/video support (PipeWire, codecs)
 - Desktop integration (portals, authentication)
 
 **Configurations:**
-- Fish shell with custom functions and aliases
+- Fish shell with AI-enhanced functions and aliases
+- Claude Code with project-aware assistance
 - Hyprland with sensible keybindings and theming
-- Neovim with LSP and modern plugins
-- Tmux with plugin manager and themes
-- Git integration with Lazygit
+- Neovim with LSP, modern plugins, and AI integration
+- Tmux with plugin manager and Claude Code bindings
+- Git integration with Lazygit and AI commit messages
 
 **Optional Components:**
 - NVIDIA proprietary drivers with Wayland support
-- Additional desktop applications
+- Additional browsers (Chromium, Brave)
+- Extended development tools
 
 ### Architecture
 
@@ -132,7 +138,9 @@ Hyprland
 
 ### Key Bindings (Hyprland)
 - `Super + Q` - Open terminal (Foot)
+- `Super + B` - Open browser (Firefox)
 - `Super + R` - Application launcher (wofi)
+- `Super + E` - File manager (Thunar)
 - `Super + C` - Close window
 - `Super + 1-9` - Switch workspaces
 - `Print` - Screenshot to clipboard
@@ -140,10 +148,48 @@ Hyprland
 
 ### Shell Usage
 ```fish
-# Fish is now your default shell
+# Fish is now your default shell with AI assistance
 # Starship provides a modern prompt
 # Use 'help' for Fish documentation
+
+# Claude Code AI assistance
+claude auth login          # Set up AI assistance
+cc ask "your question"     # Quick AI queries
+ai_commit                  # AI-generated commit messages
+ai_explain some_command    # Explain commands or files
+ai_fix                     # Fix code issues
+ai_review                  # Code review assistance
 ```
+
+---
+
+## 🤖 AI-Enhanced Development
+
+Fedpunk includes Claude Code for intelligent coding assistance:
+
+### Quick AI Commands
+```fish
+# Basic assistance
+cc ask "how do I optimize this function?"
+ask "explain this error message"
+
+# Development workflow  
+ai_commit                    # Generate commit messages
+ai_review                   # Code review assistance
+ai_fix error.log           # Debug errors
+ai_explain main.py         # Explain code files
+ai_optimize slow_function  # Performance suggestions
+
+# Project context
+ai_project "how should I structure this app?"
+```
+
+### Integrated Features
+- **Context-aware**: Automatically detects git repos and project files
+- **Fish integration**: Native completions and shortcuts
+- **tmux binding**: `Ctrl+a, C-a` opens Claude interactive mode
+- **Neovim plugin**: AI assistance directly in your editor
+- **Git workflow**: Smart commit messages and code reviews
 
 ---
 
