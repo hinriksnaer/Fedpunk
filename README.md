@@ -9,11 +9,11 @@ Development dotfiles for a pleasant terminal setup across workstations and conta
 ```
 
 btop/           → ~/.config/btop
+fish/           → ~/.config/fish (Fish shell + Starship prompt)
+hyprland/       → ~/.config/hypr (Hyprland window manager)
 lazygit/        → ~/.config/lazygit
 neovim/         → My Custom Neovim Repo (Lua)
-starship/       → ~/.config (Starship prompt)
 tmux/           → ~/.config/tmux
-zsh/            → Zsh configuration
 install.sh      → helper script to set things up
 
 ````
@@ -27,12 +27,13 @@ Repo layout derived from the GitHub tree. Exact file paths map to standard `$XDG
 Make sure the following are installed (use your system package manager):
 
 - **git**
-- **zsh**
+- **fish**
 - **tmux**
 - **neovim**
 - **starship**
 - **lazygit**
 - **btop**
+- **hyprland** (optional, for Wayland window manager)
 
 > The repo focuses on these tools; languages on GitHub indicate Neovim config is in Lua. :contentReference[oaicite:2]{index=2}
 
