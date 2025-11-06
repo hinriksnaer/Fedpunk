@@ -25,7 +25,10 @@ set packages \
   thunar \
   pavucontrol \
   playerctl \
-  wpctl
+  wpctl \
+  polkit-gnome \
+  xdg-desktop-portal-hyprland \
+  xdg-desktop-portal-gtk
 
 sudo dnf install -qy $packages
 
