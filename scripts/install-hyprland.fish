@@ -7,8 +7,9 @@ cd (dirname (status -f))/../
 
 echo "→ Installing Hyprland and dependencies"
 
-# Enable COPR repository for Hyprland
+# Enable COPR repositories for Hyprland and nwg-displays
 sudo dnf copr enable -y solopasha/hyprland
+sudo dnf copr enable -y tofik/nwg-shell
 
 sudo dnf upgrade --refresh -qy
 
@@ -27,6 +28,7 @@ set packages \
   playerctl \
   wpctl \
   hyprpolkitagent \
+  nwg-displays \
   xdg-desktop-portal-hyprland \
   xdg-desktop-portal-gtk \
   gvfs \

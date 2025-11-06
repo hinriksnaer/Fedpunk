@@ -89,15 +89,20 @@ printf "%s\n" \
     '    end' \
     'end' > ~/.config/fish/functions/claude.fish
 
-# Create Fish abbreviations for common Claude Code commands
+# Create minimal Fish abbreviation
 printf "%s\n" \
     '# Claude Code abbreviations' \
-    'abbr -a cc "claude"' \
-    'abbr -a ccode "claude code"' \
-    'abbr -a cask "claude ask"' \
-    'abbr -a cfix "claude fix"' \
-    'abbr -a cexplain "claude explain"' \
-    'abbr -a creview "claude review"' > ~/.config/fish/conf.d/claude_abbr.fish
+    'abbr -a cc "claude"' > ~/.config/fish/conf.d/claude_abbr.fish
+
+# Create minimal setup file
+printf "%s\n" \
+    '# Claude Code setup - minimal integration' \
+    '# Run '"'"'claude auth login'"'"' if not authenticated' > ~/.config/fish/conf.d/claude_setup.fish
+
+# Create minimal integration file
+printf "%s\n" \
+    '# Claude Code Integration for Fish Shell' \
+    '# Minimal integration - Claude command is available globally' > ~/.config/fish/conf.d/claude_integration.fish
 
 # Create Fish completions for Claude Code
 printf "%s\n" \
@@ -119,63 +124,19 @@ printf "%s\n" \
     'complete -c claude -l config -d "Configuration file path"' \
     'complete -c claude -l interactive -d "Start interactive mode"' > ~/.config/fish/completions/claude.fish
 
-# Set up tmux integration
-echo "→ Configuring tmux integration"
-if command -v tmux >/dev/null 2>&1
-    # Add Claude Code keybinding to tmux
-    echo "# Claude Code integration" >> ~/.config/tmux/tmux.conf
-    echo "bind-key C-a new-window -n 'claude' 'claude --interactive'" >> ~/.config/tmux/tmux.conf
-end
-
-# Create startup script for Claude Code authentication
-printf "%s\n" \
-    '# Check if Claude Code is authenticated on shell startup' \
-    'function __claude_check_auth --on-event fish_prompt' \
-    '    if command -v claude >/dev/null 2>&1' \
-    '        if not claude auth status >/dev/null 2>&1' \
-    '            echo "🤖 Claude Code is installed but not authenticated."' \
-    '            echo "   Run '"'"'claude auth login'"'"' to get started."' \
-    '        end' \
-    '    end' \
-    'end' > ~/.config/fish/conf.d/claude_setup.fish
-
-# Add Neovim integration
-echo "→ Setting up Neovim integration"
-mkdir -p ~/.config/nvim/lua/plugins
-printf "%s\n" \
-    '-- Claude Code integration for Neovim' \
-    'return {' \
-    '  {' \
-    '    "anthropic/claude-nvim",' \
-    '    config = function()' \
-    '      require("claude").setup({' \
-    '        -- Configuration for Claude Code in Neovim' \
-    '        auto_suggestions = true,' \
-    '        keymaps = {' \
-    '          ask = "<leader>ca",' \
-    '          fix = "<leader>cf",' \
-    '          explain = "<leader>ce",' \
-    '          review = "<leader>cr",' \
-    '        },' \
-    '      })' \
-    '    end,' \
-    '  }' \
-    '}' > ~/.config/nvim/lua/plugins/claude.lua
+# tmux integration removed - use 'claude' command directly in any tmux pane
 
 echo ""
 echo "✅ Claude Code setup complete!"
 echo ""
 echo "🎯 What's configured:"
 echo "  🤖 Claude Code CLI installed"
-echo "  🐟 Fish shell integration with completions"
-echo "  ⌨️  Convenient abbreviations (cc, cask, cfix, etc.)"
-echo "  🪟 tmux integration (Ctrl+a, then C-a for Claude window)"
-echo "  ✏️  Neovim plugin configuration"
+echo "  🐟 Fish shell integration (minimal)"
+echo "  ⌨️  'cc' abbreviation for claude command"
 echo ""
 echo "🚀 Getting started:"
 echo "  1. Run 'claude auth login' to authenticate"
-echo "  2. Use 'claude ask \"your question\"' for quick queries"
-echo "  3. Use 'cc' as a shortcut for claude command"
-echo "  4. Try 'claude --interactive' for chat mode"
+echo "  2. Use 'claude' or 'cc' to run commands"
+echo "  3. Try 'claude --interactive' for chat mode"
 echo ""
-echo "💡 Tip: Restart Fish shell or run 'exec fish' to load new functions"
+echo "💡 Tip: Run 'exec fish' to load the new abbreviation"
