@@ -16,11 +16,11 @@ set -euo pipefail
 
 # --- Available installers ---
 installers=(
+  fish
   btop
   lazygit
   neovim
   tmux
-  fish
   foot
   hyprland
   nvidia
@@ -45,6 +45,16 @@ run_installer() {
   fi
 }
 
+# --- Ensure Fish is installed first ---
+ensure_fish_first() {
+  if ! command -v fish >/dev/null 2>&1; then
+    echo "→ Fish not found, installing Fish first..."
+    run_installer "fish"
+  else
+    echo "→ Fish already available"
+  fi
+}
+
 # --- If no args → run all installers ---
 if [ $# -eq 0 ]; then
   echo "→ No args provided, installing everything..."
@@ -54,12 +64,21 @@ if [ $# -eq 0 ]; then
   exit 0
 fi
 
-# --- Otherwise: parse args like --neovim, --zsh, etc. ---
+# --- Otherwise: parse args like --neovim, --tmux, etc. ---
+# First, ensure Fish is available for any selective installs
+ensure_fish_first
+
 for arg in "$@"; do
   case "$arg" in
     --*)
       # Strip leading '--'
       name="${arg#--}"
+
+      # Skip fish if already installed by ensure_fish_first
+      if [ "$name" = "fish" ] && command -v fish >/dev/null 2>&1; then
+        echo "→ Fish already installed, skipping"
+        continue
+      fi
 
       # Check if valid installer
       if [[ " ${installers[*]} " =~ " $name " ]]; then
