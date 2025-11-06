@@ -29,42 +29,61 @@ Fedpunk transforms your Fedora installation into a sleek, productive development
 
 ## ⚡ Quick Start
 
-### Full Installation
+### One-Command Full Install
 ```bash
 git clone https://github.com/yourusername/fedpunk.git
 cd fedpunk
 bash install.sh
 ```
 
-### Selective Installation
-```bash
-# Install specific components
-bash install.sh --neovim --tmux --hyprland
-
-# Just the essentials
-bash install.sh --fish --neovim --tmux
+### Interactive Installation
+```fish
+git clone https://github.com/yourusername/fedpunk.git
+cd fedpunk
+fish install.fish
 ```
 
-### Direct Fish Usage
+### Direct Commands
 ```fish
-# If Fish is already installed
-fish install.fish --hyprland --nvidia
+# Full setup (terminal + desktop)
+fish install.fish full
+
+# Terminal only (Fish, Neovim, tmux, etc.)
+fish install.fish terminal
+
+# Desktop only (Hyprland environment)
+fish install.fish desktop
+
+# Custom components
+fish install.fish custom --neovim --tmux --hyprland
+```
+
+### Quick Terminal Setup
+```fish
+# Just the essentials for development
+fish install-terminal.fish
 ```
 
 ---
 
 ## 📦 Components
 
+### 🐟 Terminal Setup
 | Component | Description | Configuration |
 |-----------|-------------|---------------|
 | **Fish Shell** | Modern shell with intelligent features | `~/.config/fish/` |
-| **Hyprland** | Tiling Wayland compositor | `~/.config/hypr/` |
 | **Neovim** | Modern vim-based editor | `~/.config/nvim/` |
 | **Tmux** | Terminal multiplexer | `~/.config/tmux/` |
 | **Lazygit** | Terminal git UI | `~/.config/lazygit/` |
 | **btop** | Resource monitor | `~/.config/btop/` |
+
+### 🪟 Desktop Setup  
+| Component | Description | Configuration |
+|-----------|-------------|---------------|
+| **Hyprland** | Tiling Wayland compositor | `~/.config/hypr/` |
 | **Foot** | Fast Wayland terminal | System default |
-| **NVIDIA** | Proprietary drivers | Auto-configured |
+| **Desktop Portals** | File dialogs, authentication | Auto-configured |
+| **NVIDIA** | Proprietary drivers (optional) | Auto-configured |
 
 ---
 
@@ -92,12 +111,13 @@ fish install.fish --hyprland --nvidia
 
 ### Architecture
 
-Fedpunk uses a **Fish-first approach**:
+Fedpunk uses a **modular Fish-first approach**:
 
-1. `install.sh` - Minimal bash wrapper for compatibility
-2. `install.fish` - Main installer with Fish's clean syntax
-3. Individual tool installers in Fish for better maintainability
-4. Automatic dependency resolution and error handling
+1. `install.fish` - Main installer with interactive menu
+2. `install-terminal.fish` - Terminal-focused setup (Fish, Neovim, tmux)
+3. `install-desktop.fish` - Desktop environment setup (Hyprland)
+4. Individual component installers in `scripts/` directory
+5. Automatic dependency resolution and error handling
 
 ---
 
@@ -129,10 +149,14 @@ Hyprland
 
 ## 🔄 Updates
 
-```bash
+```fish
 cd fedpunk
 git pull
-bash install.sh  # Re-run for updates
+fish install.fish  # Re-run for updates
+
+# Or update specific parts:
+fish install-terminal.fish  # Update terminal tools
+fish install-desktop.fish   # Update desktop environment
 ```
 
 ---

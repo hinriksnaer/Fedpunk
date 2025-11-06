@@ -1,33 +1,109 @@
 #!/usr/bin/env fish
 
-echo "🚀 Fedpunk Dotfiles Installer (Fish)"
-echo "======================================"
+echo "🐟 Fedpunk Linux Setup"
+echo "======================"
+echo "Choose your installation type:"
+echo ""
+
+# Show menu options
+echo "1. 🖥️  Full Setup (Terminal + Desktop)"
+echo "2. 🐟 Terminal Only (Fish, Neovim, tmux, etc.)"
+echo "3. 🪟 Desktop Only (Hyprland environment)"
+echo "4. 🛠️  Custom (specify components)"
+echo ""
+
+# Check if arguments provided (skip menu)
+if test (count $argv) -gt 0
+    switch $argv[1]
+        case "terminal" "1"
+            fish "./install-terminal.fish"
+            exit
+        case "desktop" "2"
+            fish "./install-desktop.fish"
+            exit
+        case "full" "3"
+            echo "→ Running full setup..."
+            fish "./install-terminal.fish"
+            and fish "./install-desktop.fish"
+            exit
+        case "custom" "4"
+            set components $argv[2..-1]
+            # Fall through to custom logic below
+        case '*'
+            echo "❌ Invalid option: $argv[1]"
+            echo "   Valid options: terminal, desktop, full, custom"
+            exit 1
+    end
+else
+    # Interactive menu
+    read -P "Enter choice [1-4]: " choice
+    
+    switch $choice
+        case "1"
+            echo "→ Running full setup..."
+            fish "./install-terminal.fish"
+            and fish "./install-desktop.fish"
+            exit
+        case "2"
+            fish "./install-terminal.fish"
+            exit
+        case "3"
+            fish "./install-desktop.fish"
+            exit
+        case "4"
+            echo "→ Custom installation mode"
+            # Fall through to custom logic
+        case '*'
+            echo "❌ Invalid choice"
+            exit 1
+    end
+end
+
+# Custom installation logic
+echo ""
+echo "🛠️ Custom Installation"
+echo "Available components:"
+
+set all_components btop lazygit neovim tmux foot hyprland nvidia
+
+for component in $all_components
+    echo "  --$component"
+end
+
+if test (count $argv) -eq 1 -a "$argv[1]" = "custom"
+    echo ""
+    read -P "Enter components (e.g., --neovim --tmux --hyprland): " -a components
+else if test "$argv[1]" = "custom"
+    set components $argv[2..-1]
+else
+    set components $argv
+end
 
 # Initialize submodules
 echo "→ Initializing git submodules"
 git submodule sync --recursive
 git submodule update --init --recursive
 
-# Available installers (Fish is implicit as prerequisite)
-set installers \
-  btop \
-  lazygit \
-  neovim \
-  tmux \
-  foot \
-  hyprland \
-  nvidia
+# Ensure Fish is available
+if not command -v fish >/dev/null 2>&1
+    echo "→ Installing Fish first..."
+    if test -f "./scripts/init.sh"
+        bash "./scripts/init.sh"
+    end
+    if test -f "./scripts/install-fish.sh"
+        bash "./scripts/install-fish.sh"
+    end
+end
 
 # Helper function to run installer
 function run_installer
     set name $argv[1]
     
-    # Prefer Fish scripts (should always exist now)
     if test -f "./scripts/install-$name.fish"
-        echo "→ Installing $name (using Fish)"
+        echo "→ Installing $name"
         fish "./scripts/install-$name.fish"
     else if test -f "./scripts/install-$name.sh"
-        echo "→ Installing $name (using Bash fallback)"
+        echo "→ Installing $name (bash fallback)"
         bash "./scripts/install-$name.sh"
     else
         echo "⚠️ No installer found for $name"
@@ -35,40 +111,20 @@ function run_installer
     end
 end
 
-# Parse arguments
-if test (count $argv) -eq 0
-    # No arguments - install everything
-    echo "→ No arguments provided, installing everything..."
-    for name in $installers
-        run_installer $name
-    end
-else
-    # Selective installation
-    for arg in $argv
-        switch $arg
-            case '--*'
-                # Strip leading '--'
-                set name (string sub -s 3 $arg)
-                
-                # Check if valid installer
-                if contains $name $installers
-                    run_installer $name
-                else
-                    echo "⚠️ Unknown option: $arg"
-                    echo "   Valid options:"
-                    for installer in $installers
-                        echo "     --$installer"
-                    end
-                    exit 1
-                end
-            case '*'
-                echo "⚠️ Unexpected argument: $arg"
-                echo "   Use flags like --neovim, --tmux, etc."
-                exit 1
-        end
+# Install selected components
+for arg in $components
+    switch $arg
+        case '--*'
+            set name (string sub -s 3 $arg)
+            if contains $name $all_components
+                run_installer $name
+            else
+                echo "⚠️ Unknown component: $arg"
+            end
+        case '*'
+            echo "⚠️ Invalid format: $arg (use --component)"
     end
 end
 
 echo ""
-echo "✅ Installation complete!"
-echo "   Don't forget to restart your shell or run: exec fish"
+echo "✅ Custom installation complete!"
