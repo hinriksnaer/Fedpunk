@@ -24,10 +24,13 @@ Repo layout derived from the GitHub tree. Exact file paths map to standard `$XDG
 
 ## Prerequisites
 
-Make sure the following are installed (use your system package manager):
+The installer will automatically handle most dependencies, but you'll need:
 
-- **git**
-- **fish**
+- **git** (required for cloning)
+- **stow** (installed automatically by init.sh)
+
+**Tools that will be installed/configured:**
+- **fish** (installed first, enables improved installers)
 - **tmux**
 - **neovim**
 - **starship**
