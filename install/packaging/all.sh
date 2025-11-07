@@ -10,7 +10,7 @@ fish "$FEDPUNK_INSTALL/packaging/install-btop.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-neovim.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-tmux.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-lazygit.fish"
-fish "$FEDPUNK_INSTALL/packaging/install-bluetui.fish"
+# fish "$FEDPUNK_INSTALL/packaging/install-bluetui.fish"
 
 # Optional: Claude
 if [ -n "$FEDPUNK_INSTALL_CLAUDE" ]; then
