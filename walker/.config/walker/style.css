@@ -1,7 +1,5 @@
-/* Walker Theme */
-@define-color selected-text #73d0ff;
-@define-color text #cccac2;
-@define-color base #1f2430;
-@define-color border #f28779;
-@define-color foreground #cccac2;
-@define-color background #1f2430;
+/* Walker Theme - Fedpunk */
+/* Theme colors managed by theme switcher */
+/* Switch themes with: Super+Shift+T */
+
+@import url("theme.css");
