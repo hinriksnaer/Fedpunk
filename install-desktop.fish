@@ -15,6 +15,7 @@ end
 set desktop_tools \
   foot \
   hyprland \
+  walker \
   firefox
 
 # Optional components (ask user)
@@ -72,6 +73,7 @@ echo ""
 echo "🎯 What's installed:"
 echo "  🪟 Hyprland - Wayland tiling compositor"
 echo "  🦶 Foot - Fast Wayland terminal"
+echo "  🚀 Walker - Application launcher"
 echo "  🦊 Firefox - Default web browser"
 echo "  🔔 Dunst - Notification daemon"
 echo "  🎨 Desktop portals and authentication"
