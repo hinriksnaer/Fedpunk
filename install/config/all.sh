@@ -25,6 +25,6 @@ done
 # Link bin directory
 echo "  • Linking bin scripts"
 mkdir -p "$HOME/.local/bin"
-stow -t "$HOME/.local" bin 2>/dev/null || true
+stow -d . -t "$HOME/.local" bin 2>/dev/null || true
 
 echo "✅ Configuration deployment complete"

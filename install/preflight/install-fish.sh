@@ -4,7 +4,7 @@ set -euo pipefail
 # Get either /root or /home/USER depending on the user
 DIR=$(if [ "$(id -u)" -eq 0 ]; then echo "/root"; else echo "/home/$(whoami)"; fi)
 
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
+cd "$FEDPUNK_PATH"
 
 echo "→ Installing Fish and dependencies"
 
@@ -21,7 +21,7 @@ if ! command -v lsd >/dev/null 2>&1; then
   fi
 fi
 
-stow -t "$DIR" fish
+stow -d config -t "$DIR" fish
 
 # Install fisher (fish plugin manager)
 fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"

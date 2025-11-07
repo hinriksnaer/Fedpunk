@@ -3,7 +3,7 @@
 # Get target directory (either /root or /home/USER)
 set TARGET_DIR (test (id -u) -eq 0; and echo "/root"; or echo "/home/"(whoami))
 
-cd (dirname (status -f))/../
+cd $FEDPUNK_PATH
 
 echo "→ Installing Walker launcher and Elephant service from copr"
 
@@ -30,7 +30,7 @@ echo "✅ Walker installed: "(which walker)
 echo "✅ Elephant installed: "(which elephant)
 
 echo "→ Stowing Walker configuration"
-stow -t $TARGET_DIR walker
+stow -d config -t $TARGET_DIR walker
 
 echo "→ Enabling and starting Elephant systemd service"
 # First enable the service in elephant's config
