@@ -1,0 +1,12 @@
+#!/usr/bin/env fish
+# Launch bluetui in a floating terminal window
+# Usage: fedpunk-bluetooth
+
+# Check if bluetui is installed
+if not command -v bluetui >/dev/null 2>&1
+    notify-send "Bluetui Not Installed" "Run: fish scripts/install-bluetui.fish" -u critical -t 5000
+    exit 1
+end
+
+# Launch bluetui in kitty with floating window
+kitty --class floating-bluetui --title "Bluetooth Manager" bluetui

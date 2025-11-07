@@ -1,6 +1,7 @@
 # Environment variables
 set -gx PATH $HOME/.local/bin $PATH
 set -gx PATH $HOME/.cargo/bin $PATH
+set -gx PATH $HOME/Fedpunk/bin $PATH
 
 # History
 set -g fish_history_size 10000
@@ -46,10 +47,10 @@ set -gx __GLX_VENDOR_LIBRARY_NAME nvidia
 set -gx WLR_NO_HARDWARE_CURSORS 1
 
 # Default terminal for GUI applications
-set -gx TERMINAL foot
+set -gx TERMINAL kitty
 
 # Default terminal for GUI applications
-set -gx TERMINAL foot
+set -gx TERMINAL kitty
 
 # NVIDIA Wayland support
 set -gx LIBVA_DRIVER_NAME nvidia
@@ -65,7 +66,7 @@ set -gx PATH $HOME/.cargo/bin $PATH
 set -gx PATH $HOME/.cargo/bin $PATH
 
 # Default terminal for GUI applications
-set -gx TERMINAL foot
+set -gx TERMINAL kitty
 
 # NVIDIA Wayland support
 set -gx LIBVA_DRIVER_NAME nvidia

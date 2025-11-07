@@ -1,0 +1,17 @@
+#!/usr/bin/env fish
+# List all available themes in the themes directory
+# Usage: fedpunk-theme-list
+
+set themes_dir "$HOME/Fedpunk/themes"
+
+# Get all theme directories
+for theme_dir in $themes_dir/*/
+    # Skip if not a directory
+    test -d "$theme_dir"; or continue
+
+    # Get basename and format nicely
+    set theme_name (basename "$theme_dir")
+
+    # Convert dashes to spaces and capitalize words
+    echo $theme_name | sed 's/-/ /g; s/\b\(.\)/\u\1/g'
+end | sort
