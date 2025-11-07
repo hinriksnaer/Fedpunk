@@ -30,6 +30,15 @@ end
 
 echo "✅ Fish installed successfully!"
 
+# Install essential utilities (Rust, Cargo, etc.)
+echo ""
+echo "→ Installing essential utilities"
+if test -f "./scripts/install-essentials.fish"
+    fish "./scripts/install-essentials.fish"
+else
+    echo "⚠️  Essentials installer not found, skipping..."
+end
+
 # Terminal-focused installers
 set terminal_tools \
   btop \

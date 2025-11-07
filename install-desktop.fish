@@ -11,6 +11,14 @@ if not command -v fish >/dev/null 2>&1
     exit 1
 end
 
+# Install essential utilities if not already done
+echo "→ Ensuring essential utilities are installed"
+if test -f "./scripts/install-essentials.fish"
+    fish "./scripts/install-essentials.fish"
+else
+    echo "⚠️  Essentials installer not found, skipping..."
+end
+
 # Desktop-focused installers
 set desktop_tools \
   foot \

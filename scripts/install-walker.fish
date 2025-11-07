@@ -8,52 +8,66 @@ cd (dirname (status -f))/../
 echo "→ Installing Walker launcher"
 
 # Install walker dependencies
+echo "→ Installing dependencies"
 set packages \
   gtk4 \
   gtk4-devel \
+  gtk4-layer-shell \
+  gtk4-layer-shell-devel \
   gobject-introspection-devel \
   cairo-devel \
-  pango-devel
+  pango-devel \
+  poppler-glib \
+  poppler-glib-devel \
+  protobuf-compiler \
+  rust \
+  cargo
 
 sudo dnf install -qy $packages
 
-# Check if walker is already installed
-if not command -v walker >/dev/null 2>&1
-    echo "→ Walker not found in PATH"
-    echo "→ Installing Walker from GitHub releases"
+# Ensure cargo is in PATH
+if test -d $HOME/.cargo/bin
+    set -gx PATH $HOME/.cargo/bin $PATH
+end
 
-    # Get latest release
-    set WALKER_VERSION (curl -s https://api.github.com/repos/abenz1267/walker/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
-
-    if test -z "$WALKER_VERSION"
-        echo "⚠️  Could not determine latest Walker version"
-        echo "→ Please install Walker manually from: https://github.com/abenz1267/walker"
+# Check if walker is already installed and working
+if command -v walker >/dev/null 2>&1; and walker --version >/dev/null 2>&1
+    echo "✅ Walker already installed: "(which walker)
+else
+    # Verify cargo is available
+    if not command -v cargo >/dev/null 2>&1
+        echo "❌ Cargo not found!"
+        echo "   Please run './scripts/install-essentials.fish' first"
         exit 1
     end
 
-    echo "→ Latest version: $WALKER_VERSION"
+    echo "→ Building Walker from source"
 
-    # Download and install (adjust based on actual release assets)
     set TEMP_DIR (mktemp -d)
     cd $TEMP_DIR
 
-    # Try to download the binary (adjust URL based on actual releases)
-    curl -LO "https://github.com/abenz1267/walker/releases/download/$WALKER_VERSION/walker-linux-amd64"
+    echo "→ Cloning Walker repository"
+    git clone https://github.com/abenz1267/walker.git
+    cd walker
 
-    if test -f walker-linux-amd64
-        chmod +x walker-linux-amd64
-        sudo mv walker-linux-amd64 /usr/local/bin/walker
-        echo "✅ Walker installed to /usr/local/bin/walker"
+    echo "→ Building with Cargo (this may take a few minutes)"
+    cargo build --release
+
+    if test -f target/release/walker
+        echo "→ Installing to /usr/local/bin"
+        sudo cp target/release/walker /usr/local/bin/walker
+        sudo chmod +x /usr/local/bin/walker
+        echo "✅ Walker installed successfully"
     else
-        echo "⚠️  Could not download Walker binary"
-        echo "→ You may need to build from source or check releases at:"
-        echo "   https://github.com/abenz1267/walker/releases"
+        echo "❌ Build failed"
+        echo "→ Please check the error messages above"
+        cd -
+        rm -rf $TEMP_DIR
+        exit 1
     end
 
     cd -
     rm -rf $TEMP_DIR
-else
-    echo "✅ Walker already installed: "(which walker)
 end
 
 echo "→ Stowing Walker configuration"
