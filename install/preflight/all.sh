@@ -13,4 +13,7 @@ if ! command -v fish >/dev/null 2>&1; then
     exit 1
 fi
 
+echo "→ Checking SELinux configuration"
+bash "$FEDPUNK_INSTALL/preflight/selinux-check.sh"
+
 echo "✅ Prerequisites complete"

@@ -17,9 +17,13 @@ if [ -n "$FEDPUNK_INSTALL_CLAUDE" ]; then
     fish "$FEDPUNK_INSTALL/packaging/install-claude.fish"
 fi
 
-# Desktop components
-fish "$FEDPUNK_INSTALL/packaging/install-hyprland.fish"
-fish "$FEDPUNK_INSTALL/packaging/install-walker.fish"
+# Desktop components (skip on headless servers)
+if [[ -z "$FEDPUNK_HEADLESS" ]]; then
+    fish "$FEDPUNK_INSTALL/packaging/install-hyprland.fish"
+    fish "$FEDPUNK_INSTALL/packaging/install-walker.fish"
+else
+    echo "→ Skipping desktop components (headless server detected)"
+fi
 
 # Optional: NVIDIA
 if [ -n "$FEDPUNK_INSTALL_NVIDIA" ]; then

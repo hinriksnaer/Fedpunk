@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit immediately if a command exits with a non-zero status
+set -eEo pipefail
+
 # Set install mode to online since boot.sh is used for curl installations
 export FEDPUNK_ONLINE_INSTALL=true
 
@@ -12,16 +15,59 @@ ansi_art='
 ╚═╝     ╚══════╝╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝
 '
 
+# Preflight checks
+echo "🔍 Running preflight checks..."
+
+# Check internet connectivity
+echo "→ Checking internet connectivity..."
+if ! ping -c 1 github.com &>/dev/null; then
+    echo "❌ No internet connection. Please check your network and try again."
+    exit 1
+fi
+
+# Check sudo privileges
+echo "→ Verifying sudo privileges..."
+if ! sudo -n true 2>/dev/null; then
+    echo "→ Sudo privileges required. Please enter your password:"
+    if ! sudo true; then
+        echo "❌ Failed to obtain sudo privileges. Installation cannot continue."
+        exit 1
+    fi
+fi
+
+# Check if running on a display server (for Hyprland compatibility)
+echo "→ Checking display server compatibility..."
+if [[ -z "$DISPLAY" && -z "$WAYLAND_DISPLAY" && -z "$XDG_SESSION_TYPE" ]]; then
+    echo "⚠️  Warning: No display server detected. This appears to be a headless server."
+    echo "   Hyprland installation will be skipped automatically."
+    export FEDPUNK_HEADLESS=true
+fi
+
 clear
 echo -e "\n$ansi_art\n"
+echo "✅ Preflight checks passed"
 
+echo "→ Installing git..."
 sudo dnf install -y git
 
 # Use custom repo if specified, otherwise default to your repo
 FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
 
 echo -e "\nCloning Fedpunk from: https://github.com/${FEDPUNK_REPO}.git"
-rm -rf ~/.local/share/fedpunk/
+
+# Check if existing installation exists and ask for confirmation
+if [[ -d ~/.local/share/fedpunk ]]; then
+    echo "⚠️  Existing Fedpunk installation found at ~/.local/share/fedpunk"
+    read -p "Do you want to remove it and continue? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "❌ Installation cancelled by user."
+        exit 1
+    fi
+    echo "→ Removing existing installation..."
+    rm -rf ~/.local/share/fedpunk/
+fi
+
 git clone "https://github.com/${FEDPUNK_REPO}.git" ~/.local/share/fedpunk
 
 # Use custom branch if instructed, otherwise default to main
