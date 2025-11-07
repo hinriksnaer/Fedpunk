@@ -35,6 +35,7 @@ stow -R walker
 echo "→ Enabling and starting Elephant systemd service"
 elephant service enable
 
+systemctl --user enable elephant
 # Ensure the service is started
 systemctl --user start elephant
 

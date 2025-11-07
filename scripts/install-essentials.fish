@@ -16,6 +16,8 @@ echo "→ Installing core development tools"
 set core_tools \
   git \
   curl \
+  firefox \
+  fzf \
   wget \
   unzip \
   tar \
