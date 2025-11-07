@@ -42,7 +42,7 @@ fedpunk-theme-set default
 
 **Features:**
 - Updates Hyprland configuration
-- Creates symlinks for theme files (foot, walker, btop)
+- Creates symlinks for theme files (kitty, walker, btop)
 - Reloads applications automatically
 - Shows notification with results
 - Case-insensitive theme names
@@ -127,9 +127,7 @@ Each theme should be organized in the `~/Fedpunk/themes/<theme-name>/` directory
 themes/
 └── theme-name/
     ├── hyprland.conf          # Hyprland colors and styling
-    ├── kitty.conf             # Kitty terminal theme colors
-    ├── foot.ini               # Foot terminal theme
-    ├── .fedpunk-foot.ini      # Alternative foot theme name
+    ├── kitty.conf             # Kitty terminal theme (omarchy standard)
     ├── walker.css             # Walker launcher theme colors
     ├── btop.theme             # btop system monitor theme
     └── backgrounds/           # Wallpaper images (jpg, png, jpeg)

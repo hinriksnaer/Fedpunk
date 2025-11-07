@@ -1,18 +1,23 @@
 # Fedpunk Linux Setup
 
-**A modern, fish-first development environment for Fedora Linux with Hyprland**
+**An awesome omarchy-based Fedora setup with Hyprland**
 
-Fedpunk transforms your Fedora installation into a sleek, productive development environment featuring the Hyprland Wayland compositor, Fish shell, and carefully curated development tools.
+Fedpunk is a modern, fish-first development environment built on top of the excellent [omarchy](https://github.com/swaystudio/omarchy) framework. It transforms your Fedora installation into a sleek, productive workspace featuring the Hyprland Wayland compositor, comprehensive theming system, and carefully curated development tools.
+
+**✨ Fully compatible with omarchy themes** - Use any theme from omarchy or create your own!
 
 ---
 
 ## 🚀 Features
 
-- **🐟 Fish-first architecture** - Modern shell with intelligent autocompletion and syntax highlighting
-- **🪟 Hyprland compositor** - Blazing fast tiling Wayland window manager
+- **🎨 Omarchy-based theming** - Built on omarchy's excellent theme framework with full compatibility
+- **🐟 Fish-first architecture** - Modern shell with intelligent autocompletion and scripting
+- **🪟 Hyprland compositor** - Blazing fast tiling Wayland window manager with master layout support
+- **⚡ Dynamic theme switching** - Switch themes on-the-fly with Super+Shift+T (includes all omarchy themes)
+- **🖼️ Integrated wallpaper management** - Per-theme wallpapers with swaybg integration
 - **⚡ NVIDIA support** - Proprietary driver installation with Wayland compatibility
-- **🛠️ Development tools** - Neovim, tmux, lazygit, and essential utilities
-- **🎨 Consistent theming** - Coordinated color schemes across all applications
+- **🛠️ Premium development tools** - Neovim, tmux, lazygit, btop, bluetui, and more
+- **🐱 Kitty terminal** - GPU-accelerated with theme synchronization
 - **📦 Automated setup** - One command installs and configures everything
 
 ---
@@ -78,12 +83,14 @@ fish install-terminal.fish
 | **Lazygit** | Terminal git UI | `~/.config/lazygit/` |
 | **btop** | Resource monitor | `~/.config/btop/` |
 
-### 🪟 Desktop Setup  
+### 🪟 Desktop Setup
 | Component | Description | Configuration |
 |-----------|-------------|---------------|
 | **Hyprland** | Tiling Wayland compositor | `~/.config/hypr/` |
-| **Foot** | Fast Wayland terminal | System default |
+| **Kitty** | GPU-accelerated terminal | `~/.config/kitty/` |
+| **Walker** | Application launcher | `~/.config/walker/` |
 | **Firefox** | Default web browser | System default |
+| **swaybg** | Wallpaper manager | Theme-controlled |
 | **Desktop Portals** | File dialogs, authentication | Auto-configured |
 | **NVIDIA** | Proprietary drivers (optional) | Auto-configured |
 
@@ -137,14 +144,40 @@ Hyprland
 ```
 
 ### Key Bindings (Hyprland)
-- `Super + Q` - Open terminal (Foot)
-- `Super + B` - Open browser (Firefox)
-- `Super + R` - Application launcher (wofi)
+
+**Applications:**
+- `Super + Return` - Terminal (Kitty)
+- `Super + B` - Browser (Firefox)
+- `Super + Space` - Application launcher (Walker)
 - `Super + E` - File manager (Thunar)
-- `Super + C` - Close window
+- `Super + Shift + B` - Bluetooth manager (bluetui)
+
+**Window Management:**
+- `Super + Q` - Close window
+- `Super + Shift + E` - Exit Hyprland
+- `Super + V` - Toggle floating
+- `Super + F` - Toggle fullscreen
+- `Super + h/j/k/l` - Focus windows (Vim keys)
+- `Super + Shift + h/j/k/l` - Move windows
+- `Super + Ctrl + h/j/k/l` - Resize windows
+
+**Workspaces:**
 - `Super + 1-9` - Switch workspaces
-- `Print` - Screenshot to clipboard
-- `Super + M` - Exit Hyprland
+- `Super + Shift + 1-9` - Move window to workspace
+
+**Theme & Appearance:**
+- `Super + Shift + T` - Next theme
+- `Super + Shift + Y` - Previous theme
+- `Super + Shift + R` - Refresh current theme
+- `Super + Shift + W` - Next wallpaper
+
+**Layouts:**
+- `Super + Alt + L` - Toggle layout (dwindle ↔ master)
+
+**Screenshots:**
+- `Print` - Selection screenshot
+- `Super + Print` - Full screen screenshot
+- `Super + Shift + S` - Alternative selection
 
 ### Shell Usage
 ```fish
@@ -218,10 +251,36 @@ All configurations use standard XDG paths:
 - `~/.local/bin/` - User binaries
 
 ### Theming
-Configurations use consistent color schemes. Modify:
-- `fish/.config/starship.toml` - Prompt theming
-- `hyprland/.config/hypr/hyprland.conf` - Window manager theming
-- `btop/.config/btop/btop.conf` - Monitor theming
+
+Fedpunk uses the omarchy theming system for coordinated themes across all applications:
+
+**Theme Management:**
+```fish
+fedpunk-theme-list      # List all available themes
+fedpunk-theme-current   # Show current theme
+fedpunk-theme-set <name>  # Switch to a specific theme
+fedpunk-theme-next      # Cycle to next theme (Super+Shift+T)
+fedpunk-theme-prev      # Cycle to previous theme (Super+Shift+Y)
+fedpunk-theme-refresh   # Refresh current theme (Super+Shift+R)
+```
+
+**Creating Custom Themes:**
+Themes are located in `~/Fedpunk/themes/`. Each theme directory contains:
+- `hyprland.conf` - Hyprland colors and variables
+- `kitty.conf` - Kitty terminal colors (omarchy standard)
+- `walker.css` - Walker launcher theme
+- `btop.theme` - btop resource monitor theme
+- `backgrounds/` - Theme wallpapers
+
+**Omarchy Theme Compatibility:**
+All 12 omarchy themes are included by default. You can also copy themes directly from any omarchy installation - they work out of the box!
+
+**Supported Applications:**
+- Hyprland window borders and decorations
+- Kitty terminal (requires restart to apply)
+- Walker application launcher (auto-reloads)
+- btop resource monitor (auto-reloads)
+- swaybg wallpapers (instant switching)
 
 ---
 
@@ -282,10 +341,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
+- [omarchy](https://github.com/swaystudio/omarchy) - The excellent theming framework this project is built upon
 - [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Fedora-Hyprland) - Inspiration and package references
 - [Fish Shell Community](https://fishshell.com/) - Amazing shell and ecosystem
 - [Hyprland Community](https://hyprland.org/) - Cutting-edge Wayland compositor
 
 ---
 
-**Fedpunk - Where Fedora meets the future of Linux desktop computing**
+**Fedpunk - An awesome omarchy-based Fedora setup where aesthetics meet productivity**

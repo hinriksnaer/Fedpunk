@@ -1,53 +1,67 @@
 # Fedpunk Themes
 
-Complete theme packages for the entire Fedpunk desktop environment. Themes are swapped across all applications simultaneously.
+**Omarchy-compatible theme system** for the entire Fedpunk desktop environment. Fully compatible with all omarchy themes!
+
+Themes are swapped across all applications simultaneously using the excellent omarchy theme framework as a base.
 
 ## Quick Start
 
 ### Switch Themes
 
-- **Super+Shift+T** - Cycle through all installed themes
-- `fish ~/.config/hypr/scripts/switch-theme.fish` - Cycle themes from terminal
-- `fish ~/.config/hypr/scripts/switch-theme.fish <theme-name>` - Switch to specific theme
+- **Super+Shift+T** - Cycle to next theme
+- **Super+Shift+Y** - Cycle to previous theme
+- **Super+Shift+R** - Refresh current theme
+- **Super+Shift+W** - Cycle through wallpapers
+- `fedpunk-theme-list` - List all available themes
+- `fedpunk-theme-set <theme-name>` - Switch to specific theme
 
 ### Supported Applications
 
 Each theme can customize:
-- **Hyprland** - Window manager colors
-- **Foot** - Terminal colors
+- **Hyprland** - Window manager colors and decorations
+- **Kitty** - Terminal colors (omarchy standard)
 - **Walker** - Application launcher
 - **btop** - System monitor
-- **Waybar** - Status bar (if installed)
-- **Neovim** - Editor theme (if installed)
-- **Mako** - Notifications (if installed)
+- **swaybg** - Wallpaper management
 
 ## Available Themes
 
+Fedpunk comes with all 12 omarchy themes pre-installed, plus our custom themes:
+
+### Omarchy Themes (Included)
+All themes from the [omarchy](https://github.com/swaystudio/omarchy) project work out of the box!
+
+### Custom Themes
 - **default** - Original Fedpunk theme (coral/orange accents)
-- **omarchy-ayu-mirage-theme** - Warm, pastel Ayu Mirage colors (unmodified from [GitHub](https://github.com/fdidron/omarchy-ayu-mirage-theme))
+- **osaka-jade** - Custom jade/teal theme
+
+**Note:** Any omarchy theme repository can be copied directly into `~/Fedpunk/themes/` and will work immediately!
 
 ## Adding New Themes
 
-**Important**: Theme repos are NEVER modified! Fedpunk uses adapter files (`.fedpunk-*.conf`) to bridge between theme formats when needed.
+**Important**: Omarchy themes work out of the box! Fedpunk is fully compatible with the omarchy theme system.
 
-### Method 1: Clone External Theme Repos (Recommended)
+### Method 1: Use Omarchy Themes (Recommended)
 
-Perfect for themes like omarchy - just download and go!
+All omarchy themes are already included, but you can also copy additional ones:
 
 ```bash
 cd ~/Fedpunk/themes
-# Download all files from theme repo
-git clone https://github.com/user/some-theme my-theme
+# Copy from an omarchy installation
+cp -r ~/gits/omarchy/themes/* .
+
+# Or download individual omarchy themes
+git clone https://github.com/user/omarchy-theme-name my-theme
 cd my-theme
-# Keep only the config files, remove git history
-rm -rf .git
+rm -rf .git  # Remove git history
 ```
 
-**No modifications needed!** As long as the theme repo has these files:
-- `hyprland.conf`
-- `foot.ini` or `alacritty.toml`
-- `walker.css`
-- `btop.theme`
+**No modifications needed!** Omarchy themes include:
+- `hyprland.conf` - Hyprland colors
+- `kitty.conf` - Kitty terminal colors
+- `walker.css` - Walker launcher
+- `btop.theme` - btop monitor
+- `backgrounds/` - Theme wallpapers
 
 The theme switcher will apply what exists and skip what doesn't.
 
@@ -65,12 +79,10 @@ Create these files (copy from another theme as a starting point):
 - `hyprland.conf` - Window manager colors
 
 **Optional files:**
-- `foot.ini` - Terminal colors
+- `kitty.conf` - Kitty terminal colors (omarchy standard)
 - `walker.css` - Launcher colors
-- `btop.theme` - System monitor colors
-- `waybar.css` - Status bar
-- `neovim.lua` - Editor theme
-- `mako.ini` - Notification colors
+- `btop.theme` - btop system monitor colors
+- `backgrounds/` - Theme wallpapers
 
 ### Method 3: Adapt External Themes
 
@@ -83,7 +95,7 @@ cd tokyo-night
 
 # Download the original theme files
 wget https://raw.githubusercontent.com/user/theme/main/colors.conf -O hyprland.conf
-wget https://raw.githubusercontent.com/user/theme/main/terminal.toml -O foot.ini
+wget https://raw.githubusercontent.com/user/theme/main/kitty.conf -O kitty.conf
 # ... etc
 ```
 
@@ -99,14 +111,15 @@ $background = rgb(1f2430)
 $foreground = rgb(cccac2)
 ```
 
-### Foot Terminal (foot.ini)
+### Kitty Terminal (kitty.conf)
 
-```ini
-[colors]
-foreground=cccac2
-background=1f2430
-regular0=171b24  # black
-regular1=ed8274  # red
+Omarchy uses kitty as the standard terminal.
+
+```conf
+foreground #cccac2
+background #1f2430
+color0 #171b24  # black
+color1 #ed8274  # red
 # ... etc
 ```
 
@@ -130,14 +143,15 @@ theme[title]="#ffd173"
 
 ## How It Works
 
-1. Theme files live in `~/Fedpunk/themes/<theme-name>/`
+1. Theme files live in `~/Fedpunk/themes/<theme-name>/` (same as omarchy)
 2. Application configs import from symlinked "active" theme files:
-   - `~/.config/hypr/active-theme.conf` → `~/Fedpunk/themes/<theme-name>/hyprland.conf`
-   - `~/.config/foot/theme.ini` → `~/Fedpunk/themes/<theme-name>/foot.ini`
+   - `~/.config/hypr/hyprland.conf` sources `~/Fedpunk/themes/<theme-name>/hyprland.conf`
+   - `~/.config/kitty/theme.conf` → `~/Fedpunk/themes/<theme-name>/kitty.conf`
    - `~/.config/walker/theme.css` → `~/Fedpunk/themes/<theme-name>/walker.css`
    - `~/.config/btop/themes/active.theme` → `~/Fedpunk/themes/<theme-name>/btop.theme`
+   - `~/.config/hypr/wallpapers/current` → `~/Fedpunk/themes/<theme-name>/backgrounds/<wallpaper>`
 3. Theme switcher updates all symlinks at once
-4. Hyprland reloads automatically; other apps update on next launch
+4. Hyprland reloads automatically; btop live reloads; kitty requires restart
 
 ## Examples
 
@@ -151,7 +165,7 @@ mv cool-theme-main cool-theme
 rm main.zip
 
 # Switch to it
-fish ~/.config/hypr/scripts/switch-theme.fish cool-theme
+fedpunk-theme-set cool-theme
 ```
 
 ### Example 2: Create Minimal Theme (Hyprland Only)
@@ -167,7 +181,7 @@ $foreground = rgb(e0def4)
 EOF
 
 # Switch to it
-fish ~/.config/hypr/scripts/switch-theme.fish rose-pine
+fedpunk-theme-set rose-pine
 ```
 
 ### Example 3: Mix and Match
@@ -178,18 +192,21 @@ mkdir custom
 # Take Hyprland colors from one theme
 cp ayu-mirage/hyprland.conf custom/
 # Take terminal colors from another
-cp default/foot.ini custom/
+cp default/kitty.conf custom/
 # Create custom walker theme
 nano custom/walker.css
 ```
 
 ## Tips
 
+- **Omarchy compatible**: All omarchy themes work directly, no modifications needed
 - **Test incrementally**: Add one config file at a time
 - **Not all files required**: Theme works with any combination of files
 - **Colors must match format**: Use color format native to each app
-- **Terminal needs restart**: Foot picks up theme changes on new window
+- **Kitty needs restart**: Terminal picks up theme changes on restart
+- **btop live reload**: Monitor reloads automatically via SIGUSR2
 - **Hyprland instant**: Window manager changes apply immediately
+- **Wallpapers**: Use swaybg (like omarchy) for instant wallpaper switching
 
 ## Troubleshooting
 
@@ -207,46 +224,44 @@ nano custom/walker.css
 
 **Reset to default?**
 ```bash
-fish ~/.config/hypr/scripts/switch-theme.fish default
+fedpunk-theme-set default
 ```
 
-## Adapter System (Advanced)
+## Omarchy Compatibility
 
-Fedpunk can use external theme repos without modification through adapter files. This allows themes designed for other systems (like Omarchy) to work seamlessly.
+Fedpunk is built on the omarchy theming framework, which means:
 
-### How Adapters Work
+- **100% compatible** with all omarchy themes
+- **Same directory structure** (`~/Fedpunk/themes/` instead of `~/.local/share/omarchy/themes/`)
+- **Same file formats** (hyprland.conf, kitty.conf, walker.css, btop.theme, etc.)
+- **Same tools** (swaybg for wallpapers)
+- **Fully interchangeable** - copy themes between omarchy and Fedpunk installations
 
-When you switch themes, Fedpunk looks for files in this order:
+### Why Omarchy-Based?
 
-1. **Adapter file** (e.g., `.fedpunk-adapter.conf` for Hyprland)
-2. **Native file** (e.g., `hyprland.conf`)
+Omarchy provides an excellent, well-designed theming system that:
+- Works across multiple applications seamlessly
+- Uses standard configuration file formats
+- Includes comprehensive theme collections
+- Supports wallpaper management per theme
+- Has an active community creating themes
 
-If an adapter exists, it's used. Otherwise, the native file is used. This means:
-- **Omarchy themes** work as-is (adapters bridge the format gap)
-- **Native Fedpunk themes** work directly
-- **External repos** are NEVER modified
+Fedpunk extends this with:
+- Fish-based theme management scripts
+- Fedora-optimized installation
+- Additional development tools integration
+- Master layout support for ultrawides
 
-### Creating Adapters
+### Using Themes from Omarchy Installations
 
-Only needed if a theme uses incompatible formats:
+If you have omarchy installed, simply copy themes:
 
 ```bash
-# Example: Bridging Alacritty → Foot
-cd ~/Fedpunk/themes/some-theme
-cat > .fedpunk-foot.ini <<EOF
-[colors]
-foreground=cccac2
-background=1f2430
-regular0=171b24
-# ... convert colors from alacritty.toml
-EOF
+# Copy all omarchy themes to Fedpunk
+cp -r ~/gits/omarchy/themes/* ~/Fedpunk/themes/
 
-# Example: Bridging direct config → variables
-cat > .fedpunk-adapter.conf <<EOF
-$accent_color = rgb(f28779)
-$inactive_color = rgba(707a8c80)
-# ... extract from theme's native format
-EOF
+# Or copy from omarchy's default location
+cp -r ~/.local/share/omarchy/themes/* ~/Fedpunk/themes/
 ```
 
-Adapters are gitignored and never committed to theme repos.
+All themes work immediately with no modifications!

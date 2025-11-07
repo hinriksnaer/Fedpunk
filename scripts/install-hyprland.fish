@@ -22,7 +22,6 @@ set packages \
   grim \
   slurp \
   wl-clipboard \
-  foot \
   thunar \
   pavucontrol \
   playerctl \
@@ -76,9 +75,9 @@ echo "  - Log out and select 'Hyprland' from your display manager"
 echo "  - Or run 'Hyprland' from a TTY"
 echo ""
 echo "Key bindings:"
-echo "  Super+Q: Open terminal (foot)"
-echo "  Super+R: Open application launcher (wofi)"
-echo "  Super+C: Close window"
-echo "  Super+M: Exit Hyprland"
+echo "  Super+Return: Open terminal (kitty)"
+echo "  Super+Space: Open application launcher (walker)"
+echo "  Super+Q: Close window"
+echo "  Super+Shift+E: Exit Hyprland"
 echo "  Super+[1-9]: Switch workspace"
 echo "  Print: Screenshot area to clipboard"

@@ -21,7 +21,6 @@ end
 
 # Desktop-focused installers
 set desktop_tools \
-  foot \
   hyprland \
   walker \
   firefox
@@ -80,7 +79,7 @@ echo "✅ Desktop setup complete!"
 echo ""
 echo "🎯 What's installed:"
 echo "  🪟 Hyprland - Wayland tiling compositor"
-echo "  🦶 Foot - Fast Wayland terminal"
+echo "  🐱 Kitty - GPU-accelerated terminal"
 echo "  🚀 Walker - Application launcher"
 echo "  🦊 Firefox - Default web browser"
 echo "  🔔 Dunst - Notification daemon"

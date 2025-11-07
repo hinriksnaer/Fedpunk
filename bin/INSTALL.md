@@ -80,8 +80,7 @@ fedpunk-theme-refresh
 To add new themes, create a directory in `~/Fedpunk/themes/` with any of these files:
 
 - `hyprland.conf` - Hyprland colors and styling
-- `kitty.conf` - Kitty terminal theme (default terminal)
-- `foot.ini` - Foot terminal theme
+- `kitty.conf` - Kitty terminal theme (used by omarchy)
 - `walker.css` - Walker launcher color variables
 - `btop.theme` - btop system monitor theme
 - `backgrounds/` - Directory containing wallpaper images (jpg, png, jpeg)
