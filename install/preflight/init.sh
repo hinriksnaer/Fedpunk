@@ -2,6 +2,7 @@
 set -euo pipefail
 
 echo "→ Init & update submodules"
+cd "$FEDPUNK_PATH"
 git submodule sync --recursive
 git submodule update --init --recursive
 
