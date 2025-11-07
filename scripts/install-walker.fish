@@ -30,7 +30,7 @@ echo "✅ Walker installed: "(which walker)
 echo "✅ Elephant installed: "(which elephant)
 
 echo "→ Stowing Walker configuration"
-stow -R walker
+stow -t $TARGET_DIR walker
 
 echo "→ Enabling and starting Elephant systemd service"
 elephant service enable

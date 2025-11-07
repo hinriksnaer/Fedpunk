@@ -37,7 +37,9 @@ set packages \
   pipewire-alsa \
   pipewire-utils \
   network-manager-applet \
-  policycoreutils
+  policycoreutils \
+  kitty \
+  swaybg
 
 sudo dnf install -qy $packages
 
@@ -64,8 +66,15 @@ if not test -f "$TARGET_DIR/.config/hypr/wallpapers/default.jpg"
     end
 end
 
-# Stow the configuration
+# Stow the configurations
 stow -t $TARGET_DIR hyprland
+stow -t $TARGET_DIR kitty
+
+# Initialize theme system (creates symlinks for kitty, walker, btop, wallpaper)
+echo ""
+echo "→ Initializing theme system"
+set SCRIPT_DIR (dirname (status -f))
+fish "$SCRIPT_DIR/../bin/fedpunk-theme-set" default
 
 echo ""
 echo "✓ Hyprland setup complete!"
