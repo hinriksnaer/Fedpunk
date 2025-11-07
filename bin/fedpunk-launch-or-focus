@@ -1,0 +1,33 @@
+#!/usr/bin/env fish
+# Launch an app or focus it if already running
+# Usage: fedpunk-launch-or-focus [window-pattern] [launch-command]
+#
+# Examples:
+#   fedpunk-launch-or-focus firefox "firefox"
+#   fedpunk-launch-or-focus kitty "kitty"
+#   fedpunk-launch-or-focus signal "signal-desktop"
+
+if test (count $argv) -eq 0
+    echo "Usage: fedpunk-launch-or-focus [window-pattern] [launch-command]"
+    exit 1
+end
+
+set window_pattern $argv[1]
+set launch_command $argv[2]
+
+# Default launch command if not provided
+if test -z "$launch_command"
+    set launch_command $window_pattern
+end
+
+# Find window matching the pattern (search both class and title)
+set window_address (hyprctl clients -j | jq -r --arg p "$window_pattern" '.[]|select((.class|test("\\b" + $p + "\\b";"i")) or (.title|test("\\b" + $p + "\\b";"i")))|.address' | head -n1)
+
+if test -n "$window_address"
+    # Window found, focus it
+    hyprctl dispatch focuswindow "address:$window_address"
+else
+    # Window not found, launch it
+    eval $launch_command &
+    disown
+end

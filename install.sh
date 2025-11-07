@@ -1,40 +1,25 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -eEo pipefail
+
+# Define Fedpunk locations
+export FEDPUNK_PATH="$HOME/.local/share/fedpunk"
+export FEDPUNK_INSTALL="$FEDPUNK_PATH/install"
+export PATH="$FEDPUNK_PATH/bin:$PATH"
 
 echo "🐟 Fedpunk Linux Setup"
 echo "======================"
 echo "Installing complete Fedpunk environment..."
+echo "Installation path: $FEDPUNK_PATH"
 echo ""
 
-# Initialize prerequisites
-echo "→ Setting up prerequisites and Fish shell"
-if [ -f "./scripts/init.sh" ]; then
-    bash "./scripts/init.sh"
-else
-    echo "❌ Prerequisites script not found!"
-    exit 1
-fi
-
-# Install Fish first
-if [ -f "./scripts/install-fish.sh" ]; then
-    bash "./scripts/install-fish.sh"
-else
-    echo "❌ Fish installer not found!"
-    exit 1
-fi
-
-# Verify Fish installation
-if ! command -v fish >/dev/null 2>&1; then
-    echo "❌ Fish installation failed!"
-    exit 1
-fi
-
-echo "✅ Fish installed successfully!"
-echo ""
-
-# Hand off to Fish for full installation
-echo "→ Running full Fedpunk setup via Fish..."
-fish "./install.fish" full
+# Install
+source "$FEDPUNK_INSTALL/helpers/all.sh"
+source "$FEDPUNK_INSTALL/preflight/all.sh"
+source "$FEDPUNK_INSTALL/packaging/all.sh"
+source "$FEDPUNK_INSTALL/config/all.sh"
+source "$FEDPUNK_INSTALL/post-install/all.sh"
 
 echo ""
 echo "🎉 Fedpunk installation complete!"
