@@ -77,7 +77,8 @@ set build_tools \
   python3-devel \
   python3-pip \
   nodejs \
-  npm
+  npm \
+  golang
 
 sudo dnf install -qy $build_tools
 
@@ -89,6 +90,7 @@ echo "  🦀 Rust & Cargo - Rust toolchain"
 echo "  🔨 GCC/G++/Make - C/C++ compiler toolchain"
 echo "  🐍 Python3 & pip - Python development"
 echo "  📦 Node.js & npm - JavaScript development"
+echo "  🐹 Go - Go programming language"
 echo "  🔍 ripgrep, fd, bat, exa - Modern CLI tools"
 echo ""
 echo "💡 Cargo is now available in your PATH"
