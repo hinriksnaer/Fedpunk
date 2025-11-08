@@ -2,7 +2,7 @@
 # List all available themes in the themes directory
 # Usage: fedpunk-theme-list
 
-set themes_dir "$HOME/Fedpunk/themes"
+set themes_dir "$HOME/.local/share/fedpunk/themes"
 
 # Get all theme directories
 for theme_dir in $themes_dir/*/

@@ -10,7 +10,7 @@ if test (count $argv) -lt 1
     exit 1
 end
 
-set themes_dir "$HOME/Fedpunk/themes"
+set themes_dir "$HOME/.local/share/fedpunk/themes"
 set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
 
 # Normalize theme name (lowercase, convert spaces to dashes)
@@ -35,7 +35,7 @@ set skipped_count 0
 # Update Hyprland config to source the theme's hyprland.conf
 if test -f "$theme_path/hyprland.conf"
     # Replace the source line in hyprland.conf
-    sed -i "s|^source = \$HOME/Fedpunk/themes/.*/hyprland.conf|source = \$HOME/Fedpunk/themes/$theme_name/hyprland.conf|" $hyprland_conf
+    sed -i "s|^source = \$HOME/.*themes/.*/hyprland.conf|source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf|" $hyprland_conf
     echo "✓ Updated Hyprland theme source"
     set applied_count (math $applied_count + 1)
 else
