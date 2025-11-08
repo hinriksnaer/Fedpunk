@@ -40,7 +40,8 @@ elephant service enable
 sleep 1
 
 # Enable and start the systemd service
-systemctl --user enable --now elephant
+systemctl --user enable elephant
+systemctl --user start elephant
 
 # Verify the service is running
 if systemctl --user is-active --quiet elephant

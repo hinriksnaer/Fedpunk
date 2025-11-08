@@ -1,7 +1,7 @@
 function claude
     # Enhanced claude command with Fish-specific features
     if test (count $argv) -eq 0
-        # No arguments - run claude as-is
+        # Interactive mode
         command claude
     else
         # Pass through all arguments
