@@ -64,7 +64,7 @@ echo ""
 echo "🛠️ Custom Installation"
 echo "Available components:"
 
-set all_components essentials btop bluetui lazygit neovim tmux claude hyprland walker firefox nvidia
+set all_components essentials btop bluetui lazygit neovim tmux claude audio hyprland walker firefox nvidia
 
 for component in $all_components
     echo "  --$component"

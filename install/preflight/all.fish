@@ -1,15 +1,8 @@
 #!/usr/bin/env fish
-# Preflight checks and prerequisites
+# Preflight checks and system setup
 
 # Source helper functions
 source "$FEDPUNK_INSTALL/helpers/all.fish"
 
-section "Prerequisites"
-
-info "Setting up system prerequisites"
-fish "$FEDPUNK_INSTALL/preflight/init.fish"
-
-info "Checking SELinux configuration"
-fish "$FEDPUNK_INSTALL/preflight/selinux-check.fish"
-
-success "Prerequisites complete"
+# Run system-level setup (repos, upgrades, submodules, SELinux)
+fish "$FEDPUNK_INSTALL/preflight/install-system.fish"

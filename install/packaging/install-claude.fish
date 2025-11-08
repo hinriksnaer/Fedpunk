@@ -82,7 +82,7 @@ printf "%s\n" \
     '    # Enhanced claude command with Fish-specific features' \
     '    if test (count $argv) -eq 0' \
     '        # Interactive mode' \
-    '        command claude --interactive' \
+    '        command claude \
     '    else' \
     '        # Pass through all arguments' \
     '        command claude $argv' \

@@ -60,7 +60,7 @@ fish install.fish terminal
 fish install.fish desktop
 
 # Custom components
-fish install.fish custom --neovim --tmux --hyprland
+fish install.fish custom --neovim --tmux --audio --hyprland
 ```
 
 ### Quick Terminal Setup
@@ -82,6 +82,7 @@ fish install-terminal.fish
 | **Tmux** | Terminal multiplexer | `~/.config/tmux/` |
 | **Lazygit** | Terminal git UI | `~/.config/lazygit/` |
 | **btop** | Resource monitor | `~/.config/btop/` |
+| **Audio Stack** | PipeWire audio server | System-wide |
 
 ### 🪟 Desktop Setup
 | Component | Description | Configuration |
@@ -311,6 +312,31 @@ gh auth login --web=false
 ```bash
 # Fix SELinux contexts:
 sudo restorecon -R ~/.config
+```
+
+**Audio not working:**
+```bash
+# Check PipeWire status:
+systemctl --user status pipewire pipewire-pulse wireplumber
+
+# Restart audio services:
+systemctl --user restart pipewire pipewire-pulse wireplumber
+
+# List audio devices:
+wpctl status
+
+# Test audio output:
+paplay /usr/share/sounds/alsa/Front_Center.wav
+```
+
+**Bluetooth audio issues:**
+```bash
+# Restart Bluetooth service:
+sudo systemctl restart bluetooth
+
+# Connect via bluetoothctl:
+bluetoothctl
+# Then: scan on, pair <device>, connect <device>
 ```
 
 ---

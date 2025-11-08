@@ -14,7 +14,11 @@ fish "$FEDPUNK_INSTALL/packaging/install-btop.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-neovim.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-tmux.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-lazygit.fish"
-# fish "$FEDPUNK_INSTALL/packaging/install-bluetui.fish"
+fish "$FEDPUNK_INSTALL/packaging/install-bluetui.fish"
+
+# Audio stack
+info "Installing audio stack"
+fish "$FEDPUNK_INSTALL/packaging/install-audio.fish"
 
 # Claude installation (prompt user)
 echo ""

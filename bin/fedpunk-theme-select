@@ -12,7 +12,7 @@ set current_theme (fedpunk-theme-current 2>/dev/null)
 set current_index -1
 if test -n "$current_theme"
     set index 0
-    for theme in (echo $theme_list)
+    for theme in $theme_list
         if test "$theme" = "$current_theme"
             set current_index $index
             break
@@ -30,7 +30,7 @@ if test $current_index -ge 0
 end
 
 # Show selection menu
-set selected_theme (echo $theme_list | walker $walker_args 2>/dev/null)
+set selected_theme (printf '%s\n' $theme_list | walker $walker_args 2>/dev/null)
 
 # Apply selected theme if user didn't cancel
 if test -n "$selected_theme"
