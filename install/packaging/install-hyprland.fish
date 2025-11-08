@@ -61,7 +61,12 @@ set wayland_deps \
   xwayland \
   qt5-qtwayland \
   qt6-qtwayland \
-  mesa-dri-drivers
+  mesa-dri-drivers \
+  wayland-devel \
+  libwayland-client \
+  libwayland-cursor \
+  libwayland-egl \
+  glfw-devel
 
 sudo dnf install -qy $wayland_deps 2>/dev/null || true
 
