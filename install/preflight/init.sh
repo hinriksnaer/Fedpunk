@@ -24,6 +24,8 @@ packages=(
   curl
   wget
   which
+  dbus-devel 
+  pkgconf-pkg-config
 )
 
 # Enable RPM Fusion repositories for additional packages

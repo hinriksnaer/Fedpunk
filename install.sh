@@ -14,12 +14,14 @@ echo "Installing complete Fedpunk environment..."
 echo "Installation path: $FEDPUNK_PATH"
 echo ""
 
-# Install
+# Install - Bootstrap phase (bash until fish is installed)
 source "$FEDPUNK_INSTALL/helpers/all.sh"
 source "$FEDPUNK_INSTALL/preflight/all.sh"
-source "$FEDPUNK_INSTALL/packaging/all.sh"
-source "$FEDPUNK_INSTALL/config/all.sh"
-source "$FEDPUNK_INSTALL/post-install/all.sh"
+
+# After fish is installed, use fish for all remaining scripts
+fish "$FEDPUNK_INSTALL/packaging/all.fish"
+fish "$FEDPUNK_INSTALL/config/all.fish"
+fish "$FEDPUNK_INSTALL/post-install/all.fish"
 
 echo ""
 echo "🎉 Fedpunk installation complete!"
