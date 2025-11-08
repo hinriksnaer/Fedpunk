@@ -11,10 +11,10 @@ for f in "$FEDPUNK_PATH/themes"/*; do
     fi
 done
 
-# Set initial theme to catppuccin (or first available theme)
+# Set initial theme to default (ayu mirage)
 mkdir -p ~/.config/fedpunk/current
-if [ -d "$FEDPUNK_PATH/themes/catppuccin" ]; then
-    ln -snf ~/.config/fedpunk/themes/catppuccin ~/.config/fedpunk/current/theme
+if [ -d "$FEDPUNK_PATH/themes/default" ]; then
+    ln -snf ~/.config/fedpunk/themes/default ~/.config/fedpunk/current/theme
 else
     # Use first available theme
     first_theme=$(find "$FEDPUNK_PATH/themes" -mindepth 1 -maxdepth 1 -type d | head -1)
