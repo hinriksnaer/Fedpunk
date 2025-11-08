@@ -53,4 +53,20 @@ if command -v restorecon >/dev/null 2>&1
     sudo restorecon -R /home/(whoami)/.local 2>/dev/null || true
 end
 
+# Install additional dependencies that may be missing
+echo "→ Installing additional Wayland dependencies"
+set wayland_deps \
+  wlr-randr \
+  wlogout \
+  xwayland \
+  qt5-qtwayland \
+  qt6-qtwayland \
+  mesa-dri-drivers
+
+sudo dnf install -qy $wayland_deps 2>/dev/null || true
+
+# Ensure graphics drivers are up to date
+echo "→ Ensuring graphics stack is current"
+sudo dnf upgrade -qy mesa* libdrm* 2>/dev/null || true
+
 echo "✓ Hyprland installed"
