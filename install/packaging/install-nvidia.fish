@@ -90,7 +90,8 @@ if test "$XDG_SESSION_TYPE" = "wayland"; or command -v hyprland >/dev/null 2>&1
     echo "   These will be added to your shell configuration."
     
     # Add Wayland NVIDIA environment variables to fish config
-    if test -f "fish/.config/fish/config.fish"
+    set fish_config "$HOME/.config/fish/config.fish"
+    if test -f "$fish_config"
         echo "→ Adding NVIDIA Wayland variables to fish config"
         printf "%s\n" \
             "" \
@@ -99,7 +100,32 @@ if test "$XDG_SESSION_TYPE" = "wayland"; or command -v hyprland >/dev/null 2>&1
             "set -gx XDG_SESSION_TYPE wayland" \
             "set -gx GBM_BACKEND nvidia-drm" \
             "set -gx __GLX_VENDOR_LIBRARY_NAME nvidia" \
-            "set -gx WLR_NO_HARDWARE_CURSORS 1" >> fish/.config/fish/config.fish
+            "set -gx WLR_NO_HARDWARE_CURSORS 1" >> "$fish_config"
+    else
+        echo "⚠️  Fish config not found at $fish_config"
+        echo "   Please add these environment variables manually:"
+        printf "%s\n" \
+            "set -gx LIBVA_DRIVER_NAME nvidia" \
+            "set -gx XDG_SESSION_TYPE wayland" \
+            "set -gx GBM_BACKEND nvidia-drm" \
+            "set -gx __GLX_VENDOR_LIBRARY_NAME nvidia" \
+            "set -gx WLR_NO_HARDWARE_CURSORS 1"
+    end
+    
+    # Enable NVIDIA configuration in Hyprland
+    set hyprland_config "$HOME/.config/hypr/hyprland.conf"
+    if test -f "$hyprland_config"
+        echo "→ Enabling NVIDIA configuration in Hyprland"
+        # Check if NVIDIA config is already sourced
+        if not grep -q "nvidia.conf" "$hyprland_config"
+            printf "%s\n" \
+                "" \
+                "# NVIDIA Configuration (auto-added)" \
+                "source = \$HOME/.config/hypr/conf.d/nvidia.conf" >> "$hyprland_config"
+        end
+    else
+        echo "ℹ️  Hyprland config not found. NVIDIA settings will be available at:"
+        echo "   ~/.config/hypr/conf.d/nvidia.conf"
     end
 end
 
