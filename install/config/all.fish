@@ -1,30 +1,29 @@
 #!/usr/bin/env fish
 # Deploy configuration files
 
-echo "→ Deploying configuration files"
+# Source helper functions
+source "$FEDPUNK_INSTALL/helpers/all.fish"
+
+section "Deploying Configuration"
 
 # Initialize git submodules
-echo "  • Initializing git submodules"
-cd "$FEDPUNK_PATH"
-git submodule sync --recursive
-git submodule update --init --recursive
+run_quiet "Syncing git submodules" git submodule sync --recursive
+run_quiet "Updating git submodules" git submodule update --init --recursive
 
 # Use GNU Stow to deploy configs
-echo "  • Deploying configs with stow"
+info "Stowing configuration files"
 cd "$FEDPUNK_PATH"
 
 # Stow all config directories
+# Use --restow to properly handle already-stowed packages
 for config_dir in config/*/
     if test -d "$config_dir"
         set config_name (basename "$config_dir")
-        echo "    - Stowing $config_name"
-        stow -d config -t ~ "$config_name" 2>/dev/null; or true
+        run_quiet "Stowing $config_name" stow --restow -d config -t ~ "$config_name"
     end
 end
 
 # Link bin directory
-echo "  • Linking bin scripts"
-mkdir -p "$HOME/.local/bin"
-stow -d . -t "$HOME/.local" bin 2>/dev/null; or true
+run_quiet "Linking bin scripts" sh -c "mkdir -p $HOME/.local/bin && stow --restow -d $FEDPUNK_PATH -t $HOME/.local bin"
 
-echo "✅ Configuration deployment complete"
+success "Configuration deployment complete"

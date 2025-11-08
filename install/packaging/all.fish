@@ -2,9 +2,13 @@
 # Package installation scripts
 # Run all component installers
 
-echo "→ Installing Fedpunk packages"
+# Source helper functions
+source "$FEDPUNK_INSTALL/helpers/all.fish"
+
+section "Installing Packages"
 
 # Terminal components
+info "Installing terminal components"
 fish "$FEDPUNK_INSTALL/packaging/install-essentials.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-btop.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-neovim.fish"
@@ -23,24 +27,26 @@ end
 # Desktop components
 # Check if display server is available
 if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
-    echo "⚠️  No display server detected (headless environment)"
+    warning "No display server detected (headless environment)"
     read -P "Install desktop components anyway? [y/N]: " -n 1 desktop_response
     echo
     if string match -qir '^y' -- $desktop_response
+        info "Installing desktop components"
         fish "$FEDPUNK_INSTALL/packaging/install-hyprland.fish"
         fish "$FEDPUNK_INSTALL/packaging/install-walker.fish"
     else
-        echo "→ Skipping desktop components"
+        info "Skipping desktop components"
     end
 else
-    echo "→ Installing desktop components"
+    info "Installing desktop components"
     fish "$FEDPUNK_INSTALL/packaging/install-hyprland.fish"
     fish "$FEDPUNK_INSTALL/packaging/install-walker.fish"
 end
 
 # NVIDIA drivers (auto-detect and prompt)
 if lspci | grep -i nvidia >/dev/null 2>&1
-    echo "🎮 NVIDIA GPU detected!"
+    echo ""
+    info "NVIDIA GPU detected!"
     read -P "Install NVIDIA proprietary drivers? [y/N]: " -n 1 nvidia_response
     echo
     if string match -qir '^y' -- $nvidia_response
@@ -48,4 +54,4 @@ if lspci | grep -i nvidia >/dev/null 2>&1
     end
 end
 
-echo "✅ Package installation complete"
+success "Package installation complete"
