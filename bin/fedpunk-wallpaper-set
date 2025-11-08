@@ -4,7 +4,7 @@
 # If no theme-name provided, uses current theme
 # Uses swaybg (like omarchy)
 
-set themes_dir "$HOME/.config/fedpunk/themes"
+set themes_dir "$HOME/.local/share/fedpunk/themes"
 set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
 set current_wallpaper_link "$HOME/.config/hypr/wallpapers/current"
 
@@ -46,7 +46,8 @@ if test -z "$first_wallpaper"
     return 0
 end
 
-# Set wallpaper symlink
+# Create wallpapers directory if needed and set wallpaper symlink
+mkdir -p (dirname "$current_wallpaper_link")
 ln -sf "$first_wallpaper" "$current_wallpaper_link"
 
 # Relaunch swaybg with new wallpaper (omarchy style)

@@ -3,7 +3,7 @@
 # Usage: fedpunk-wallpaper-next
 # Uses swaybg (like omarchy)
 
-set themes_dir "$HOME/.config/fedpunk/themes"
+set themes_dir "$HOME/.local/share/fedpunk/themes"
 set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
 set current_wallpaper_link "$HOME/.config/hypr/wallpapers/current"
 
@@ -59,7 +59,8 @@ end
 
 set new_wallpaper $backgrounds[$next_index]
 
-# Set new wallpaper symlink
+# Create wallpapers directory if needed and set new wallpaper symlink
+mkdir -p (dirname "$current_wallpaper_link")
 ln -sf "$new_wallpaper" "$current_wallpaper_link"
 
 # Relaunch swaybg with new wallpaper (omarchy style)
