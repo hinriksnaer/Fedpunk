@@ -56,7 +56,7 @@ else
 end
 
 # Other modern CLI tools
-set modern_tools ripgrep fd-find bat exa
+set modern_tools ripgrep fd-find bat
 
 for tool in $modern_tools
     if not command -v $tool >/dev/null 2>&1
@@ -161,7 +161,7 @@ box "Essential Development Environment Installed!
 Installed packages:
   🐟 Fish shell - Modern shell with intelligent features
   ⭐ Starship - Fast, customizable prompt
-  📁 lsd, exa - Modern ls replacements
+  📁 lsd - Modern ls replacement
   🔍 ripgrep, fd - Fast search tools
   🦇 bat - Better cat with syntax highlighting
   🦀 Rust & Cargo - Rust toolchain and package manager
