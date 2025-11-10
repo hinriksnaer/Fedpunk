@@ -91,30 +91,29 @@ if test "$XDG_SESSION_TYPE" = "wayland"; or command -v hyprland >/dev/null 2>&1
     echo ""
     info "Configuring Wayland compatibility"
 
-    # Add Wayland NVIDIA environment variables to fish config
-    set fish_config "$HOME/.config/fish/config.fish"
-    if test -f "$fish_config"
-        gum spin --spinner dot --title "Adding NVIDIA Wayland variables to fish config..." -- fish -c '
-            if not grep -q "NVIDIA Wayland support" "'$fish_config'"
-                printf "%s\n" \
-                    "" \
-                    "# NVIDIA Wayland support" \
-                    "set -gx LIBVA_DRIVER_NAME nvidia" \
-                    "set -gx XDG_SESSION_TYPE wayland" \
-                    "set -gx GBM_BACKEND nvidia-drm" \
-                    "set -gx __GLX_VENDOR_LIBRARY_NAME nvidia" \
-                    "set -gx WLR_NO_HARDWARE_CURSORS 1" >> "'$fish_config'"
-            end >>'"$FEDPUNK_LOG_FILE"' 2>&1
-        ' && success "NVIDIA Wayland variables configured"
-    else
-        warning "Fish config not found at $fish_config"
-        info "Add these environment variables manually:"
-        info "  set -gx LIBVA_DRIVER_NAME nvidia"
-        info "  set -gx XDG_SESSION_TYPE wayland"
-        info "  set -gx GBM_BACKEND nvidia-drm"
-        info "  set -gx __GLX_VENDOR_LIBRARY_NAME nvidia"
-        info "  set -gx WLR_NO_HARDWARE_CURSORS 1"
-    end
+    # Add Wayland NVIDIA environment variables to installer-managed config
+    set installer_config "$HOME/.config/fish/conf.d/installer-managed.fish"
+    mkdir -p (dirname "$installer_config")
+
+    gum spin --spinner dot --title "Adding NVIDIA Wayland variables to fish config..." -- fish -c '
+        set config "'$installer_config'"
+
+        # Create file if it doesn'\''t exist
+        if not test -f "$config"
+            printf "# Auto-managed by Fedpunk installer - DO NOT EDIT\n" > "$config"
+            printf "# This file is regenerated on installation\n\n" >> "$config"
+        end
+
+        # Add NVIDIA config if not present
+        if not grep -q "NVIDIA Wayland support" "$config" 2>/dev/null
+            printf "\n# NVIDIA Wayland support\n" >> "$config"
+            printf "set -gx LIBVA_DRIVER_NAME nvidia\n" >> "$config"
+            printf "set -gx XDG_SESSION_TYPE wayland\n" >> "$config"
+            printf "set -gx GBM_BACKEND nvidia-drm\n" >> "$config"
+            printf "set -gx __GLX_VENDOR_LIBRARY_NAME nvidia\n" >> "$config"
+            printf "set -gx WLR_NO_HARDWARE_CURSORS 1\n" >> "$config"
+        end
+    ' >>$FEDPUNK_LOG_FILE 2>&1 && success "NVIDIA Wayland variables configured"
 
     # Enable NVIDIA configuration in Hyprland
     set hyprland_config "$HOME/.config/hypr/hyprland.conf"

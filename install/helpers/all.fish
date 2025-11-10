@@ -16,36 +16,44 @@ set -gx GUM_SUCCESS 35   # Green/Cyan
 set -gx GUM_WARNING 214  # Orange
 set -gx GUM_ERROR 9      # Red
 
-# Get log file from environment (set by bash helpers)
+# Get log file from environment (set by bash install.sh)
+# This should ALWAYS be set by the main install.sh script
 if not set -q FEDPUNK_LOG_FILE
+    # Fallback: create new log file (shouldn't normally happen)
     set -gx FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
     echo "Fedpunk Installation Log - "(date) > $FEDPUNK_LOG_FILE
     echo "=================================" >> $FEDPUNK_LOG_FILE
     echo "" >> $FEDPUNK_LOG_FILE
+    echo "[WARNING] Log file not inherited from parent script - creating new one" >> $FEDPUNK_LOG_FILE
+    echo "" >> $FEDPUNK_LOG_FILE
+else
+    # Log that we're using the inherited log file
+    echo "" >> $FEDPUNK_LOG_FILE
+    echo "[INFO] "(date +%H:%M:%S)" Using log file: $FEDPUNK_LOG_FILE" >> $FEDPUNK_LOG_FILE
 end
 
 # Print info message using gum
 function info
     gum style --foreground $GUM_INFO "→ $argv"
-    echo "[INFO] $argv" >> $FEDPUNK_LOG_FILE
+    echo "[INFO] "(date +%H:%M:%S)" $argv" >> $FEDPUNK_LOG_FILE
 end
 
 # Print success message using gum
 function success
     gum style --foreground $GUM_SUCCESS "✓ $argv"
-    echo "[SUCCESS] $argv" >> $FEDPUNK_LOG_FILE
+    echo "[SUCCESS] "(date +%H:%M:%S)" $argv" >> $FEDPUNK_LOG_FILE
 end
 
 # Print warning message using gum
 function warning
     gum style --foreground $GUM_WARNING --bold "⚠ $argv"
-    echo "[WARNING] $argv" >> $FEDPUNK_LOG_FILE
+    echo "[WARNING] "(date +%H:%M:%S)" $argv" >> $FEDPUNK_LOG_FILE
 end
 
 # Print error message using gum
 function error
     gum style --foreground $GUM_ERROR --bold "✗ $argv"
-    echo "[ERROR] $argv" >> $FEDPUNK_LOG_FILE
+    echo "[ERROR] "(date +%H:%M:%S)" $argv" >> $FEDPUNK_LOG_FILE
 end
 
 # Print section header using gum
@@ -60,7 +68,10 @@ function section
         "$argv"
     echo ""
     echo "" >> $FEDPUNK_LOG_FILE
+    echo "========================================" >> $FEDPUNK_LOG_FILE
     echo "=== $argv ===" >> $FEDPUNK_LOG_FILE
+    echo "Time: "(date) >> $FEDPUNK_LOG_FILE
+    echo "========================================" >> $FEDPUNK_LOG_FILE
     echo "" >> $FEDPUNK_LOG_FILE
 end
 
@@ -70,7 +81,9 @@ function run_quiet
     set cmd $argv[2..-1]
     set temp_output (mktemp)
 
-    echo "Running: $cmd" >> $FEDPUNK_LOG_FILE
+    echo "" >> $FEDPUNK_LOG_FILE
+    echo "[RUN] "(date +%H:%M:%S)" $description" >> $FEDPUNK_LOG_FILE
+    echo "Command: $cmd" >> $FEDPUNK_LOG_FILE
 
     # Run with spinner visible to user, capture command output to temp file
     set -l full_cmd "begin; $cmd; end >>'"$temp_output"' 2>&1"
@@ -81,6 +94,7 @@ function run_quiet
         return 0
     else
         set exit_code $status
+        echo "Exit code: $exit_code" >> $FEDPUNK_LOG_FILE
         cat $temp_output >> $FEDPUNK_LOG_FILE
         error "$description failed (exit code: $exit_code)"
         echo ""
@@ -104,7 +118,9 @@ function step
     set cmd $argv[2..-1]
     set temp_output (mktemp)
 
-    echo "Running: $cmd" >> $FEDPUNK_LOG_FILE
+    echo "" >> $FEDPUNK_LOG_FILE
+    echo "[STEP] "(date +%H:%M:%S)" $description" >> $FEDPUNK_LOG_FILE
+    echo "Command: $cmd" >> $FEDPUNK_LOG_FILE
 
     # Run with spinner visible to user, capture command output to temp file
     set -l full_cmd "begin; $cmd; end >>'"$temp_output"' 2>&1"
@@ -113,16 +129,17 @@ function step
         # Move to start of line and print success (overwrites spinner line)
         printf "\r"
         gum style --foreground $GUM_SUCCESS "✓ $description"
-        echo "[SUCCESS] $description" >> $FEDPUNK_LOG_FILE
+        echo "[SUCCESS] "(date +%H:%M:%S)" $description" >> $FEDPUNK_LOG_FILE
         rm -f $temp_output
         return 0
     else
         set exit_code $status
+        echo "Exit code: $exit_code" >> $FEDPUNK_LOG_FILE
         cat $temp_output >> $FEDPUNK_LOG_FILE
         # Move to start of line and print error (overwrites spinner line)
         printf "\r"
         gum style --foreground $GUM_ERROR --bold "✗ $description failed (exit: $exit_code)"
-        echo "[ERROR] $description failed (exit: $exit_code)" >> $FEDPUNK_LOG_FILE
+        echo "[ERROR] "(date +%H:%M:%S)" $description failed (exit: $exit_code)" >> $FEDPUNK_LOG_FILE
 
         # Show error details
         echo ""
@@ -141,13 +158,13 @@ function confirm
     set prompt $argv[1]
 
     echo "" >> $FEDPUNK_LOG_FILE
-    echo "[PROMPT] $prompt" >> $FEDPUNK_LOG_FILE
+    echo "[PROMPT] "(date +%H:%M:%S)" $prompt" >> $FEDPUNK_LOG_FILE
 
     if gum confirm "$prompt"
-        echo "[RESPONSE] Yes" >> $FEDPUNK_LOG_FILE
+        echo "[RESPONSE] "(date +%H:%M:%S)" Yes" >> $FEDPUNK_LOG_FILE
         return 0
     else
-        echo "[RESPONSE] No" >> $FEDPUNK_LOG_FILE
+        echo "[RESPONSE] "(date +%H:%M:%S)" No" >> $FEDPUNK_LOG_FILE
         return 1
     end
 end

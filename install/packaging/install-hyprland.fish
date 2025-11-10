@@ -61,9 +61,8 @@ info "Installing additional Wayland dependencies"
 set wayland_deps \
   wlr-randr \
   wlogout \
-  xwayland \
+  xorg-x11-server-Xwayland \
   qt5-qtwayland \
-  qt6-qtwayland \
   mesa-dri-drivers \
   wayland-devel \
   libwayland-client \
@@ -71,7 +70,8 @@ set wayland_deps \
   libwayland-egl \
   glfw-devel
 
-step "Installing Wayland dependencies" "sudo dnf install -qy $wayland_deps"
+# Skip qt6-qtwayland due to version conflict and use --skip-unavailable for safety
+step "Installing Wayland dependencies" "sudo dnf install -qy --skip-unavailable --best $wayland_deps"
 
 # Ensure graphics drivers are up to date
-step "Updating graphics stack" "sudo dnf upgrade -qy mesa* libdrm*"
+step "Updating graphics stack" "sudo dnf upgrade -qy --skip-unavailable mesa* libdrm*"

@@ -23,7 +23,7 @@ set pipewire_core \
   pipewire-pulseaudio \
   pipewire-utils \
   wireplumber \
-  gstreamer1-plugin-pipewire
+  gstreamer1-pipewire
 
 step "Installing PipeWire core" "sudo dnf install -qy $pipewire_core"
 

@@ -83,11 +83,21 @@ if not command -v rustc >/dev/null 2>&1
     # Source cargo env for current session
     source $HOME/.cargo/env
 
-    # Add to fish config if not already there
-    if not grep -q "cargo/bin" ~/.config/fish/config.fish 2>/dev/null
-        echo "" >> ~/.config/fish/config.fish
-        echo "# Rust/Cargo" >> ~/.config/fish/config.fish
-        echo "set -gx PATH \$HOME/.cargo/bin \$PATH" >> ~/.config/fish/config.fish
+    # Add to installer-managed config (never committed to git)
+    set installer_config "$HOME/.config/fish/conf.d/installer-managed.fish"
+    mkdir -p (dirname "$installer_config")
+
+    # Create/update the installer-managed config with Rust PATH
+    if test -f "$installer_config"
+        # Update existing file - add Rust if not present
+        if not grep -q "Rust/Cargo" "$installer_config" 2>/dev/null
+            printf "\n# Rust/Cargo\nset -gx PATH \$HOME/.cargo/bin \$PATH\n" >> "$installer_config"
+        end
+    else
+        # Create new file
+        printf "# Auto-managed by Fedpunk installer - DO NOT EDIT\n" > "$installer_config"
+        printf "# This file is regenerated on installation\n\n" >> "$installer_config"
+        printf "# Rust/Cargo\nset -gx PATH \$HOME/.cargo/bin \$PATH\n" >> "$installer_config"
     end
 
     success "Rust toolchain installed"
@@ -134,6 +144,13 @@ if not fish -c "fisher list" 2>/dev/null | grep -q "fzf.fish"
         warning "fzf.fish installation failed"
 else
     success "fzf.fish already installed"
+end
+
+# Reload fish config to pick up starship and fzf for the current session
+echo ""
+info "Reloading Fish configuration"
+if test -f ~/.config/fish/config.fish
+    source ~/.config/fish/config.fish 2>/dev/null; and success "Fish config reloaded" || info "Fish config will be active on next shell restart"
 end
 
 echo ""

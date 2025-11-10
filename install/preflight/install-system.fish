@@ -46,7 +46,7 @@ gum spin --spinner line --title "Enabling RPM Fusion repositories..." -- fish -c
 echo ""
 info "Upgrading system packages (this may take a while)"
 gum spin --spinner meter --title "Running system upgrade..." -- fish -c '
-    sudo dnf upgrade --refresh -qy --skip-broken >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    sudo dnf upgrade --refresh -qy >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "System packages upgraded" || warning "System upgrade completed with issues (may be already up-to-date)"
 
 # Core system utilities

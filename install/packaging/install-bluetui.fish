@@ -20,5 +20,9 @@ if command -v bluetui >/dev/null 2>&1
     exit 0
 end
 
+# Install bluetui dependencies
+info "Installing bluetui dependencies"
+step "Installing dbus-devel" "sudo dnf install -qy dbus-devel"
+
 # Install bluetui
 step "Installing bluetui with cargo" "cargo install bluetui"

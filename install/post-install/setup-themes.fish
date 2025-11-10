@@ -62,7 +62,16 @@ gum spin --spinner dot --title "Linking application themes..." -- fish -c '
 success "Application themes linked"
 
 # Add managed policy directories for Chromium and Brave for theme changes
-run_quiet "Setting up browser policy directories" sh -c "sudo mkdir -p /etc/chromium/policies/managed /etc/brave/policies/managed && sudo chmod a+rw /etc/chromium/policies/managed /etc/brave/policies/managed"
+# Setup browser policy directories (split into separate commands for reliability)
+if sudo mkdir -p /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
+    if sudo chmod a+rw /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
+        success "Browser policy directories set up"
+    else
+        warning "Failed to set permissions on browser policy directories"
+    end
+else
+    warning "Failed to create browser policy directories (may not be needed)"
+end
 
 set current_theme (basename (readlink ~/.config/fedpunk/current/theme 2>/dev/null) 2>/dev/null; or echo "default")
 echo ""
