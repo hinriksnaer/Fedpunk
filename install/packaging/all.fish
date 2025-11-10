@@ -10,6 +10,7 @@ section "Installing Packages"
 # Terminal components
 info "Installing terminal components"
 fish "$FEDPUNK_INSTALL/packaging/install-essentials.fish"
+fish "$FEDPUNK_INSTALL/packaging/install-fonts.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-btop.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-neovim.fish"
 fish "$FEDPUNK_INSTALL/packaging/install-tmux.fish"
