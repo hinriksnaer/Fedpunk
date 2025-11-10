@@ -15,8 +15,14 @@ set TARGET_DIR (test (id -u) -eq 0; and echo "/root"; or echo "/home/"(whoami))
 info "Installing Hyprland and dependencies"
 
 # Enable COPR repositories for Hyprland and nwg-displays
-step "Enabling Hyprland COPR" "sudo dnf copr enable -y solopasha/hyprland"
-step "Enabling nwg-shell COPR" "sudo dnf copr enable -y tofik/nwg-shell"
+# Use echo 'y' to handle any interactive prompts
+gum spin --spinner dot --title "Enabling Hyprland COPR..." -- fish -c '
+    echo y | sudo dnf copr enable solopasha/hyprland >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Hyprland COPR enabled" || warning "Hyprland COPR may already be enabled"
+
+gum spin --spinner dot --title "Enabling nwg-shell COPR..." -- fish -c '
+    echo y | sudo dnf copr enable tofik/nwg-shell >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "nwg-shell COPR enabled" || warning "nwg-shell COPR may already be enabled"
 
 # Core Hyprland packages
 set packages \
@@ -46,7 +52,7 @@ set packages \
   kitty \
   swaybg
 
-step "Installing Hyprland packages" "sudo dnf install -qy $packages"
+step "Installing Hyprland packages" "sudo dnf install -qy --skip-broken --best $packages"
 
 # Fix potential SELinux issues
 info "Setting up user directories"

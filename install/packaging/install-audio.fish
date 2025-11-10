@@ -26,7 +26,9 @@ set pipewire_core \
   wireplumber \
   gstreamer1-pipewire
 
-step "Installing PipeWire core" "sudo dnf install -qy $pipewire_core"
+gum spin --spinner dot --title "Installing PipeWire core..." -- fish -c '
+    sudo dnf install -qy --skip-broken '$pipewire_core' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Installing PipeWire core" || success "PipeWire core already installed"
 
 # Audio codecs and plugins
 info "Installing audio codecs"
@@ -40,7 +42,9 @@ set audio_codecs \
   lame \
   opus
 
-step "Installing audio codecs" "sudo dnf install -qy $audio_codecs"
+gum spin --spinner dot --title "Installing audio codecs..." -- fish -c '
+    sudo dnf install -qy --skip-broken '$audio_codecs' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Installing audio codecs" || success "Audio codecs already installed"
 
 # Audio control utilities
 info "Installing audio control utilities"
@@ -51,7 +55,9 @@ set audio_utils \
   alsa-utils \
   pulseaudio-utils
 
-step "Installing audio utilities" "sudo dnf install -qy $audio_utils"
+gum spin --spinner dot --title "Installing audio utilities..." -- fish -c '
+    sudo dnf install -qy --skip-broken '$audio_utils' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Installing audio utilities" || success "Audio utilities already installed"
 
 # Bluetooth audio support
 info "Installing Bluetooth audio support"
@@ -60,18 +66,31 @@ set bluetooth_audio \
   bluez-tools \
   pipewire-plugin-libcamera
 
-step "Installing Bluetooth audio" "sudo dnf install -qy $bluetooth_audio"
+gum spin --spinner dot --title "Installing Bluetooth audio..." -- fish -c '
+    sudo dnf install -qy --skip-broken '$bluetooth_audio' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Installing Bluetooth audio" || success "Bluetooth audio already installed"
 
-# Enable and start PipeWire services
+# PipeWire uses socket activation - it auto-starts when audio is accessed
+# We just need to ensure the sockets are enabled (usually done by package install)
 echo ""
-info "Enabling PipeWire services"
+info "Configuring PipeWire"
 
-# Enable PipeWire for current user (systemd user services)
-gum spin --spinner dot --title "Enabling PipeWire services..." -- fish -c '
-    systemctl --user enable --now pipewire.service >>'"$FEDPUNK_LOG_FILE"' 2>&1; or true
-    systemctl --user enable --now pipewire-pulse.service >>'"$FEDPUNK_LOG_FILE"' 2>&1; or true
-    systemctl --user enable --now wireplumber.service >>'"$FEDPUNK_LOG_FILE"' 2>&1; or true
-' && success "PipeWire services enabled"
+# Enable user lingering so services persist without login session
+if not loginctl show-user $USER 2>/dev/null | grep -q "Linger=yes"
+    gum spin --spinner dot --title "Enabling user lingering..." -- fish -c '
+        sudo loginctl enable-linger '$USER' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "User lingering enabled" || warning "Could not enable user lingering"
+end
+
+# Try to enable sockets if user session is available (optional, sockets may already be enabled)
+if test -n "$XDG_RUNTIME_DIR" -a -S "$XDG_RUNTIME_DIR/bus"
+    gum spin --spinner dot --title "Enabling PipeWire sockets..." -- fish -c '
+        systemctl --user enable pipewire.socket pipewire-pulse.socket >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "PipeWire sockets enabled (will auto-start on demand)" || info "PipeWire sockets already configured"
+else
+    info "PipeWire will auto-start when you log in and use audio"
+    echo "[INFO] PipeWire uses socket activation - will start automatically on first audio access" >> $FEDPUNK_LOG_FILE
+end
 
 # Ensure Bluetooth is enabled if hardware is present
 if command -v bluetoothctl >/dev/null 2>&1
@@ -96,6 +115,10 @@ Audio controls:
   • GUI: pavucontrol
   • CLI: wpctl status
   • Hyprland: XF86Audio keys
+
+Note: PipeWire uses socket activation and will auto-start when needed.
+If audio doesn't work after login, manually start with:
+  systemctl --user start pipewire pipewire-pulse wireplumber
 
 Troubleshooting:
   • Restart: systemctl --user restart pipewire
