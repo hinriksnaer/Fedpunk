@@ -1,7 +1,9 @@
 #!/usr/bin/env fish
 
-echo "→ Installing btop"
+# Source helper functions
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
 
-sudo dnf install -y btop
-
-echo "✓ btop installed"
+step "Installing btop" "sudo dnf install -qy btop"

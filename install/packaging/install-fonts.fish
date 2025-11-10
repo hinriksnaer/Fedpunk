@@ -1,6 +1,10 @@
 #!/usr/bin/env fish
 
-echo "→ Installing fonts"
+# Source helper functions
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
 
 # Base fonts from dnf
 set packages \
@@ -13,65 +17,61 @@ set packages \
     google-noto-emoji-fonts \
     jetbrains-mono-fonts
 
-sudo dnf upgrade --refresh -qy
-sudo dnf install -qy $packages
+step "Installing base fonts" "sudo dnf install -qy $packages"
 
 # Create fonts directory
-mkdir -p ~/.local/share/fonts
-
-echo "→ Downloading JetBrains Mono Nerd Font"
+step "Creating fonts directory" "mkdir -p ~/.local/share/fonts"
 
 # Download and install JetBrains Mono Nerd Font
 set TMPDIR (mktemp -d)
 
-function cleanup_tmpdir --on-process-exit
-    rm -rf $TMPDIR
+function cleanup_tmpdir --on-event fish_exit
+    rm -rf $TMPDIR 2>/dev/null
 end
 
-if curl -fL --retry 2 -o "$TMPDIR/JetBrainsMono.tar.xz" \
-    "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz"
+gum spin --spinner line --title "Downloading JetBrains Mono Nerd Font..." -- fish -c '
+    curl -fL --retry 2 -o "'$TMPDIR'/JetBrainsMono.tar.xz" \
+        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+'
 
-    # Remove old installation if exists
-    rm -rf ~/.local/share/fonts/JetBrainsMonoNerd
-
-    # Create directory and extract
-    mkdir -p ~/.local/share/fonts/JetBrainsMonoNerd
-    tar -xJf "$TMPDIR/JetBrainsMono.tar.xz" -C ~/.local/share/fonts/JetBrainsMonoNerd
-
-    echo "✓ JetBrains Mono Nerd Font installed"
+if test $status -eq 0
+    gum spin --spinner dot --title "Installing JetBrains Mono Nerd Font..." -- fish -c '
+        rm -rf ~/.local/share/fonts/JetBrainsMonoNerd
+        mkdir -p ~/.local/share/fonts/JetBrainsMonoNerd
+        tar -xJf "'$TMPDIR'/JetBrainsMono.tar.xz" -C ~/.local/share/fonts/JetBrainsMonoNerd >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "JetBrains Mono Nerd Font installed" || error "Failed to install JetBrains Mono Nerd Font"
 else
-    echo "✗ Failed to download JetBrains Mono Nerd Font"
+    error "Failed to download JetBrains Mono Nerd Font"
 end
-
-echo "→ Downloading Fantasque Sans Mono Nerd Font"
 
 # Download and install Fantasque Sans Mono Nerd Font
-if curl -fL --retry 2 -o "$TMPDIR/FantasqueSansMono.zip" \
-    "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FantasqueSansMono.zip"
+gum spin --spinner line --title "Downloading Fantasque Sans Mono Nerd Font..." -- fish -c '
+    curl -fL --retry 2 -o "'$TMPDIR'/FantasqueSansMono.zip" \
+        "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FantasqueSansMono.zip" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+'
 
-    mkdir -p ~/.local/share/fonts/FantasqueSansMonoNerd
-    unzip -o -q "$TMPDIR/FantasqueSansMono.zip" -d ~/.local/share/fonts/FantasqueSansMonoNerd
-
-    echo "✓ Fantasque Sans Mono Nerd Font installed"
+if test $status -eq 0
+    gum spin --spinner dot --title "Installing Fantasque Sans Mono Nerd Font..." -- fish -c '
+        mkdir -p ~/.local/share/fonts/FantasqueSansMonoNerd
+        unzip -o -q "'$TMPDIR'/FantasqueSansMono.zip" -d ~/.local/share/fonts/FantasqueSansMonoNerd >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "Fantasque Sans Mono Nerd Font installed" || error "Failed to install Fantasque Sans Mono Nerd Font"
 else
-    echo "✗ Failed to download Fantasque Sans Mono Nerd Font"
+    error "Failed to download Fantasque Sans Mono Nerd Font"
 end
-
-echo "→ Downloading Victor Mono Font"
 
 # Download and install Victor Mono Font
-if curl -fL --retry 2 -o "$TMPDIR/VictorMonoAll.zip" \
-    "https://rubjo.github.io/victor-mono/VictorMonoAll.zip"
+gum spin --spinner line --title "Downloading Victor Mono Font..." -- fish -c '
+    curl -fL --retry 2 -o "'$TMPDIR'/VictorMonoAll.zip" \
+        "https://rubjo.github.io/victor-mono/VictorMonoAll.zip" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+'
 
-    mkdir -p ~/.local/share/fonts/VictorMono
-    unzip -o -q "$TMPDIR/VictorMonoAll.zip" -d ~/.local/share/fonts/VictorMono
-
-    echo "✓ Victor Mono Font installed"
+if test $status -eq 0
+    gum spin --spinner dot --title "Installing Victor Mono Font..." -- fish -c '
+        mkdir -p ~/.local/share/fonts/VictorMono >>'"$FEDPUNK_LOG_FILE"' 2>&1
+        unzip -o -q "'$TMPDIR'/VictorMonoAll.zip" -d ~/.local/share/fonts/VictorMono >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "Victor Mono Font installed" || error "Failed to install Victor Mono Font"
 else
-    echo "✗ Failed to download Victor Mono Font"
+    error "Failed to download Victor Mono Font"
 end
 
-echo "→ Updating font cache"
-fc-cache -fv >/dev/null 2>&1
-
-echo "✓ Fonts installation complete"
+step "Updating font cache" "fc-cache -fv"

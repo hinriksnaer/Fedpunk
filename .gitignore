@@ -1,1 +1,16 @@
+# Tmux plugins
 tmux/.config/tmux/plugins/
+
+# Installation logs
+install/logs/
+install/Install-Logs/
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Local user config overrides (not tracked)
+local/

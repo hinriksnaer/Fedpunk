@@ -1,5 +1,11 @@
 #!/usr/bin/env fish
 
+# Source helper functions
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
+
 # Figure out target user and home directory (works with/without sudo)
 if test (id -u) -eq 0
     if set -q SUDO_USER; and test "$SUDO_USER" != "root"
@@ -14,7 +20,7 @@ else
     set TARGET_HOME $HOME
 end
 
-echo "→ Installing Neovim and dependencies for user: $TARGET_USER ($TARGET_HOME)"
+info "Installing Neovim for user: $TARGET_USER"
 
 cd (dirname (status -f))/../
 
@@ -27,41 +33,39 @@ if test (id -u) -ne 0
     set SUDO_CMD sudo
 end
 
-$SUDO_CMD dnf upgrade --refresh -qy
-$SUDO_CMD dnf install -qy $packages
+step "Installing Neovim dependencies" "$SUDO_CMD dnf install -qy $packages"
 
 # User-local Neovim install (no sudo)
 set TMPDIR (mktemp -d)
 
 # Cleanup function equivalent
-function cleanup_tmpdir --on-process-exit
-    rm -rf $TMPDIR
+function cleanup_tmpdir --on-event fish_exit
+    rm -rf $TMPDIR 2>/dev/null
 end
 
-mkdir -p "$TARGET_HOME/.local" "$TARGET_HOME/.local/bin"
+step "Creating directories" "mkdir -p $TARGET_HOME/.local $TARGET_HOME/.local/bin"
 
-echo "→ Downloading Neovim"
-curl -fL --retry 3 -o "$TMPDIR/nvim.tar.gz" \
-  "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+gum spin --spinner line --title "Downloading Neovim..." -- fish -c '
+    curl -fL --retry 3 -o "'$TMPDIR'/nvim.tar.gz" \
+        "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Neovim downloaded" || error "Failed to download Neovim"
 
-# Extract into ~/.local
-tar -xzf "$TMPDIR/nvim.tar.gz" -C "$TARGET_HOME/.local"
-
-# Create symlink
-ln -sfn "$TARGET_HOME/.local/nvim-linux-x86_64/bin/nvim" \
-        "$TARGET_HOME/.local/bin/nvim"
+gum spin --spinner dot --title "Installing Neovim..." -- fish -c '
+    tar -xzf "'$TMPDIR'/nvim.tar.gz" -C "'$TARGET_HOME'/.local" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ln -sfn "'$TARGET_HOME'/.local/nvim-linux-x86_64/bin/nvim" "'$TARGET_HOME'/.local/bin/nvim" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Neovim installed" || error "Failed to install Neovim"
 
 # Ensure ownership if script was run with sudo
 if test (id -u) -eq 0; and test "$TARGET_USER" != "root"
-    chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.local"
+    step "Setting ownership" "chown -R $TARGET_USER:$TARGET_USER $TARGET_HOME/.local"
 end
 
 # Ensure ~/.local/bin is on PATH for future shells
-set add_path_line 'export PATH="$HOME/.local/bin:$PATH"'
-for rc in "$TARGET_HOME/.bashrc" "$TARGET_HOME/.zshrc"
-    if test -f $rc; and not grep -qF $add_path_line $rc
-        echo $add_path_line >> $rc
-    end
-end
-
-echo "✓ Neovim installed. Run: nvim --version"
+gum spin --spinner dot --title "Configuring PATH..." -- fish -c '
+    set add_path_line "export PATH=\"\$HOME/.local/bin:\$PATH\""
+    for rc in "'$TARGET_HOME'/.bashrc" "'$TARGET_HOME'/.zshrc"
+        if test -f $rc; and not grep -qF "$add_path_line" $rc
+            echo $add_path_line >> $rc
+        end
+    end >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "PATH configured" || warning "Failed to configure PATH"

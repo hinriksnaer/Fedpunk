@@ -19,6 +19,8 @@ Fedpunk is a modern, fish-first development environment built on top of the exce
 - **🛠️ Premium development tools** - Neovim, tmux, lazygit, btop, bluetui, and more
 - **🐱 Kitty terminal** - GPU-accelerated with theme synchronization
 - **📦 Automated setup** - One command installs and configures everything
+- **✨ Beautiful install UI** - Interactive spinners and progress indicators with gum
+- **🔄 Re-run safe** - Gracefully handles already-installed components
 
 ---
 
@@ -127,11 +129,29 @@ fish install-terminal.fish
 
 Fedpunk uses a **modular Fish-first approach**:
 
-1. `install.fish` - Main installer with interactive menu
-2. `install-terminal.fish` - Terminal-focused setup (Fish, Neovim, tmux)
-3. `install-desktop.fish` - Desktop environment setup (Hyprland)
-4. Individual component installers in `scripts/` directory
-5. Automatic dependency resolution and error handling
+1. **Bootstrap** (`install/bootstrap-fish.sh`) - Installs Fish, GNU Stow, and gum for the UI
+2. **Preflight** (`install/preflight/`) - System setup, repositories, and submodules
+3. **Packaging** (`install/packaging/`) - Individual component installers
+4. **Configuration** (`install/config/`) - Dotfile deployment via GNU Stow
+5. **Post-install** (`install/post-install/`) - Theme setup and final configuration
+
+### Installation UI
+
+The installer features a **modern terminal UI** powered by gum:
+
+- **Interactive spinners** - Visual feedback for all operations (downloads, installs, configuration)
+- **Contextual animations** - Different spinner styles for different operations:
+  - `line` - Downloads and network operations
+  - `dot` - Package installations and quick operations
+  - `meter` - System upgrades and heavy operations
+  - `moon` - Discovery and scanning operations
+  - `pulse` - Service reloads and restarts
+- **Smart error handling** - Detailed error messages with log file references
+- **Progress indicators** - Track installation progress ([1/8], [2/8], etc.)
+- **Graceful re-runs** - Detects already-installed components and continues smoothly
+- **Clean output** - Verbose command output captured in logs, only status messages shown
+
+All installation logs are saved to `/tmp/fedpunk-install-*.log` for troubleshooting.
 
 ---
 

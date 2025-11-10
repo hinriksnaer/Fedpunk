@@ -7,56 +7,92 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 section "Installing Packages"
 
+# Count total components for progress indicator
+set total_components 8
+set current_component 0
+
+# NVIDIA drivers (install early if detected, before other components)
+if lspci | grep -i nvidia >/dev/null 2>&1
+    echo ""
+    info "NVIDIA GPU detected - installing drivers first"
+    if confirm "Install NVIDIA proprietary drivers?"
+        progress "!" $total_components "NVIDIA drivers"
+        fish "$FEDPUNK_INSTALL/packaging/install-nvidia.fish"
+        echo ""
+    end
+end
+
 # Terminal components
+echo ""
 info "Installing terminal components"
+echo ""
+
+set current_component (math $current_component + 1)
+progress $current_component $total_components "Essential development tools"
 fish "$FEDPUNK_INSTALL/packaging/install-essentials.fish"
+
+set current_component (math $current_component + 1)
+progress $current_component $total_components "Fonts"
 fish "$FEDPUNK_INSTALL/packaging/install-fonts.fish"
+
+set current_component (math $current_component + 1)
+progress $current_component $total_components "btop"
 fish "$FEDPUNK_INSTALL/packaging/install-btop.fish"
+
+set current_component (math $current_component + 1)
+progress $current_component $total_components "Neovim"
 fish "$FEDPUNK_INSTALL/packaging/install-neovim.fish"
+
+set current_component (math $current_component + 1)
+progress $current_component $total_components "tmux"
 fish "$FEDPUNK_INSTALL/packaging/install-tmux.fish"
+
+set current_component (math $current_component + 1)
+progress $current_component $total_components "lazygit"
 fish "$FEDPUNK_INSTALL/packaging/install-lazygit.fish"
+
+set current_component (math $current_component + 1)
+progress $current_component $total_components "bluetui"
 fish "$FEDPUNK_INSTALL/packaging/install-bluetui.fish"
 
 # Audio stack
-info "Installing audio stack"
+echo ""
+set current_component (math $current_component + 1)
+progress $current_component $total_components "Audio stack"
 fish "$FEDPUNK_INSTALL/packaging/install-audio.fish"
 
 # Claude installation (prompt user)
 echo ""
-read -P "Install Claude CLI? [y/N]: " -n 1 claude_response
-echo
-if string match -qir '^y' -- $claude_response
+if confirm "Install Claude CLI?"
+    progress "+" $total_components "Claude CLI"
     fish "$FEDPUNK_INSTALL/packaging/install-claude.fish"
 end
 
 # Desktop components
 # Check if display server is available
+echo ""
 if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
     warning "No display server detected (headless environment)"
-    read -P "Install desktop components anyway? [y/N]: " -n 1 desktop_response
-    echo
-    if string match -qir '^y' -- $desktop_response
+    if confirm "Install desktop components anyway?"
+        echo ""
         info "Installing desktop components"
+        echo ""
+        progress "+" $total_components "Hyprland"
         fish "$FEDPUNK_INSTALL/packaging/install-hyprland.fish"
+        progress "+" $total_components "Walker"
         fish "$FEDPUNK_INSTALL/packaging/install-walker.fish"
     else
         info "Skipping desktop components"
     end
 else
+    echo ""
     info "Installing desktop components"
+    echo ""
+    progress "+" $total_components "Hyprland"
     fish "$FEDPUNK_INSTALL/packaging/install-hyprland.fish"
+    progress "+" $total_components "Walker"
     fish "$FEDPUNK_INSTALL/packaging/install-walker.fish"
 end
 
-# NVIDIA drivers (auto-detect and prompt)
-if lspci | grep -i nvidia >/dev/null 2>&1
-    echo ""
-    info "NVIDIA GPU detected!"
-    read -P "Install NVIDIA proprietary drivers? [y/N]: " -n 1 nvidia_response
-    echo
-    if string match -qir '^y' -- $nvidia_response
-        fish "$FEDPUNK_INSTALL/packaging/install-nvidia.fish"
-    end
-end
-
-success "Package installation complete"
+echo ""
+box "Package Installation Complete!" $GUM_SUCCESS

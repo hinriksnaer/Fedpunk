@@ -2,6 +2,12 @@
 # Interactive theme selector using Walker dmenu
 # Usage: fedpunk-theme-select
 
+# Source helper functions for consistent interface
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
+
 # Get list of available themes
 set theme_list (fedpunk-theme-list)
 
@@ -36,5 +42,5 @@ set selected_theme (printf '%s\n' $theme_list | walker $walker_args 2>/dev/null)
 if test -n "$selected_theme"
     fedpunk-theme-set $selected_theme
 else
-    echo "Theme selection cancelled"
+    warning "Theme selection cancelled"
 end

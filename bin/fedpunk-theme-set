@@ -2,6 +2,12 @@
 # Set a specific theme by name
 # Usage: fedpunk-theme-set <theme-name>
 
+# Source helper functions for consistent interface
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
+
 if test (count $argv) -lt 1
     echo "Usage: fedpunk-theme-set <theme-name>"
     echo ""
@@ -19,14 +25,17 @@ set theme_path "$themes_dir/$theme_name"
 
 # Check if theme exists
 if not test -d "$theme_path"
-    echo "Error: Theme '$theme_name' does not exist"
+    error "Theme '$theme_name' does not exist"
     echo ""
     echo "Available themes:"
     fedpunk-theme-list
     exit 1
 end
 
-echo "Switching to theme: $theme_name"
+set pretty_name (echo $theme_name | sed 's/-/ /g; s/\b\(.\)/\u\1/g')
+
+echo ""
+box "Switching to theme: $pretty_name" $GUM_INFO
 echo ""
 
 set applied_count 0
@@ -34,12 +43,11 @@ set skipped_count 0
 
 # Update Hyprland config to source the theme's hyprland.conf
 if test -f "$theme_path/hyprland.conf"
-    # Replace the source line in hyprland.conf
-    sed -i "s|^source = \$HOME/.*themes/.*/hyprland.conf|source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf|" $hyprland_conf
-    echo "✓ Updated Hyprland theme source"
-    set applied_count (math $applied_count + 1)
+    if step "Applying Hyprland theme" "sed -i 's|^source = \$HOME/.*themes/.*/hyprland.conf|source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf|' $hyprland_conf"
+        set applied_count (math $applied_count + 1)
+    end
 else
-    echo "⊘ Skipped hyprland.conf (not found in theme)"
+    warning "Skipped hyprland.conf (not found in theme)"
     set skipped_count (math $skipped_count + 1)
 end
 
@@ -52,6 +60,7 @@ set -l theme_mappings \
     "btop.theme:$HOME/.config/btop/themes/active.theme"
 
 # Apply other theme files (symlinks)
+info "Linking application themes"
 for mapping in $theme_mappings
     set parts (string split ":" $mapping)
     set source_files $parts[1]
@@ -76,56 +85,56 @@ for mapping in $theme_mappings
         # Create symlink
         ln -sf $source_path $dest_path
         set applied_count (math $applied_count + 1)
-        echo "✓ Applied $used_file"
+        success "Applied $used_file"
     else
         set skipped_count (math $skipped_count + 1)
         set first_candidate (string split "|" $source_files)[1]
-        echo "⊘ Skipped $first_candidate (not found in theme)"
+        warning "Skipped $first_candidate (not found in theme)"
     end
 end
 
 # Set wallpaper from theme
 echo ""
-fedpunk-wallpaper-set $theme_name
+if step "Setting wallpaper" "fedpunk-wallpaper-set $theme_name"
+    # Success handled by step function
+end
 
 # Reload applications
 echo ""
-echo "Reloading applications..."
+info "Reloading applications"
 
 # Reload Hyprland
-if hyprctl reload >/dev/null 2>&1
-    echo "✓ Hyprland reloaded"
-else
-    echo "✗ Hyprland reload failed"
+if step "Reloading Hyprland" "hyprctl reload"
+    # Success handled by step function
 end
 
 # Reload btop if running
 if pgrep -x btop >/dev/null 2>&1
-    pkill -SIGUSR2 btop 2>/dev/null
-    and echo "✓ btop reloaded"
-end
-
-# Note: Kitty doesn't support live theme reloading
-# New kitty instances will pick up the theme automatically
-if pgrep -x kitty >/dev/null 2>&1
-    echo "⟳ kitty will update on next launch (restart kitty to see changes)"
+    if step "Refreshing btop" "pkill -SIGUSR2 btop"
+        # Success handled by step function
+    end
 end
 
 # Restart walker if running (to apply theme immediately)
 if pgrep -x walker >/dev/null 2>&1
-    pkill walker 2>/dev/null
-    and echo "✓ Walker restarted (will auto-launch on next use)"
+    if step "Restarting walker" "pkill walker"
+        # Success handled by step function
+    end
 end
 
-# Note: Terminal emulators pick up theme changes on next launch
-if not pgrep -x kitty >/dev/null 2>&1
-    echo "⟳ Terminal emulators will update on next launch"
+# Note about terminal emulators
+if pgrep -x kitty >/dev/null 2>&1
+    warning "kitty will update on next launch"
 end
 
 # Send notification
-set pretty_name (echo $theme_name | sed 's/-/ /g; s/\b\(.\)/\u\1/g')
-notify-send "Theme Changed" "Switched to: $pretty_name\n$applied_count files applied, $skipped_count skipped" -t 3000
+if step "Sending notification" "notify-send 'Theme Changed' 'Switched to: $pretty_name\n$applied_count files applied, $skipped_count skipped' -t 3000"
+    # Success handled by step function
+end
 
+# Final summary
 echo ""
-echo "Theme switched to: $pretty_name"
-echo "Applied $applied_count file(s), skipped $skipped_count"
+box "Theme switched to: $pretty_name
+
+Applied: $applied_count  •  Skipped: $skipped_count" $GUM_SUCCESS
+echo ""

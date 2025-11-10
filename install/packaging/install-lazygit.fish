@@ -1,13 +1,10 @@
 #!/usr/bin/env fish
 
-echo "→ Installing lazygit"
+# Source helper functions
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
 
-# Enable COPR repository for lazygit
-sudo dnf install -qy dnf-plugins-core
-sudo dnf copr enable -qy atim/lazygit
-
-# Install lazygit
-sudo dnf upgrade --refresh -qy
-sudo dnf install -qy lazygit
-
-echo "✓ lazygit installed"
+step "Enabling lazygit COPR" "sudo dnf install -qy dnf-plugins-core && sudo dnf copr enable -qy atim/lazygit"
+step "Installing lazygit" "sudo dnf install -qy lazygit"

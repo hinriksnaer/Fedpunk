@@ -1,13 +1,20 @@
 #!/usr/bin/env fish
 # Helper functions for Fedpunk installation (Fish version)
+# Provides consistent gum-based interface for all installation scripts
 
-# Color codes
+# Color codes (fallback for non-gum scenarios)
 set -gx FEDPUNK_COLOR_RESET '\033[0m'
 set -gx FEDPUNK_COLOR_GREEN '\033[0;32m'
 set -gx FEDPUNK_COLOR_BLUE '\033[0;34m'
 set -gx FEDPUNK_COLOR_YELLOW '\033[0;33m'
 set -gx FEDPUNK_COLOR_RED '\033[0;31m'
 set -gx FEDPUNK_COLOR_GRAY '\033[0;90m'
+
+# Gum color numbers (256-color palette)
+set -gx GUM_INFO 33      # Blue
+set -gx GUM_SUCCESS 35   # Green/Cyan
+set -gx GUM_WARNING 214  # Orange
+set -gx GUM_ERROR 9      # Red
 
 # Get log file from environment (set by bash helpers)
 if not set -q FEDPUNK_LOG_FILE
@@ -17,62 +24,157 @@ if not set -q FEDPUNK_LOG_FILE
     echo "" >> $FEDPUNK_LOG_FILE
 end
 
-# Print info message
+# Print info message using gum
 function info
-    echo -e "$FEDPUNK_COLOR_BLUE→$FEDPUNK_COLOR_RESET $argv"
+    gum style --foreground $GUM_INFO "→ $argv"
     echo "[INFO] $argv" >> $FEDPUNK_LOG_FILE
 end
 
-# Print success message
+# Print success message using gum
 function success
-    echo -e "$FEDPUNK_COLOR_GREEN✓$FEDPUNK_COLOR_RESET $argv"
+    gum style --foreground $GUM_SUCCESS "✓ $argv"
     echo "[SUCCESS] $argv" >> $FEDPUNK_LOG_FILE
 end
 
-# Print warning message
+# Print warning message using gum
 function warning
-    echo -e "$FEDPUNK_COLOR_YELLOW⚠$FEDPUNK_COLOR_RESET $argv"
+    gum style --foreground $GUM_WARNING --bold "⚠ $argv"
     echo "[WARNING] $argv" >> $FEDPUNK_LOG_FILE
 end
 
-# Print error message
+# Print error message using gum
 function error
-    echo -e "$FEDPUNK_COLOR_RED✗$FEDPUNK_COLOR_RESET $argv"
+    gum style --foreground $GUM_ERROR --bold "✗ $argv"
     echo "[ERROR] $argv" >> $FEDPUNK_LOG_FILE
 end
 
-# Print section header
+# Print section header using gum
 function section
     echo ""
-    echo -e "$FEDPUNK_COLOR_BLUE━━━ $argv ━━━$FEDPUNK_COLOR_RESET"
+    gum style \
+        --foreground $GUM_INFO \
+        --border double \
+        --border-foreground $GUM_INFO \
+        --padding "0 2" \
+        --margin "0 2" \
+        "$argv"
+    echo ""
     echo "" >> $FEDPUNK_LOG_FILE
     echo "=== $argv ===" >> $FEDPUNK_LOG_FILE
     echo "" >> $FEDPUNK_LOG_FILE
 end
 
-# Run command quietly, show output only on failure
+# Run command with gum spinner, show output only on failure
 function run_quiet
     set description $argv[1]
     set cmd $argv[2..-1]
     set temp_output (mktemp)
 
-    echo -n "  $description... "
     echo "Running: $cmd" >> $FEDPUNK_LOG_FILE
 
-    if eval $cmd >$temp_output 2>&1
-        echo -e "$FEDPUNK_COLOR_GREEN✓$FEDPUNK_COLOR_RESET"
+    # Run with spinner visible to user, capture command output to temp file
+    set -l full_cmd "begin; $cmd; end >>'"$temp_output"' 2>&1"
+    if gum spin --spinner dot --title "$description..." -- fish -c "$full_cmd"
         cat $temp_output >> $FEDPUNK_LOG_FILE
+        success "$description"
         rm -f $temp_output
         return 0
     else
-        echo -e "$FEDPUNK_COLOR_RED✗$FEDPUNK_COLOR_RESET"
-        echo ""
-        echo -e "$FEDPUNK_COLOR_RED"Error output:"$FEDPUNK_COLOR_RESET"
-        cat $temp_output
+        set exit_code $status
         cat $temp_output >> $FEDPUNK_LOG_FILE
-        rm -f $temp_output
+        error "$description failed (exit code: $exit_code)"
         echo ""
-        echo -e "$FEDPUNK_COLOR_GRAY"Full logs: $FEDPUNK_LOG_FILE"$FEDPUNK_COLOR_RESET"
+
+        # Show last 10 lines of error output
+        gum style --foreground $GUM_ERROR --bold "Error details (last 10 lines):"
+        tail -10 $temp_output | sed 's/^/  /'
+
+        echo ""
+        gum style --foreground $FEDPUNK_COLOR_GRAY "→ Full logs: $FEDPUNK_LOG_FILE"
+        gum style --foreground $FEDPUNK_COLOR_GRAY "→ View with: tail -50 $FEDPUNK_LOG_FILE"
+
+        rm -f $temp_output
+        return $exit_code
+    end
+end
+
+# Run command with gum spinner (simple version - always show result)
+function step
+    set description $argv[1]
+    set cmd $argv[2..-1]
+    set temp_output (mktemp)
+
+    echo "Running: $cmd" >> $FEDPUNK_LOG_FILE
+
+    # Run with spinner visible to user, capture command output to temp file
+    set -l full_cmd "begin; $cmd; end >>'"$temp_output"' 2>&1"
+    if gum spin --spinner dot --title "$description..." -- fish -c "$full_cmd"
+        cat $temp_output >> $FEDPUNK_LOG_FILE
+        # Move to start of line and print success (overwrites spinner line)
+        printf "\r"
+        gum style --foreground $GUM_SUCCESS "✓ $description"
+        echo "[SUCCESS] $description" >> $FEDPUNK_LOG_FILE
+        rm -f $temp_output
+        return 0
+    else
+        set exit_code $status
+        cat $temp_output >> $FEDPUNK_LOG_FILE
+        # Move to start of line and print error (overwrites spinner line)
+        printf "\r"
+        gum style --foreground $GUM_ERROR --bold "✗ $description failed (exit: $exit_code)"
+        echo "[ERROR] $description failed (exit: $exit_code)" >> $FEDPUNK_LOG_FILE
+
+        # Show error details
+        echo ""
+        gum style --foreground $GUM_ERROR "Error details:"
+        tail -5 $temp_output | sed 's/^/  /'
+        echo ""
+        gum style --foreground $FEDPUNK_COLOR_GRAY "→ Full logs: $FEDPUNK_LOG_FILE"
+
+        rm -f $temp_output
+        return $exit_code
+    end
+end
+
+# Yes/No confirmation prompt using gum
+function confirm
+    set prompt $argv[1]
+
+    echo "" >> $FEDPUNK_LOG_FILE
+    echo "[PROMPT] $prompt" >> $FEDPUNK_LOG_FILE
+
+    if gum confirm "$prompt"
+        echo "[RESPONSE] Yes" >> $FEDPUNK_LOG_FILE
+        return 0
+    else
+        echo "[RESPONSE] No" >> $FEDPUNK_LOG_FILE
         return 1
     end
+end
+
+# Display a styled box message
+function box
+    set message $argv[1]
+    set color $argv[2]
+
+    if test -z "$color"
+        set color $GUM_INFO
+    end
+
+    gum style \
+        --foreground $color \
+        --border rounded \
+        --border-foreground $color \
+        --padding "0 1" \
+        --margin "0 0" \
+        "$message"
+end
+
+# Display progress indicator
+function progress
+    set current $argv[1]
+    set total $argv[2]
+    set description $argv[3]
+
+    gum style --foreground $GUM_INFO "[$current/$total] $description"
 end
