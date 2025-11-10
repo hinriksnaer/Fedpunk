@@ -6,11 +6,8 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 section "Deploying Configuration"
 
-# Initialize git submodules
-run_quiet "Syncing git submodules" git submodule sync --recursive
-run_quiet "Updating git submodules" git submodule update --init --recursive
-
 # Use GNU Stow to deploy configs
+# Note: Git submodules are already synced in preflight/install-system.fish
 info "Stowing configuration files"
 cd "$FEDPUNK_PATH"
 

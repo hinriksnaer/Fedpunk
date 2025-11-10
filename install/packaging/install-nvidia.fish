@@ -1,7 +1,10 @@
 #!/usr/bin/env fish
 
 # Source helper functions
-set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+# Don't override FEDPUNK_INSTALL if it's already set
+if not set -q FEDPUNK_INSTALL
+    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+end
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
@@ -83,8 +86,6 @@ info "Regenerating initramfs (this may take a minute)"
 gum spin --spinner meter --title "Regenerating initramfs..." -- fish -c '
     sudo dracut --force >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "Initramfs regenerated" || error "Failed to regenerate initramfs"
-
-cd (dirname (status -f))/../
 
 # Check for Wayland compatibility
 if test "$XDG_SESSION_TYPE" = "wayland"; or command -v hyprland >/dev/null 2>&1

@@ -3,15 +3,17 @@
 # Installs all core dev tools, languages, and modern CLI utilities
 
 # Source helper functions
-set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+# Don't override FEDPUNK_INSTALL if it's already set
+if not set -q FEDPUNK_INSTALL
+    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+end
+
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
 
 # Get target directory (either /root or /home/USER)
 set TARGET_DIR (test (id -u) -eq 0; and echo "/root"; or echo "/home/"(whoami))
-
-cd (dirname (status -f))/../
 
 # Core development tools and utilities
 info "Installing core development tools"
