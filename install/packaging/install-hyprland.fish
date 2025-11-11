@@ -81,4 +81,4 @@ set wayland_deps \
 step "Installing Wayland dependencies" "sudo dnf install -qy --skip-unavailable --best $wayland_deps"
 
 # Ensure graphics drivers are up to date
-step "Updating graphics stack" "sudo dnf upgrade -qy --skip-unavailable mesa* libdrm*"
+step "Updating graphics stack" "sudo dnf upgrade -qy --skip-unavailable mesa-dri-drivers mesa-libGL mesa-libEGL libdrm || true"

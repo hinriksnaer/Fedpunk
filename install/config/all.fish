@@ -21,6 +21,7 @@ for config_dir in config/*/
 end
 
 # Link bin directory
-run_quiet "Linking bin scripts" bash -c "mkdir -p $HOME/.local/bin && stow --restow -d $FEDPUNK_PATH -t $HOME/.local bin"
+run_quiet "Creating bin directory" mkdir -p $HOME/.local/bin
+run_quiet "Linking bin scripts" stow --restow -d $FEDPUNK_PATH -t $HOME/.local bin
 
 success "Configuration deployment complete"
