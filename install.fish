@@ -113,8 +113,27 @@ echo ""
 
 # Run each installation phase with proper logging
 run_fish_script "$FEDPUNK_INSTALL/preflight/all.fish" "System Setup & Preflight Checks"
-run_fish_script "$FEDPUNK_INSTALL/packaging/all.fish" "Package Installation (no configs)"
-run_fish_script "$FEDPUNK_INSTALL/config/all.fish" "Component Setup (install + deploy config)"
+
+# Terminal components (always installed)
+run_fish_script "$FEDPUNK_INSTALL/terminal/packaging/all.fish" "Terminal Package Installation"
+run_fish_script "$FEDPUNK_INSTALL/terminal/config/all.fish" "Terminal Configuration Deployment"
+
+# Desktop components (conditional)
+if not set -q FEDPUNK_SKIP_DESKTOP
+    run_fish_script "$FEDPUNK_INSTALL/desktop/packaging/all.fish" "Desktop Package Installation"
+    run_fish_script "$FEDPUNK_INSTALL/desktop/config/all.fish" "Desktop Configuration Deployment"
+else
+    info "Skipping desktop components (terminal-only mode)"
+    echo "[SKIPPED] Desktop installation (terminal-only mode)" >> "$FEDPUNK_LOG_FILE"
+end
+
+# Link bin directory
+echo ""
+info "Linking bin scripts"
+cd "$FEDPUNK_PATH"
+run_quiet "Creating bin directory" mkdir -p $HOME/.local/bin
+run_quiet "Linking bin scripts" stow --restow -d $FEDPUNK_PATH -t $HOME/.local bin
+
 run_fish_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
 
 echo ""

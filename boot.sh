@@ -68,16 +68,19 @@ if [[ -d ~/.local/share/fedpunk ]]; then
     rm -rf ~/.local/share/fedpunk/
 fi
 
-git clone "https://github.com/${FEDPUNK_REPO}.git" ~/.local/share/fedpunk
+FEDPUNK_PATH="$HOME/.local/share/fedpunk"
+git clone "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
 
 # Use custom branch if instructed, otherwise default to main
 FEDPUNK_REF="${FEDPUNK_REF:-main}"
 if [[ $FEDPUNK_REF != "main" ]]; then
   echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"
-  cd ~/.local/share/fedpunk
+  cd "$FEDPUNK_PATH"
   git fetch origin "${FEDPUNK_REF}" && git checkout "${FEDPUNK_REF}"
-  cd -
 fi
 
+# Export FEDPUNK_PATH so install.fish can find it
+export FEDPUNK_PATH
+
 echo -e "\nInstallation starting..."
-fish ~/.local/share/fedpunk/install.fish
+fish "$FEDPUNK_PATH/install.fish"

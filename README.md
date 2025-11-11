@@ -37,38 +37,37 @@ Fedpunk is a modern, fish-first development environment built on top of the exce
 
 ## ⚡ Quick Start
 
-### Terminal-Only Install (Recommended for Servers/WSL)
+### Method 1: Full Desktop Install (Hyprland + Terminal)
 ```bash
-# One-line install (downloads and runs)
-curl -fsSL https://raw.githubusercontent.com/yourusername/fedpunk/main/install.sh | bash
+# One-line install - clones repo and installs everything
+curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
 
-# Or clone first
-git clone https://github.com/yourusername/fedpunk.git
-cd fedpunk
-bash install.sh
+# Or manually:
+git clone https://github.com/hinriksnaer/Fedpunk.git ~/.local/share/fedpunk
+cd ~/.local/share/fedpunk
+fish install.fish
 ```
 
 This installs:
-- Fish Shell, Neovim, tmux, Lazygit, btop
-- Claude Code AI assistant (optional)
-- Development tools and configurations
-- **Skips**: Hyprland, desktop components
+- **Desktop**: Hyprland, Kitty, Rofi, Mako, NVIDIA drivers (optional)
+- **Terminal**: Fish Shell, Neovim, tmux, Lazygit, btop
+- **Tools**: Claude Code AI assistant (optional)
+- **Themes**: 14 complete omarchy themes with live switching
 
-### Full Installation (Desktop + Terminal)
+### Method 2: Terminal-Only Install (Recommended for Servers)
 ```bash
-# Clone and run boot script for full setup
-git clone https://github.com/yourusername/fedpunk.git
-cd fedpunk
-bash boot.sh
+# Clone the repository anywhere you like
+git clone https://github.com/hinriksnaer/Fedpunk.git
+cd Fedpunk
+./install.sh
 ```
 
-### Interactive Installation
-```fish
-# Clone and run Fish installer (auto-detects environment)
-git clone https://github.com/yourusername/fedpunk.git
-cd fedpunk
-fish install.fish
-```
+This installs:
+- **Terminal**: Fish Shell, Neovim, tmux, Lazygit, btop
+- **Tools**: Claude Code AI assistant (optional)
+- **Skips**: Hyprland, Kitty, and all desktop components
+
+The configs will be deployed to standard XDG locations (`~/.config/`) via stow.
 
 ---
 
@@ -257,22 +256,42 @@ ai_project "how should I structure this app?"
 ## 🔄 Updates
 
 ```fish
-cd ~/.local/share/fedpunk
+# Navigate to wherever you cloned the repository
+cd /path/to/Fedpunk
 git pull
-fish install.fish  # Re-run full installation
+fish install.fish  # Re-run installation (safe to re-run)
 ```
 
 ---
 
 ## 🛠️ Customization
 
+### Installation Structure
+
+The installation system is organized by component type:
+
+```
+install/
+├── preflight/        # System setup & prerequisites
+├── terminal/         # Terminal-only components
+│   ├── config/       # btop, neovim, tmux, lazygit
+│   └── packaging/    # claude CLI
+├── desktop/          # Desktop-only components
+│   ├── config/       # hyprland, kitty, rofi
+│   └── packaging/    # fonts, audio, bluetui, nvidia
+├── post-install/     # Final cleanup tasks
+└── helpers/          # Shared utility functions
+```
+
 ### Adding Custom Packages
 
-**Pure package installs (no configs):**
-- Edit `install/packaging/*.fish` files
+**Terminal components:**
+- Add to `install/terminal/packaging/` for pure packages
+- Add to `install/terminal/config/` for components with configs
 
-**Components with configs:**
-- Edit `install/config/*.fish` files (these handle both install + config deployment)
+**Desktop components:**
+- Add to `install/desktop/packaging/` for pure packages
+- Add to `install/desktop/config/` for components with configs
 
 ### Modifying Configurations
 All configurations use standard XDG paths:
@@ -294,7 +313,7 @@ fedpunk-theme-refresh   # Refresh current theme (Super+Shift+R)
 ```
 
 **Creating Custom Themes:**
-Themes are located in `~/.local/share/fedpunk/themes/`. Each theme directory contains:
+Themes are located in the `themes/` directory of your Fedpunk repository. Each theme directory contains:
 - `hyprland.conf` - Hyprland colors and variables
 - `kitty.conf` - Kitty terminal colors (omarchy standard)
 - `rofi.rasi` - Rofi launcher theme

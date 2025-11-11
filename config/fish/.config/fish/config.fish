@@ -32,3 +32,9 @@ end
 
 # Default terminal for GUI applications
 set -gx TERMINAL kitty
+
+# SSH Agent
+if test -z "$SSH_AUTH_SOCK"
+    eval (ssh-agent -c) > /dev/null
+    set -gx SSH_AGENT_PID (pgrep -u $USER ssh-agent)
+end
