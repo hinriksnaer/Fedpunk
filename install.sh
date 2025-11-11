@@ -85,6 +85,7 @@ if [[ "$IN_REPO" = false ]]; then
 fi
 
 # Export environment variables for terminal-only installation
+export FEDPUNK_PATH
 export FEDPUNK_TERMINAL_ONLY=true
 export FEDPUNK_SKIP_DESKTOP=true
 

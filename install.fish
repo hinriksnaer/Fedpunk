@@ -4,7 +4,10 @@
 set -e
 
 # Define Fedpunk locations
-set -x FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+# Use existing FEDPUNK_PATH if set (e.g., from install.sh), otherwise default to $HOME
+if not set -q FEDPUNK_PATH
+    set -x FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+end
 set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 set -x PATH "$FEDPUNK_PATH/bin" $PATH
 
