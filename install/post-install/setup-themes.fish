@@ -34,43 +34,53 @@ gum spin --spinner dot --title "Setting default theme..." -- fish -c '
 '
 success "Default theme set"
 
-# Set initial background
-gum spin --spinner dot --title "Configuring wallpaper..." -- fish -c '
-    if test -L ~/.config/fedpunk/current/theme
-        set first_bg (find ~/.config/fedpunk/current/theme/backgrounds -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) 2>/dev/null | sort | head -1)
-        if test -n "$first_bg"
-            mkdir -p ~/.config/hypr/wallpapers
-            ln -snf "$first_bg" ~/.config/fedpunk/current/background
-            ln -snf "$first_bg" ~/.config/hypr/wallpapers/current
-        end
-    end
-'
-success "Wallpaper configured"
-
-# Set specific app theme links
-gum spin --spinner dot --title "Linking application themes..." -- fish -c '
+# Set up terminal application themes (btop, neovim)
+gum spin --spinner dot --title "Linking terminal themes..." -- fish -c '
+    # btop theme
     mkdir -p ~/.config/btop/themes
     if test -f ~/.config/fedpunk/current/theme/btop.theme
-        ln -snf ~/.config/fedpunk/current/theme/btop.theme ~/.config/btop/themes/current.theme
-    end
-
-    mkdir -p ~/.config/kitty
-    if test -f ~/.config/fedpunk/current/theme/kitty.conf
-        ln -snf ~/.config/fedpunk/current/theme/kitty.conf ~/.config/kitty/theme.conf
+        ln -snf ~/.config/fedpunk/current/theme/btop.theme ~/.config/btop/themes/active.theme
     end
 '
-success "Application themes linked"
+success "Terminal themes linked"
 
-# Add managed policy directories for Chromium and Brave for theme changes
-# Setup browser policy directories (split into separate commands for reliability)
-if sudo mkdir -p /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
-    if sudo chmod a+rw /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
-        success "Browser policy directories set up"
+# Desktop-only theme setup
+if not set -q FEDPUNK_SKIP_DESKTOP
+    # Set initial background
+    gum spin --spinner dot --title "Configuring wallpaper..." -- fish -c '
+        if test -L ~/.config/fedpunk/current/theme
+            set first_bg (find ~/.config/fedpunk/current/theme/backgrounds -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) 2>/dev/null | sort | head -1)
+            if test -n "$first_bg"
+                mkdir -p ~/.config/hypr/wallpapers
+                ln -snf "$first_bg" ~/.config/fedpunk/current/background
+                ln -snf "$first_bg" ~/.config/hypr/wallpapers/current
+            end
+        end
+    '
+    success "Wallpaper configured"
+
+    # Kitty theme
+    gum spin --spinner dot --title "Linking desktop themes..." -- fish -c '
+        mkdir -p ~/.config/kitty
+        if test -f ~/.config/fedpunk/current/theme/kitty.conf
+            ln -snf ~/.config/fedpunk/current/theme/kitty.conf ~/.config/kitty/theme.conf
+        end
+    '
+    success "Desktop themes linked"
+
+    # Add managed policy directories for Chromium and Brave for theme changes
+    # Setup browser policy directories (split into separate commands for reliability)
+    if sudo mkdir -p /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
+        if sudo chmod a+rw /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
+            success "Browser policy directories set up"
+        else
+            warning "Failed to set permissions on browser policy directories"
+        end
     else
-        warning "Failed to set permissions on browser policy directories"
+        warning "Failed to create browser policy directories (may not be needed)"
     end
 else
-    warning "Failed to create browser policy directories (may not be needed)"
+    info "Skipping desktop theme components (terminal-only mode)"
 end
 
 set current_theme (basename (readlink ~/.config/fedpunk/current/theme 2>/dev/null) 2>/dev/null; or echo "default")
