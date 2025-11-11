@@ -48,7 +48,7 @@ echo -e "\n$ansi_art\n"
 echo "✅ Preflight checks passed"
 
 echo "→ Installing git..."
-sudo dnf install -y git
+sudo dnf install -y git fish
 
 # Use custom repo if specified, otherwise default to your repo
 FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
@@ -80,4 +80,4 @@ if [[ $FEDPUNK_REF != "main" ]]; then
 fi
 
 echo -e "\nInstallation starting..."
-source ~/.local/share/fedpunk/install.sh
+fish ~/.local/share/fedpunk/install.fish

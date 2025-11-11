@@ -1,132 +1,138 @@
 #!/usr/bin/env fish
 
-echo "🐟 Fedpunk Linux Setup"
-echo "======================"
-echo "Choose your installation type:"
-echo ""
+# Exit immediately if a command exits with a non-zero status
+set -e
 
-# Show menu options
-echo "1. 🖥️  Full Setup (Terminal + Desktop)"
-echo "2. 🐟 Terminal Only (Fish, Neovim, tmux, etc.)"
-echo "3. 🪟 Desktop Only (Hyprland environment)"
-echo "4. 🛠️  Custom (specify components)"
-echo ""
+# Define Fedpunk locations
+set -x FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
+set -x PATH "$FEDPUNK_PATH/bin" $PATH
 
-# Check if arguments provided (skip menu)
-if test (count $argv) -gt 0
-    switch $argv[1]
-        case "terminal" "1"
-            fish "./install-terminal.fish"
-            exit
-        case "desktop" "2"
-            fish "./install-desktop.fish"
-            exit
-        case "full" "3"
-            echo "→ Running full setup..."
-            fish "./install-terminal.fish"
-            and fish "./install-desktop.fish"
-            exit
-        case "custom" "4"
-            set components $argv[2..-1]
-            # Fall through to custom logic below
-        case '*'
-            echo "❌ Invalid option: $argv[1]"
-            echo "   Valid options: terminal, desktop, full, custom"
-            exit 1
-    end
-else
-    # Interactive menu
-    read -P "Enter choice [1-4]: " choice
-    
-    switch $choice
-        case "1"
-            echo "→ Running full setup..."
-            fish "./install-terminal.fish"
-            and fish "./install-desktop.fish"
-            exit
-        case "2"
-            fish "./install-terminal.fish"
-            exit
-        case "3"
-            fish "./install-desktop.fish"
-            exit
-        case "4"
-            echo "→ Custom installation mode"
-            # Fall through to custom logic
-        case '*'
-            echo "❌ Invalid choice"
-            exit 1
-    end
+# Color codes
+set C_RESET '\033[0m'
+set C_GREEN '\033[0;32m'
+set C_BLUE '\033[0;34m'
+set C_GRAY '\033[0;90m'
+set C_YELLOW '\033[0;33m'
+set C_RED '\033[0;31m'
+
+# Log file
+set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
+echo "Fedpunk Installation Log - "(date) > "$FEDPUNK_LOG_FILE"
+echo "=================================" >> "$FEDPUNK_LOG_FILE"
+echo "" >> "$FEDPUNK_LOG_FILE"
+
+# Track installation steps
+set -g INSTALL_STEPS
+set -g STEP_COUNT 0
+
+# Helper functions
+function info
+    echo -e "$C_BLUE→$C_RESET $argv"
+    echo "[INFO] "(date '+%H:%M:%S')" $argv" >> "$FEDPUNK_LOG_FILE"
 end
 
-# Custom installation logic
-echo ""
-echo "🛠️ Custom Installation"
-echo "Available components:"
-
-set all_components essentials btop bluetui lazygit neovim tmux claude audio hyprland walker firefox nvidia
-
-for component in $all_components
-    echo "  --$component"
+function success
+    echo -e "$C_GREEN✓$C_RESET $argv"
+    echo "[SUCCESS] "(date '+%H:%M:%S')" $argv" >> "$FEDPUNK_LOG_FILE"
 end
 
-if test (count $argv) -eq 1 -a "$argv[1]" = "custom"
-    echo ""
-    read -P "Enter components (e.g., --neovim --tmux --hyprland): " -a components
-else if test "$argv[1]" = "custom"
-    set components $argv[2..-1]
-else
-    set components $argv
+function warning
+    echo -e "$C_YELLOW⚠$C_RESET $argv"
+    echo "[WARNING] "(date '+%H:%M:%S')" $argv" >> "$FEDPUNK_LOG_FILE"
 end
 
-# Initialize submodules
-echo "→ Initializing git submodules"
-git submodule sync --recursive
-git submodule update --init --recursive
-
-# Ensure Fish is available
-if not command -v fish >/dev/null 2>&1
-    echo "→ Installing Fish first..."
-    if test -f "./scripts/init.sh"
-        bash "./scripts/init.sh"
-    end
-    if test -f "./scripts/install-fish.sh"
-        bash "./scripts/install-fish.sh"
-    end
+function error
+    echo -e "$C_RED✗$C_RESET $argv"
+    echo "[ERROR] "(date '+%H:%M:%S')" $argv" >> "$FEDPUNK_LOG_FILE"
 end
 
-# Helper function to run installer
-function run_installer
-    set name $argv[1]
-    
-    if test -f "./scripts/install-$name.fish"
-        echo "→ Installing $name"
-        fish "./scripts/install-$name.fish"
-    else if test -f "./scripts/install-$name.sh"
-        echo "→ Installing $name (bash fallback)"
-        bash "./scripts/install-$name.sh"
+# Run a fish script with logging
+function run_fish_script
+    set script_name $argv[1]
+    set description $argv[2]
+
+    set -g STEP_COUNT (math $STEP_COUNT + 1)
+
+    echo "" >> "$FEDPUNK_LOG_FILE"
+    echo "========================================" >> "$FEDPUNK_LOG_FILE"
+    echo "STEP $STEP_COUNT: $description" >> "$FEDPUNK_LOG_FILE"
+    echo "Script: $script_name" >> "$FEDPUNK_LOG_FILE"
+    echo "Time: "(date) >> "$FEDPUNK_LOG_FILE"
+    echo "========================================" >> "$FEDPUNK_LOG_FILE"
+    echo "" >> "$FEDPUNK_LOG_FILE"
+
+    info "Step $STEP_COUNT: $description"
+
+    if fish "$script_name"
+        set -g INSTALL_STEPS $INSTALL_STEPS "✓ $description"
+        success "Completed: $description"
+        echo "" >> "$FEDPUNK_LOG_FILE"
+        echo "[STEP $STEP_COUNT COMPLETED]" >> "$FEDPUNK_LOG_FILE"
+        echo "" >> "$FEDPUNK_LOG_FILE"
+        return 0
     else
-        echo "⚠️ No installer found for $name"
-        return 1
+        set exit_code $status
+        set -g INSTALL_STEPS $INSTALL_STEPS "✗ $description (exit code: $exit_code)"
+        error "Failed: $description (exit code: $exit_code)"
+        echo "" >> "$FEDPUNK_LOG_FILE"
+        echo "[STEP $STEP_COUNT FAILED - EXIT CODE: $exit_code]" >> "$FEDPUNK_LOG_FILE"
+        echo "" >> "$FEDPUNK_LOG_FILE"
+        return $exit_code
     end
 end
 
-# Install selected components
-for arg in $components
-    switch $arg
-        case '--*'
-            set name (string sub -s 3 $arg)
-            if contains $name $all_components
-                run_installer $name
-            else
-                echo "⚠️ Unknown component: $arg"
-                echo "   Available components: $all_components"
-                echo "   Extracted name: '$name'"
-            end
-        case '*'
-            echo "⚠️ Invalid format: $arg (use --component)"
-    end
-end
+# Clear screen and show banner
+clear
+echo ""
+echo -e "$C_BLUE███████╗███████╗██████╗ ██████╗ ██╗   ██╗███╗   ██╗██╗  ██╗$C_RESET"
+echo -e "$C_BLUE██╔════╝██╔════╝██╔══██╗██╔══██╗██║   ██║████╗  ██║██║ ██╔╝$C_RESET"
+echo -e "$C_BLUE█████╗  █████╗  ██║  ██║██████╔╝██║   ██║██╔██╗ ██║█████╔╝$C_RESET"
+echo -e "$C_BLUE██╔══╝  ██╔══╝  ██║  ██║██╔═══╝ ██║   ██║██║╚██╗██║██╔═██╗$C_RESET"
+echo -e "$C_BLUE██║     ███████╗██████╔╝██║     ╚██████╔╝██║ ╚████║██║  ██╗$C_RESET"
+echo -e "$C_BLUE╚═╝     ╚══════╝╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝$C_RESET"
+echo ""
+info "Installation path: $FEDPUNK_PATH"
+info "Log file: $FEDPUNK_LOG_FILE"
+echo ""
+
+# Run each installation phase with proper logging
+run_fish_script "$FEDPUNK_INSTALL/preflight/all.fish" "System Setup & Preflight Checks"
+run_fish_script "$FEDPUNK_INSTALL/packaging/all.fish" "Package Installation"
+run_fish_script "$FEDPUNK_INSTALL/config/all.fish" "Configuration Deployment"
+run_fish_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
 
 echo ""
-echo "✅ Custom installation complete!"
+echo "========================================" >> "$FEDPUNK_LOG_FILE"
+echo "INSTALLATION SUMMARY" >> "$FEDPUNK_LOG_FILE"
+echo "Completed at: "(date) >> "$FEDPUNK_LOG_FILE"
+echo "========================================" >> "$FEDPUNK_LOG_FILE"
+echo "" >> "$FEDPUNK_LOG_FILE"
+echo "Steps executed:" >> "$FEDPUNK_LOG_FILE"
+for step in $INSTALL_STEPS
+    echo "  $step" >> "$FEDPUNK_LOG_FILE"
+end
+echo "" >> "$FEDPUNK_LOG_FILE"
+
+echo ""
+echo -e "$C_GREEN━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$C_RESET"
+echo -e "$C_GREEN🎉 Fedpunk installation complete!$C_RESET"
+echo -e "$C_GREEN━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$C_RESET"
+echo ""
+echo -e "$C_BLUE📋 Installation Summary:$C_RESET"
+for step in $INSTALL_STEPS
+    echo "  $step"
+end
+echo ""
+echo -e "$C_BLUE🚀 Next steps:$C_RESET"
+echo "  • Restart your terminal or run: exec fish"
+echo "  • Log out and select 'Hyprland' from your display manager"
+echo "  • Or run 'Hyprland' from a TTY"
+echo ""
+echo -e "$C_BLUE⌨️  Hyprland key bindings:$C_RESET"
+echo "  Super+Return: Terminal    │  Super+Space: Launcher"
+echo "  Super+Q: Close window     │  Super+Ctrl+T: Theme selector"
+echo "  Super+1-9: Workspaces     │  Print: Screenshot"
+echo ""
+echo -e "$C_GRAY📄 Full installation log saved to: $FEDPUNK_LOG_FILE$C_RESET"
+echo ""
