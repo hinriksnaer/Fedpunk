@@ -65,6 +65,7 @@ sudo dnf install -y git fish gum
 export FEDPUNK_PATH
 export FEDPUNK_TERMINAL_ONLY=true
 export FEDPUNK_SKIP_DESKTOP=true
+export FEDPUNK_NON_INTERACTIVE=true  # Terminal setup is non-interactive by default
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

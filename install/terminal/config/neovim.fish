@@ -75,6 +75,11 @@ gum spin --spinner dot --title "Configuring PATH..." -- fish -c '
 
 # Deploy configuration
 cd "$FEDPUNK_PATH"
-run_quiet "Deploying Neovim config" stow --restow -d config -t ~ neovim
+run_quiet "Deploying Neovim config" stow --restow -d config -t "$TARGET_HOME" neovim
+
+# Ensure ownership if deployed as root for another user
+if test (id -u) -eq 0; and test "$TARGET_USER" != "root"
+    step "Setting config ownership" "chown -R $TARGET_USER:$TARGET_USER $TARGET_HOME/.config/nvim"
+end
 
 success "Neovim setup complete"

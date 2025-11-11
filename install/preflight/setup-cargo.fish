@@ -25,8 +25,8 @@ if not command -v rustc >/dev/null 2>&1
         curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path >>'"$FEDPUNK_LOG_FILE"' 2>&1
     '
 
-    # Source cargo env for current session
-    source $HOME/.cargo/env
+    # Add cargo to PATH for current session (Fish-compatible way)
+    set -gx PATH $HOME/.cargo/bin $PATH
 
     # Add to installer-managed config (never committed to git)
     set installer_config "$HOME/.config/fish/conf.d/installer-managed.fish"

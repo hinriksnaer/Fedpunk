@@ -153,13 +153,63 @@ function step
     end
 end
 
+# Check if we're in a non-interactive environment
+function is_non_interactive
+    # Check for common non-interactive indicators
+    if set -q FEDPUNK_NON_INTERACTIVE
+        return 0
+    end
+    if set -q CI
+        return 0
+    end
+    if test "$TERM" = "dumb"
+        return 0
+    end
+    if not isatty stdin
+        return 0
+    end
+    # Check for devcontainer
+    if test -f /workspaces/.codespaces/shared/environment-variables.json
+        return 0
+    end
+    if set -q REMOTE_CONTAINERS
+        return 0
+    end
+    if set -q CODESPACES
+        return 0
+    end
+    return 1
+end
+
 # Yes/No confirmation prompt using gum
+# Usage: confirm "prompt text" [default_value]
+# default_value: "yes" or "no" (used in non-interactive mode)
 function confirm
     set prompt $argv[1]
+    set default $argv[2]
+
+    # Default to "no" if not specified
+    if test -z "$default"
+        set default "no"
+    end
 
     echo "" >> $FEDPUNK_LOG_FILE
     echo "[PROMPT] "(date +%H:%M:%S)" $prompt" >> $FEDPUNK_LOG_FILE
 
+    # Non-interactive mode: use default
+    if is_non_interactive
+        echo "[NON-INTERACTIVE] Using default: $default" >> $FEDPUNK_LOG_FILE
+        info "$prompt [non-interactive: $default]"
+        if test "$default" = "yes"
+            echo "[RESPONSE] "(date +%H:%M:%S)" Yes (auto)" >> $FEDPUNK_LOG_FILE
+            return 0
+        else
+            echo "[RESPONSE] "(date +%H:%M:%S)" No (auto)" >> $FEDPUNK_LOG_FILE
+            return 1
+        end
+    end
+
+    # Interactive mode: prompt user
     if gum confirm "$prompt"
         echo "[RESPONSE] "(date +%H:%M:%S)" Yes" >> $FEDPUNK_LOG_FILE
         return 0

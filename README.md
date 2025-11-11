@@ -54,20 +54,22 @@ This installs:
 - **Tools**: Claude Code AI assistant (optional)
 - **Themes**: 14 complete omarchy themes with live switching
 
-### Method 2: Terminal-Only Install (Recommended for Servers)
+### Method 2: Terminal-Only Install (Recommended for Servers/Devcontainers)
 ```bash
 # Clone the repository anywhere you like
 git clone https://github.com/hinriksnaer/Fedpunk.git
 cd Fedpunk
-./install.sh
+./install.sh  # Non-interactive by default
 ```
 
 This installs:
 - **Terminal**: Fish Shell, Neovim, tmux, Lazygit, btop
-- **Tools**: Claude Code AI assistant (optional)
+- **Tools**: Claude Code AI assistant (automatically installed)
 - **Skips**: Hyprland, Kitty, and all desktop components
 
 The configs will be deployed to standard XDG locations (`~/.config/`) via stow.
+
+**Note:** Terminal setup is non-interactive by default (perfect for devcontainers/CI). For interactive prompts, use `fish install.fish` instead.
 
 ---
 
