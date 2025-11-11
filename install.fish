@@ -96,6 +96,18 @@ info "Installation path: $FEDPUNK_PATH"
 info "Log file: $FEDPUNK_LOG_FILE"
 echo ""
 
+# Verify sudo credentials early (so we don't get interrupted later)
+gum style --foreground 33 "→ Verifying sudo credentials..."
+if not sudo -n true 2>/dev/null
+    gum style --foreground 33 "→ Sudo privileges required. Please enter your password:"
+    if not sudo true
+        gum style --foreground 9 --bold "✗ Failed to obtain sudo privileges. Installation cannot continue."
+        exit 1
+    end
+end
+gum style --foreground 35 "✓ Sudo credentials verified"
+echo ""
+
 # Run each installation phase with proper logging
 run_fish_script "$FEDPUNK_INSTALL/preflight/all.fish" "System Setup & Preflight Checks"
 run_fish_script "$FEDPUNK_INSTALL/packaging/all.fish" "Package Installation (no configs)"
