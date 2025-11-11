@@ -20,7 +20,6 @@ end
 info "Installing core development tools"
 set core_tools \
   git \
-  firefox \
   fzf \
   unzip \
   tar \
@@ -97,7 +96,6 @@ Installed packages:
   🐍 Python3 & pip - Python development
   📦 Node.js & npm - JavaScript development
   🐹 Go - Go programming language
-  🦊 Firefox - Web browser
 
 Note: Rust/Cargo and Fish shell enhancements were installed in earlier preflight steps" $GUM_SUCCESS
 echo ""

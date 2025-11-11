@@ -5,6 +5,10 @@
 # Source helper functions
 source "$FEDPUNK_INSTALL/helpers/all.fish"
 
+# Firefox browser
+echo ""
+step "Installing Firefox" "sudo dnf install -qy firefox"
+
 # Fonts (needed for desktop)
 echo ""
 info "Installing fonts"

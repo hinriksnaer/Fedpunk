@@ -73,9 +73,22 @@ gum spin --spinner dot --title "Configuring PATH..." -- fish -c '
     end >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "PATH configured" || warning "Failed to configure PATH"
 
-# Deploy configuration
-cd "$FEDPUNK_PATH"
-run_quiet "Deploying Neovim config" stow --restow -d config -t "$TARGET_HOME" neovim
+# Deploy configuration (copy instead of symlink for better Lua module resolution)
+echo ""
+info "Deploying Neovim configuration"
+
+# Remove existing config if present
+if test -e "$TARGET_HOME/.config/nvim"
+    gum spin --spinner dot --title "Removing old config..." -- fish -c '
+        rm -rf "'$TARGET_HOME'/.config/nvim" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "Removed old config" || warning "No old config to remove"
+end
+
+# Copy config files
+gum spin --spinner dot --title "Copying Neovim config..." -- fish -c '
+    mkdir -p "'$TARGET_HOME'/.config"
+    cp -r "'$FEDPUNK_PATH'/config/neovim/.config/nvim" "'$TARGET_HOME'/.config/" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Neovim config deployed" || error "Failed to deploy Neovim config"
 
 # Ensure ownership if deployed as root for another user
 if test (id -u) -eq 0; and test "$TARGET_USER" != "root"
