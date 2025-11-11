@@ -131,8 +131,17 @@ end
 echo ""
 info "Linking bin scripts"
 cd "$FEDPUNK_PATH"
-run_quiet "Creating bin directory" mkdir -p $HOME/.local/bin
-run_quiet "Linking bin scripts" stow --restow -d $FEDPUNK_PATH -t $HOME/.local bin
+if mkdir -p $HOME/.local/bin >> "$FEDPUNK_LOG_FILE" 2>&1
+    success "Created bin directory"
+else
+    error "Failed to create bin directory"
+end
+
+if stow --restow -d $FEDPUNK_PATH -t $HOME/.local bin >> "$FEDPUNK_LOG_FILE" 2>&1
+    success "Linked bin scripts"
+else
+    error "Failed to link bin scripts"
+end
 
 run_fish_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
 

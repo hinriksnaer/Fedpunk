@@ -67,7 +67,14 @@ gum spin --spinner points --title "Installing system utilities..." -- fish -c '
 # SELinux configuration
 echo ""
 info "Checking SELinux configuration"
-set selinux_status (getenforce 2>/dev/null || echo "Disabled")
+
+# Check if getenforce command exists
+if command -v getenforce >/dev/null 2>&1
+    set selinux_status (getenforce 2>/dev/null || echo "Disabled")
+else
+    set selinux_status "Not Available"
+end
+
 info "SELinux status: $selinux_status"
 
 if test "$selinux_status" = "Enforcing"
