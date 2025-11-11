@@ -22,6 +22,6 @@ step "Installing lazygit" "sudo dnf install -qy lazygit"
 
 # Deploy configuration
 cd "$FEDPUNK_PATH"
-run_quiet "Deploying lazygit config" stow --restow -d config -t ~ lazygit
+run_quiet "Deploying lazygit config" stow --restow -d config -t "$HOME" lazygit
 
 success "lazygit setup complete"

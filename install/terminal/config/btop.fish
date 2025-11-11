@@ -21,6 +21,6 @@ step "Installing btop package" "sudo dnf install -qy btop"
 
 # Deploy configuration
 cd "$FEDPUNK_PATH"
-run_quiet "Deploying btop config" stow --restow -d config -t ~ btop
+run_quiet "Deploying btop config" stow --restow -d config -t "$HOME" btop
 
 success "btop setup complete"
