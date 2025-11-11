@@ -1,0 +1,52 @@
+#!/usr/bin/env fish
+# Set terminal-only theme components (btop, neovim)
+# Usage: fedpunk-theme-set-terminal <theme-name>
+# This script handles only terminal application themes
+
+if test (count $argv) -lt 1
+    echo "Usage: fedpunk-theme-set-terminal <theme-name>"
+    exit 1
+end
+
+set themes_dir "$HOME/.local/share/fedpunk/themes"
+set theme_name (echo $argv[1] | string lower | string replace -a ' ' '-')
+set theme_path "$themes_dir/$theme_name"
+
+# Check if theme exists
+if not test -d "$theme_path"
+    echo "Error: Theme '$theme_name' does not exist"
+    exit 1
+end
+
+set applied_count 0
+set skipped_count 0
+
+# Apply btop theme (symlink works fine for btop)
+set btop_source "$theme_path/btop.theme"
+set btop_dest "$HOME/.config/btop/themes/active.theme"
+if test -f "$btop_source"
+    mkdir -p (dirname $btop_dest) 2>/dev/null
+    ln -sf $btop_source $btop_dest
+    set applied_count (math $applied_count + 1)
+else
+    set skipped_count (math $skipped_count + 1)
+end
+
+# Apply neovim theme (COPY instead of symlink - Lua module loader breaks with symlinks)
+set nvim_source "$theme_path/neovim.lua"
+set nvim_dest "$HOME/.config/nvim/lua/plugins/theme.lua"
+if test -f "$nvim_source"
+    mkdir -p (dirname $nvim_dest) 2>/dev/null
+    cp -f $nvim_source $nvim_dest
+    set applied_count (math $applied_count + 1)
+else
+    set skipped_count (math $skipped_count + 1)
+end
+
+# Reload btop if running
+if pgrep -x btop >/dev/null 2>&1
+    pkill -SIGUSR2 btop 2>/dev/null
+end
+
+# Return counts for caller
+echo "$applied_count:$skipped_count"

@@ -35,14 +35,20 @@ gum spin --spinner dot --title "Setting default theme..." -- fish -c '
 success "Default theme set"
 
 # Set up terminal application themes (btop, neovim)
-gum spin --spinner dot --title "Linking terminal themes..." -- fish -c '
-    # btop theme
+gum spin --spinner dot --title "Setting up terminal themes..." -- fish -c '
+    # btop theme (symlink is fine)
     mkdir -p ~/.config/btop/themes
     if test -f ~/.config/fedpunk/current/theme/btop.theme
         ln -snf ~/.config/fedpunk/current/theme/btop.theme ~/.config/btop/themes/active.theme
     end
+
+    # neovim theme (copy instead of symlink - Lua module loader breaks with symlinks)
+    mkdir -p ~/.config/nvim/lua/plugins
+    if test -f ~/.config/fedpunk/current/theme/neovim.lua
+        cp -f ~/.config/fedpunk/current/theme/neovim.lua ~/.config/nvim/lua/plugins/theme.lua
+    end
 '
-success "Terminal themes linked"
+success "Terminal themes set up"
 
 # Desktop-only theme setup
 if not set -q FEDPUNK_SKIP_DESKTOP

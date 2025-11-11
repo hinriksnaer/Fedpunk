@@ -1,0 +1,154 @@
+#!/usr/bin/env fish
+# Set desktop theme components (Hyprland, Kitty, Rofi, Mako, wallpapers)
+# Also calls terminal theme switcher for consistent theming
+# Usage: fedpunk-theme-set-desktop <theme-name>
+
+# Source helper functions for consistent interface
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
+
+if test (count $argv) -lt 1
+    echo "Usage: fedpunk-theme-set-desktop <theme-name>"
+    echo ""
+    echo "Available themes:"
+    fedpunk-theme-list
+    exit 1
+end
+
+set themes_dir "$HOME/.local/share/fedpunk/themes"
+set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
+
+# Normalize theme name (lowercase, convert spaces to dashes)
+set theme_name (echo $argv[1] | string lower | string replace -a ' ' '-')
+set theme_path "$themes_dir/$theme_name"
+
+# Check if theme exists
+if not test -d "$theme_path"
+    error "Theme '$theme_name' does not exist"
+    echo ""
+    echo "Available themes:"
+    fedpunk-theme-list
+    exit 1
+end
+
+set pretty_name (echo $theme_name | sed 's/-/ /g; s/\b\(.\)/\u\1/g')
+
+echo ""
+box "Switching to theme: $pretty_name" $GUM_INFO
+echo ""
+
+set applied_count 0
+set skipped_count 0
+
+# Update Hyprland config to source the theme's hyprland.conf
+if test -f "$theme_path/hyprland.conf"
+    if step "Applying Hyprland theme" "sed -i 's|^source = \$HOME/.*themes/.*/hyprland.conf|source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf|' $hyprland_conf"
+        set applied_count (math $applied_count + 1)
+    end
+else
+    warning "Skipped hyprland.conf (not found in theme)"
+    set skipped_count (math $skipped_count + 1)
+end
+
+# Desktop theme file mappings: source -> destination (symlinks)
+# Note: Neovim theme is handled separately by terminal switcher (copied, not symlinked)
+set -l desktop_theme_mappings \
+    "kitty.conf:$HOME/.config/kitty/theme.conf" \
+    ".fedpunk-foot.ini|foot.ini:$HOME/.config/foot/theme.ini" \
+    "rofi.rasi:$HOME/.config/rofi/theme.rasi" \
+    "mako.ini:$HOME/.config/mako/theme.conf"
+
+# Apply desktop theme files (symlinks)
+info "Linking desktop application themes"
+for mapping in $desktop_theme_mappings
+    set parts (string split ":" $mapping)
+    set source_files $parts[1]
+    set dest_path $parts[2]
+
+    # Check for primary file first, then fallback(s)
+    set source_path ""
+    set used_file ""
+    for candidate in (string split "|" $source_files)
+        if test -f "$theme_path/$candidate"
+            set source_path "$theme_path/$candidate"
+            set used_file $candidate
+            break
+        end
+    end
+
+    if test -n "$source_path"
+        # Create destination directory if needed
+        set dest_dir (dirname $dest_path)
+        mkdir -p $dest_dir 2>/dev/null
+
+        # Create symlink
+        ln -sf $source_path $dest_path
+        set applied_count (math $applied_count + 1)
+        success "Applied $used_file"
+    else
+        set skipped_count (math $skipped_count + 1)
+        set first_candidate (string split "|" $source_files)[1]
+        warning "Skipped $first_candidate (not found in theme)"
+    end
+end
+
+# Apply terminal themes
+echo ""
+info "Applying terminal themes"
+set terminal_result (fedpunk-theme-set-terminal $theme_name)
+set terminal_counts (string split ":" $terminal_result)
+set terminal_applied $terminal_counts[1]
+set terminal_skipped $terminal_counts[2]
+set applied_count (math $applied_count + $terminal_applied)
+set skipped_count (math $skipped_count + $terminal_skipped)
+success "Terminal themes applied"
+
+# Set wallpaper from theme
+echo ""
+if step "Setting wallpaper" "fedpunk-wallpaper-set $theme_name"
+    # Success handled by step function
+end
+
+# Reload applications
+echo ""
+info "Reloading applications"
+
+# Reload Hyprland
+if step "Reloading Hyprland" "hyprctl reload"
+    # Success handled by step function
+end
+
+# Reload btop if running
+if pgrep -x btop >/dev/null 2>&1
+    if step "Refreshing btop" "pkill -SIGUSR2 btop"
+        # Success handled by step function
+    end
+end
+
+# Reload kitty config if running
+if pgrep -x kitty >/dev/null 2>&1
+    if step "Reloading kitty config" "killall -SIGUSR1 kitty"
+        # Success handled by step function
+    end
+end
+
+# Reload mako notification daemon if running
+if pgrep -x mako >/dev/null 2>&1
+    if step "Reloading mako" "killall -SIGUSR2 mako"
+        # Success handled by step function
+    end
+end
+
+# Send notification
+if step "Sending notification" "notify-send 'Theme Changed' 'Switched to: $pretty_name\n$applied_count files applied, $skipped_count skipped' -t 3000"
+    # Success handled by step function
+end
+
+# Final summary
+echo ""
+box "Theme switched to: $pretty_name
+
+Applied: $applied_count  •  Skipped: $skipped_count" $GUM_SUCCESS
+echo ""
