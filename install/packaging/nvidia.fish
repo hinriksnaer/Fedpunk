@@ -40,7 +40,9 @@ info "Installing NVIDIA utilities"
 set packages \
     nvidia-settings \
     nvidia-persistenced \
-    cuda-drivers
+    cuda-drivers \
+    libva \
+    libva-nvidia-driver
 
 step "Installing NVIDIA utilities" "sudo dnf install -qy $packages"
 
@@ -76,7 +78,7 @@ gum spin --spinner dot --title "Creating NVIDIA modprobe configuration..." -- fi
         "options nouveau modeset=0" \
         "" \
         "# NVIDIA driver options" \
-        "options nvidia-drm modeset=1" \
+        "options nvidia-drm modeset=1 fbdev=1" \
         "options nvidia NVreg_UsePageAttributeTable=1" \
         "options nvidia NVreg_InitializeSystemMemoryAllocations=0" | sudo tee /etc/modprobe.d/nvidia.conf >/dev/null >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "NVIDIA modprobe configured"

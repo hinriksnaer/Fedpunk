@@ -17,7 +17,7 @@ echo ""
 info "Setting up Walker launcher and Elephant service"
 
 # Enable COPR repository
-step "Enabling COPR repository" "sudo dnf copr enable -y washkinazy/wayland-wm-extras"
+step "Enabling COPR repository" "sudo dnf copr enable errornointernet/walker"
 
 # Install walker and elephant
 step "Installing walker and elephant" "sudo dnf install -qy walker elephant"
