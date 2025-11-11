@@ -37,33 +37,37 @@ Fedpunk is a modern, fish-first development environment built on top of the exce
 
 ## ⚡ Quick Start
 
-### One-Command Full Install
+### Terminal-Only Install (Recommended for Servers/WSL)
 ```bash
+# One-line install (downloads and runs)
+curl -fsSL https://raw.githubusercontent.com/yourusername/fedpunk/main/install.sh | bash
+
+# Or clone first
 git clone https://github.com/yourusername/fedpunk.git
 cd fedpunk
 bash install.sh
 ```
 
+This installs:
+- Fish Shell, Neovim, tmux, Lazygit, btop
+- Claude Code AI assistant (optional)
+- Development tools and configurations
+- **Skips**: Hyprland, desktop components
+
+### Full Installation (Desktop + Terminal)
+```bash
+# Clone and run boot script for full setup
+git clone https://github.com/yourusername/fedpunk.git
+cd fedpunk
+bash boot.sh
+```
+
 ### Interactive Installation
 ```fish
+# Clone and run Fish installer (auto-detects environment)
 git clone https://github.com/yourusername/fedpunk.git
 cd fedpunk
 fish install.fish
-```
-
-### Direct Commands
-```fish
-# Full setup (terminal + desktop)
-fish install.fish full
-
-# Terminal only (Fish, Neovim, tmux, etc.)
-fish install.fish terminal
-
-# Desktop only (Hyprland environment)
-fish install.fish desktop
-
-# Custom components
-fish install.fish custom --neovim --tmux --audio --hyprland
 ```
 
 ---

@@ -14,13 +14,27 @@ fish "$FEDPUNK_INSTALL/packaging/fonts.fish"
 
 # Audio stack
 echo ""
-info "Installing audio stack"
-fish "$FEDPUNK_INSTALL/packaging/audio.fish"
+if set -q FEDPUNK_SKIP_DESKTOP
+    if confirm "Install audio stack? (PipeWire, codecs)"
+        fish "$FEDPUNK_INSTALL/packaging/audio.fish"
+    else
+        info "Skipping audio stack"
+        echo "[SKIPPED] Audio stack (user declined)" >> $FEDPUNK_LOG_FILE
+    end
+else
+    info "Installing audio stack"
+    fish "$FEDPUNK_INSTALL/packaging/audio.fish"
+end
 
 # bluetui (Bluetooth TUI)
 echo ""
-info "Installing bluetui"
-fish "$FEDPUNK_INSTALL/packaging/bluetui.fish"
+if set -q FEDPUNK_SKIP_DESKTOP
+    info "Skipping bluetui (terminal-only mode)"
+    echo "[SKIPPED] bluetui (terminal-only mode)" >> $FEDPUNK_LOG_FILE
+else
+    info "Installing bluetui"
+    fish "$FEDPUNK_INSTALL/packaging/bluetui.fish"
+end
 
 # Claude installation (prompt user)
 echo ""
@@ -33,7 +47,10 @@ end
 
 # NVIDIA drivers (if GPU detected)
 echo ""
-if lspci | grep -i nvidia >/dev/null 2>&1
+if set -q FEDPUNK_SKIP_DESKTOP
+    info "Skipping NVIDIA drivers (terminal-only mode)"
+    echo "[SKIPPED] NVIDIA drivers (terminal-only mode)" >> $FEDPUNK_LOG_FILE
+else if lspci | grep -i nvidia >/dev/null 2>&1
     info "NVIDIA GPU detected"
     if confirm "Install NVIDIA proprietary drivers?"
         fish "$FEDPUNK_INSTALL/packaging/nvidia.fish"

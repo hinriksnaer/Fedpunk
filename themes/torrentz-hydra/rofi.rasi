@@ -8,7 +8,7 @@
     blue:                #1BC5C9;
     fg-col:              #E2E6F1;
     fg-col2:             #9AE64F;
-    grey:                #8D887C;
+    grey:                #A5ABB8;
 
     background-color:    transparent;
     text-color:          @fg-col;

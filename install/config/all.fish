@@ -18,7 +18,10 @@ fish "$FEDPUNK_INSTALL/config/lazygit.fish"
 
 # Desktop components (if display server available)
 echo ""
-if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
+if set -q FEDPUNK_SKIP_DESKTOP
+    info "Skipping desktop components (terminal-only mode)"
+    echo "[SKIPPED] Desktop components (terminal-only mode)" >> $FEDPUNK_LOG_FILE
+else if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
     warning "No display server detected (headless environment)"
     if confirm "Install desktop components anyway?"
         info "Setting up desktop components"
