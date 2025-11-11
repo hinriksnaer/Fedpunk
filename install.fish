@@ -98,8 +98,8 @@ echo ""
 
 # Run each installation phase with proper logging
 run_fish_script "$FEDPUNK_INSTALL/preflight/all.fish" "System Setup & Preflight Checks"
-run_fish_script "$FEDPUNK_INSTALL/packaging/all.fish" "Package Installation"
-run_fish_script "$FEDPUNK_INSTALL/config/all.fish" "Configuration Deployment"
+run_fish_script "$FEDPUNK_INSTALL/packaging/all.fish" "Package Installation (no configs)"
+run_fish_script "$FEDPUNK_INSTALL/config/all.fish" "Component Setup (install + deploy config)"
 run_fish_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
 
 echo ""

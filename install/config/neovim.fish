@@ -1,13 +1,20 @@
 #!/usr/bin/env fish
+# Neovim - Modern text editor
+# End-to-end setup: install package → deploy config
 
 # Source helper functions
-# Don't override FEDPUNK_INSTALL if it's already set
 if not set -q FEDPUNK_INSTALL
     set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+end
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 end
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
+
+echo ""
+info "Setting up Neovim"
 
 # Figure out target user and home directory (works with/without sudo)
 if test (id -u) -eq 0
@@ -23,12 +30,8 @@ else
     set TARGET_HOME $HOME
 end
 
-info "Installing Neovim for user: $TARGET_USER"
-
-# System packages
+# Install dependencies
 set packages ripgrep fzf
-
-# Use sudo for package operations if not root
 set SUDO_CMD ""
 if test (id -u) -ne 0
     set SUDO_CMD sudo
@@ -39,7 +42,6 @@ step "Installing Neovim dependencies" "$SUDO_CMD dnf install -qy $packages"
 # User-local Neovim install (no sudo)
 set TMPDIR (mktemp -d)
 
-# Cleanup function equivalent
 function cleanup_tmpdir --on-event fish_exit
     rm -rf $TMPDIR 2>/dev/null
 end
@@ -70,3 +72,9 @@ gum spin --spinner dot --title "Configuring PATH..." -- fish -c '
         end
     end >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "PATH configured" || warning "Failed to configure PATH"
+
+# Deploy configuration
+cd "$FEDPUNK_PATH"
+run_quiet "Deploying Neovim config" stow --restow -d config -t ~ neovim
+
+success "Neovim setup complete"

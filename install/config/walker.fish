@@ -1,25 +1,25 @@
 #!/usr/bin/env fish
+# Walker - Application launcher with Elephant service
+# End-to-end setup: install package → deploy config → enable service
 
 # Source helper functions
-# Don't override if already set
 if not set -q FEDPUNK_PATH
     set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 end
-
 if not set -q FEDPUNK_INSTALL
     set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 end
-
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
 
-info "Installing Walker launcher and Elephant service"
+echo ""
+info "Setting up Walker launcher and Elephant service"
 
-# Enable copr repository
+# Enable COPR repository
 step "Enabling COPR repository" "sudo dnf copr enable -y washkinazy/wayland-wm-extras"
 
-# Install walker and elephant from copr
+# Install walker and elephant
 step "Installing walker and elephant" "sudo dnf install -qy walker elephant"
 
 # Verify installation
@@ -36,21 +36,19 @@ end
 success "Walker installed: "(which walker)
 success "Elephant installed: "(which elephant)
 
-# Deploy Walker configuration using stow
+# Deploy configuration
 cd "$FEDPUNK_PATH"
-step "Deploying Walker configuration" "stow --restow -d config -t ~ walker"
+run_quiet "Deploying Walker config" stow --restow -d config -t ~ walker
 
-info "Enabling and starting Elephant systemd service"
-
-# First enable the service in elephant's config
+# Configure Elephant service
 gum spin --spinner dot --title "Configuring Elephant service..." -- fish -c "
     elephant service enable >>$FEDPUNK_LOG_FILE 2>&1
 " && success "Elephant service configured"
 
-# IMPORTANT: Reload systemd daemon to pick up the new service file
+# Reload systemd daemon
 step "Reloading systemd daemon" "systemctl --user daemon-reload"
 
-# Enable and start the systemd service
+# Enable and start the service
 gum spin --spinner dot --title "Enabling Elephant service..." -- fish -c "
     systemctl --user enable elephant >>$FEDPUNK_LOG_FILE 2>&1
 " && success "Elephant service enabled"
@@ -59,49 +57,27 @@ gum spin --spinner dot --title "Starting Elephant service..." -- fish -c "
     systemctl --user start elephant >>$FEDPUNK_LOG_FILE 2>&1
 "
 
-# Give it a moment to start
 sleep 1
 
-# Verify the service is running
+# Verify service
 if systemctl --user is-active --quiet elephant
     success "Elephant service is running"
 else
     warning "Elephant service failed to start, attempting restart..."
     step "Reloading systemd daemon again" "systemctl --user daemon-reload"
-    
+
     gum spin --spinner dot --title "Restarting Elephant service..." -- fish -c "
         systemctl --user restart elephant >>$FEDPUNK_LOG_FILE 2>&1
     "
-    
+
     sleep 1
-    
+
     if systemctl --user is-active --quiet elephant
         success "Elephant service is now running"
     else
         error "Failed to start Elephant service"
         info "Check status with: systemctl --user status elephant"
-        info "Try manually: systemctl --user daemon-reload && systemctl --user start elephant"
-        exit 1
     end
 end
 
-echo ""
-box "Walker and Elephant Installed!
-
-Services configured:
-  ✓ Elephant service enabled and started
-  ✓ Elephant will auto-start on login
-
-Usage:
-  • Launch Walker: walker
-  • Or press Super+R in Hyprland
-
-Configuration:
-  • Walker config: ~/.config/walker/config.toml
-  • Walker theme: ~/.config/walker/style.css
-
-Service management:
-  • Check status: systemctl --user status elephant
-  • Restart: systemctl --user restart elephant
-  • Disable: elephant service disable" $GUM_SUCCESS
-echo ""
+success "Walker setup complete"

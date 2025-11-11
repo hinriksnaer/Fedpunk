@@ -1,14 +1,20 @@
 #!/usr/bin/env fish
-# Install bluetui - Bluetooth TUI manager
+# bluetui - Bluetooth TUI manager
+# Pure package installation (no config to stow)
 
 # Source helper functions
-# Don't override FEDPUNK_INSTALL if it's already set
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+end
 if not set -q FEDPUNK_INSTALL
-    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+    set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 end
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
+
+echo ""
+info "Installing bluetui"
 
 # Check if cargo is installed
 if not command -v cargo >/dev/null 2>&1

@@ -65,12 +65,6 @@ fish install.fish desktop
 fish install.fish custom --neovim --tmux --audio --hyprland
 ```
 
-### Quick Terminal Setup
-```fish
-# Just the essentials for development
-fish install-terminal.fish
-```
-
 ---
 
 ## 📦 Components
@@ -129,10 +123,17 @@ fish install-terminal.fish
 
 Fedpunk uses a **modular Fish-first approach**:
 
-1. **Bootstrap** (`install/bootstrap-fish.sh`) - Installs Fish, GNU Stow, and gum for the UI
-2. **Preflight** (`install/preflight/`) - System setup, repositories, and submodules
-3. **Packaging** (`install/packaging/`) - Individual component installers
-4. **Configuration** (`install/config/`) - Dotfile deployment via GNU Stow
+1. **Boot** (`boot.sh`) - Preflight checks, installs git, fish, and gum
+2. **Preflight** (`install/preflight/`) - Critical setup in order:
+   - `setup-cargo.fish` - Rust/Cargo installation (many tools depend on this)
+   - `setup-fish.fish` - Fish shell configuration, stow, and plugins
+   - `install-essentials.fish` - Core development tools
+   - `setup-system.fish` - System setup, repositories, and submodules
+3. **Packaging** (`install/packaging/`) - Pure package installations (no configs):
+   - `audio.fish`, `bluetui.fish`, `fonts.fish`, `claude.fish`, `nvidia.fish`
+4. **Configuration** (`install/config/`) - End-to-end component setup (install + deploy):
+   - Each script installs packages AND stows configs for easier troubleshooting
+   - `btop.fish`, `neovim.fish`, `tmux.fish`, `lazygit.fish`, `kitty.fish`, `hyprland.fish`, `walker.fish`
 5. **Post-install** (`install/post-install/`) - Theme setup and final configuration
 
 ### Installation UI
@@ -250,13 +251,9 @@ ai_project "how should I structure this app?"
 ## 🔄 Updates
 
 ```fish
-cd fedpunk
+cd ~/.local/share/fedpunk
 git pull
-fish install.fish  # Re-run for updates
-
-# Or update specific parts:
-fish install-terminal.fish  # Update terminal tools
-fish install-desktop.fish   # Update desktop environment
+fish install.fish  # Re-run full installation
 ```
 
 ---
@@ -264,7 +261,12 @@ fish install-desktop.fish   # Update desktop environment
 ## 🛠️ Customization
 
 ### Adding Custom Packages
-Edit `scripts/install-*.fish` files to add your preferred packages.
+
+**Pure package installs (no configs):**
+- Edit `install/packaging/*.fish` files
+
+**Components with configs:**
+- Edit `install/config/*.fish` files (these handle both install + config deployment)
 
 ### Modifying Configurations
 All configurations use standard XDG paths:

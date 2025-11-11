@@ -47,8 +47,8 @@ clear
 echo -e "\n$ansi_art\n"
 echo "✅ Preflight checks passed"
 
-echo "→ Installing git..."
-sudo dnf install -y git fish
+echo "→ Installing git, fish, and gum..."
+sudo dnf install -y git fish gum
 
 # Use custom repo if specified, otherwise default to your repo
 FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"

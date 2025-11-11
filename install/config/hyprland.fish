@@ -1,21 +1,22 @@
 #!/usr/bin/env fish
+# Hyprland - Wayland tiling compositor
+# End-to-end setup: install packages → deploy config
 
 # Source helper functions
-# Don't override FEDPUNK_INSTALL if it's already set
 if not set -q FEDPUNK_INSTALL
     set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+end
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 end
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
 
-# Get target directory (either /root or /home/USER)
-set TARGET_DIR (test (id -u) -eq 0; and echo "/root"; or echo "/home/"(whoami))
+echo ""
+info "Setting up Hyprland and dependencies"
 
-info "Installing Hyprland and dependencies"
-
-# Enable COPR repositories for Hyprland and nwg-displays
-# Use echo 'y' to handle any interactive prompts
+# Enable COPR repositories
 gum spin --spinner dot --title "Enabling Hyprland COPR..." -- fish -c '
     echo y | sudo dnf copr enable solopasha/hyprland >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "Hyprland COPR enabled" || warning "Hyprland COPR may already be enabled"
@@ -54,17 +55,7 @@ set packages \
 
 step "Installing Hyprland packages" "sudo dnf install -qy --skip-broken --best $packages"
 
-# Fix potential SELinux issues
-info "Setting up user directories"
-step "Updating user directories" "xdg-user-dirs-update"
-
-# Ensure SELinux contexts are correct for new files
-if command -v restorecon >/dev/null 2>&1
-    step "Fixing SELinux contexts" "sudo restorecon -R /home/(whoami)/.config /home/(whoami)/.local"
-end
-
-# Install additional dependencies that may be missing
-info "Installing additional Wayland dependencies"
+# Additional Wayland dependencies
 set wayland_deps \
   wlr-randr \
   wlogout \
@@ -77,8 +68,21 @@ set wayland_deps \
   libwayland-egl \
   glfw-devel
 
-# Skip qt6-qtwayland due to version conflict and use --skip-unavailable for safety
 step "Installing Wayland dependencies" "sudo dnf install -qy --skip-unavailable --best $wayland_deps"
 
-# Ensure graphics drivers are up to date
+# Update graphics stack
 step "Updating graphics stack" "sudo dnf upgrade -qy --skip-unavailable mesa-dri-drivers mesa-libGL mesa-libEGL libdrm || true"
+
+# Setup user directories
+step "Updating user directories" "xdg-user-dirs-update"
+
+# Fix SELinux contexts
+if command -v restorecon >/dev/null 2>&1
+    step "Fixing SELinux contexts" "sudo restorecon -R /home/(whoami)/.config /home/(whoami)/.local"
+end
+
+# Deploy configuration
+cd "$FEDPUNK_PATH"
+run_quiet "Deploying Hyprland config" stow --restow -d config -t ~ hyprland
+
+success "Hyprland setup complete"

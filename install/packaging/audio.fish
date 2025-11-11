@@ -1,19 +1,17 @@
 #!/usr/bin/env fish
-
-# Audio stack installation for Fedora
-# Installs PipeWire, WirePlumber, codecs, and audio utilities
+# Audio - PipeWire audio stack
+# Pure package installation (no config to stow)
 
 # Source helper functions
-# Don't override FEDPUNK_INSTALL if it's already set
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+end
 if not set -q FEDPUNK_INSTALL
-    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+    set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 end
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
-
-# Get target directory (either /root or /home/USER)
-set TARGET_DIR (test (id -u) -eq 0; and echo "/root"; or echo "/home/"(whoami))
 
 # Core PipeWire audio stack
 info "Installing PipeWire audio server"

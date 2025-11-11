@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 # System-level setup: repositories, updates, submodules, SELinux
-# Run this after bootstrap-fish.sh and before package installation
+# Run this after setup-fish.fish and before package installation
 
 # Source helper functions
 source "$FEDPUNK_INSTALL/helpers/all.fish"
