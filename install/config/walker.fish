@@ -81,3 +81,10 @@ else
 end
 
 success "Walker setup complete"
+
+echo ""
+info "Walker Usage Notes:"
+echo "  • Use Super+Space to launch Walker (recommended)"
+echo "  • Running 'walker' from terminal may have Wayland display issues"
+echo "  • Fallback: Use 'wofi --show drun' if Walker has issues"
+echo ""
