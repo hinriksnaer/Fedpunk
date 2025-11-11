@@ -1,16 +1,11 @@
+-- Fedpunk theme: catppuccin-latte
+-- This file is symlinked to ~/.config/nvim/lua/plugins/theme.lua
+-- All theme plugins are defined in colorscheme.lua
 return {
-	{
-		"catppuccin/nvim",
-		name = "catppuccin",
-		priority = 1000,
-		opts = {
-			flavour = "latte",
-		},
-	},
-	{
-		"LazyVim/LazyVim",
-		opts = {
-			colorscheme = "catppuccin-latte",
-		},
-	},
+  {
+    "LazyVim/LazyVim",
+    opts = {
+      colorscheme = "catppuccin-latte",
+    },
+  },
 }

@@ -67,14 +67,35 @@ return {
     end,
   },
 
-  -- Set default colorscheme
+  -- Rose Pine - natural pine, faux fur and a bit of soho vibes
   {
-    'Shatur/neovim-ayu',
-    config = function()
-      require('ayu').setup {
-        mirage = true,
-      }
-      vim.cmd.colorscheme 'ayu'
-    end,
+    'rose-pine/neovim',
+    name = 'rose-pine',
+    priority = 1000,
+  },
+
+  -- Nord Fox - Nord colorscheme port
+  {
+    'EdenEast/nightfox.nvim',
+    priority = 1000,
+  },
+
+  -- Bamboo - Warm green theme inspired by bamboo forests
+  {
+    'ribru17/bamboo.nvim',
+    priority = 1000,
+  },
+
+  -- Matte Black - Minimal dark theme
+  {
+    'tahayvr/matteblack.nvim',
+    lazy = false,
+    priority = 1000,
+  },
+
+  -- Monokai Pro - Professional monokai theme
+  {
+    'gthelding/monokai-pro.nvim',
+    priority = 1000,
   },
 }

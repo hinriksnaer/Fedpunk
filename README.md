@@ -13,11 +13,12 @@ Fedpunk is a modern, fish-first development environment built on top of the exce
 - **🎨 Omarchy-based theming** - Built on omarchy's excellent theme framework with full compatibility
 - **🐟 Fish-first architecture** - Modern shell with intelligent autocompletion and scripting
 - **🪟 Hyprland compositor** - Blazing fast tiling Wayland window manager with master layout support
-- **⚡ Dynamic theme switching** - Switch themes on-the-fly with Super+Shift+T (includes all omarchy themes)
+- **⚡ Dynamic theme switching** - Switch themes on-the-fly with Super+Shift+T (14 complete themes included)
 - **🖼️ Integrated wallpaper management** - Per-theme wallpapers with swaybg integration
 - **⚡ NVIDIA support** - Proprietary driver installation with Wayland compatibility
 - **🛠️ Premium development tools** - Neovim, tmux, lazygit, btop, bluetui, and more
-- **🐱 Kitty terminal** - GPU-accelerated with theme synchronization
+- **🐱 Kitty terminal** - GPU-accelerated with live theme synchronization
+- **🎨 Live theme reloading** - Neovim, Kitty, Mako, and btop reload automatically
 - **📦 Automated setup** - One command installs and configures everything
 - **✨ Beautiful install UI** - Interactive spinners and progress indicators with gum
 - **🔄 Re-run safe** - Gracefully handles already-installed components
@@ -85,7 +86,8 @@ fish install.fish custom --neovim --tmux --audio --hyprland
 |-----------|-------------|---------------|
 | **Hyprland** | Tiling Wayland compositor | `~/.config/hypr/` |
 | **Kitty** | GPU-accelerated terminal | `~/.config/kitty/` |
-| **Walker** | Application launcher | `~/.config/walker/` |
+| **Rofi** | Application launcher | `~/.config/rofi/` |
+| **Mako** | Notification daemon | `~/.config/mako/` |
 | **Firefox** | Default web browser | System default |
 | **swaybg** | Wallpaper manager | Theme-controlled |
 | **Desktop Portals** | File dialogs, authentication | Auto-configured |
@@ -133,7 +135,7 @@ Fedpunk uses a **modular Fish-first approach**:
    - `audio.fish`, `bluetui.fish`, `fonts.fish`, `claude.fish`, `nvidia.fish`
 4. **Configuration** (`install/config/`) - End-to-end component setup (install + deploy):
    - Each script installs packages AND stows configs for easier troubleshooting
-   - `btop.fish`, `neovim.fish`, `tmux.fish`, `lazygit.fish`, `kitty.fish`, `hyprland.fish`, `walker.fish`
+   - `btop.fish`, `neovim.fish`, `tmux.fish`, `lazygit.fish`, `kitty.fish`, `hyprland.fish`
 5. **Post-install** (`install/post-install/`) - Theme setup and final configuration
 
 ### Installation UI
@@ -170,7 +172,7 @@ Hyprland
 **Applications:**
 - `Super + Return` - Terminal (Kitty)
 - `Super + B` - Browser (Firefox)
-- `Super + Space` - Application launcher (Walker)
+- `Super + Space` - Application launcher (Rofi)
 - `Super + E` - File manager (Thunar)
 - `Super + Shift + B` - Bluetooth manager (bluetui)
 
@@ -288,22 +290,26 @@ fedpunk-theme-refresh   # Refresh current theme (Super+Shift+R)
 ```
 
 **Creating Custom Themes:**
-Themes are located in `~/Fedpunk/themes/`. Each theme directory contains:
+Themes are located in `~/.local/share/fedpunk/themes/`. Each theme directory contains:
 - `hyprland.conf` - Hyprland colors and variables
 - `kitty.conf` - Kitty terminal colors (omarchy standard)
-- `walker.css` - Walker launcher theme
+- `rofi.rasi` - Rofi launcher theme
+- `mako.ini` - Mako notification daemon theme
+- `neovim.lua` - Neovim colorscheme (with live reload)
 - `btop.theme` - btop resource monitor theme
 - `backgrounds/` - Theme wallpapers
 
 **Omarchy Theme Compatibility:**
-All 12 omarchy themes are included by default. You can also copy themes directly from any omarchy installation - they work out of the box!
+14 complete themes included by default. You can also copy themes directly from any omarchy installation - they work out of the box!
 
 **Supported Applications:**
-- Hyprland window borders and decorations
-- Kitty terminal (requires restart to apply)
-- Walker application launcher (auto-reloads)
-- btop resource monitor (auto-reloads)
-- swaybg wallpapers (instant switching)
+- Hyprland - Window borders and decorations (instant)
+- Kitty - Terminal colors (auto-reload on theme change)
+- Rofi - Application launcher (instant)
+- Mako - Notification daemon (auto-reload on theme change)
+- Neovim - Editor colorscheme (live reload while editing)
+- btop - Resource monitor (auto-reload on theme change)
+- swaybg - Wallpapers (instant switching)
 
 ---
 

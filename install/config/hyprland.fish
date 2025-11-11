@@ -21,15 +21,11 @@ gum spin --spinner dot --title "Enabling Hyprland COPR..." -- fish -c '
     echo y | sudo dnf copr enable solopasha/hyprland >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "Hyprland COPR enabled" || warning "Hyprland COPR may already be enabled"
 
-gum spin --spinner dot --title "Enabling nwg-shell COPR..." -- fish -c '
-    echo y | sudo dnf copr enable tofik/nwg-shell >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "nwg-shell COPR enabled" || warning "nwg-shell COPR may already be enabled"
-
 # Core Hyprland packages
 set packages \
   hyprland \
   hyprpaper \
-  dunst \
+  mako \
   wofi \
   grim \
   slurp \
@@ -39,7 +35,7 @@ set packages \
   playerctl \
   wpctl \
   hyprpolkitagent \
-  nwg-displays \
+  wdisplays \
   xdg-desktop-portal-hyprland \
   xdg-desktop-portal-gtk \
   gvfs \
@@ -61,6 +57,8 @@ set wayland_deps \
   wlogout \
   xorg-x11-server-Xwayland \
   qt5-qtwayland \
+  qt6-qtwayland \
+  hyprland-qt-support \
   mesa-dri-drivers \
   wayland-devel \
   libwayland-client \

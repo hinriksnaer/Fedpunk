@@ -24,7 +24,7 @@ if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
         info "Setting up desktop components"
         fish "$FEDPUNK_INSTALL/config/kitty.fish"
         fish "$FEDPUNK_INSTALL/config/hyprland.fish"
-        fish "$FEDPUNK_INSTALL/config/walker.fish"
+        fish "$FEDPUNK_INSTALL/config/rofi.fish"
     else
         info "Skipping desktop components"
         echo "[SKIPPED] Desktop components (user declined)" >> $FEDPUNK_LOG_FILE
@@ -33,7 +33,7 @@ else
     info "Setting up desktop components"
     fish "$FEDPUNK_INSTALL/config/kitty.fish"
     fish "$FEDPUNK_INSTALL/config/hyprland.fish"
-    fish "$FEDPUNK_INSTALL/config/walker.fish"
+    fish "$FEDPUNK_INSTALL/config/rofi.fish"
 end
 
 # Link bin directory

@@ -42,7 +42,7 @@ fedpunk-theme-set default
 
 **Features:**
 - Updates Hyprland configuration
-- Creates symlinks for theme files (kitty, walker, btop)
+- Creates symlinks for theme files (kitty, rofi, btop, mako, neovim)
 - Reloads applications automatically
 - Shows notification with results
 - Case-insensitive theme names
@@ -81,13 +81,6 @@ fedpunk-theme-refresh
 **Keybinding:** `Super + Shift + R`
 
 ---
-
-#### `fedpunk-refresh-walker`
-Refresh and restart walker to apply configuration changes.
-
-```fish
-fedpunk-refresh-walker
-```
 
 ---
 
@@ -128,7 +121,6 @@ themes/
 └── theme-name/
     ├── hyprland.conf          # Hyprland colors and styling
     ├── kitty.conf             # Kitty terminal theme (omarchy standard)
-    ├── walker.css             # Walker launcher theme colors
     ├── btop.theme             # btop system monitor theme
     └── backgrounds/           # Wallpaper images (jpg, png, jpeg)
         ├── 1-wallpaper.jpg
@@ -140,7 +132,6 @@ themes/
 
 ### Walker Theme Colors
 
-Walker themes use CSS color variables defined in `walker.css`:
 
 ```css
 @define-color selected-text #color;

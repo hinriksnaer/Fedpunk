@@ -1,8 +1,7 @@
+-- Fedpunk theme: osaka-jade
+-- This file is symlinked to ~/.config/nvim/lua/plugins/theme.lua
+-- All theme plugins are defined in colorscheme.lua
 return {
-  {
-    "ribru17/bamboo.nvim",
-    priority = 1000,
-  },
   {
     "LazyVim/LazyVim",
     opts = {

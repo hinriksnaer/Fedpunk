@@ -1,0 +1,36 @@
+# name: Hydrant Pressure Neo-Metal
+# author: MAV
+# description: Dark metallic base with neon orange and aqua accents inspired by the Hydrant weapon
+# version: 0.3
+
+[colors.primary]
+background = '#0F1016'
+foreground = '#E2E6F1'
+
+[colors.cursor]
+text = '#0F1016'
+cursor = '#1BC5C9'
+
+[colors.selection]
+background = '#272A34'
+text = '#E2E6F1'
+
+[colors.normal]
+black   = '#0C0D11'
+red     = '#FF6A1F'
+green   = '#9AE64F'
+yellow  = '#FF9A3D'
+blue    = '#1BC5C9'
+magenta = '#B537FF'
+cyan    = '#5FE6E9'
+white   = '#A5ABB8'
+
+[colors.bright]
+black   = '#272A34'
+red     = '#FF8140'
+green   = '#B8FF74'
+yellow  = '#FFC268'
+blue    = '#39D8DF'
+magenta = '#C865FF'
+cyan    = '#8AF2F4'
+white   = '#E2E6F1'

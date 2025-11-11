@@ -52,7 +52,7 @@ end
 
 # Check essential processes
 echo "Essential processes:"
-set processes dunst hyprpolkitagent swaybg nm-applet
+set processes mako hyprpolkitagent swaybg nm-applet
 for proc in $processes
     echo -n "  $proc: "
     if pgrep -x $proc >/dev/null

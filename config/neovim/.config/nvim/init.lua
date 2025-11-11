@@ -83,6 +83,9 @@ I hope you enjoy your Neovim journey,
 P.S. You can delete this when you're done too. It's your config now! :)
 --]]
 
+-- Disable LazyVim plugin ordering check
+vim.g.lazyvim_check_order = false
+
 -- Load core configuration
 require 'config.options'
 require 'config.keymaps'

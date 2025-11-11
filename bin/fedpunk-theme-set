@@ -56,8 +56,10 @@ end
 set -l theme_mappings \
     "kitty.conf:$HOME/.config/kitty/theme.conf" \
     ".fedpunk-foot.ini|foot.ini:$HOME/.config/foot/theme.ini" \
-    "walker.css:$HOME/.config/walker/theme.css" \
-    "btop.theme:$HOME/.config/btop/themes/active.theme"
+    "btop.theme:$HOME/.config/btop/themes/active.theme" \
+    "rofi.rasi:$HOME/.config/rofi/theme.rasi" \
+    "neovim.lua:$HOME/.config/nvim/lua/plugins/theme.lua" \
+    "mako.ini:$HOME/.config/mako/theme.conf"
 
 # Apply other theme files (symlinks)
 info "Linking application themes"
@@ -115,16 +117,18 @@ if pgrep -x btop >/dev/null 2>&1
     end
 end
 
-# Restart walker if running (to apply theme immediately)
-if pgrep -x walker >/dev/null 2>&1
-    if step "Restarting walker" "pkill walker"
+# Reload kitty config if running
+if pgrep -x kitty >/dev/null 2>&1
+    if step "Reloading kitty config" "killall -SIGUSR1 kitty"
         # Success handled by step function
     end
 end
 
-# Note about terminal emulators
-if pgrep -x kitty >/dev/null 2>&1
-    warning "kitty will update on next launch"
+# Reload mako notification daemon if running
+if pgrep -x mako >/dev/null 2>&1
+    if step "Reloading mako" "killall -SIGUSR2 mako"
+        # Success handled by step function
+    end
 end
 
 # Send notification

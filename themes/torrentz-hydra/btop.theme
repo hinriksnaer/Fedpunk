@@ -1,0 +1,81 @@
+# Theme: Hydrant Pressure Neo-Metal
+# By: MAV
+
+# Main bg
+theme[main_bg]="#0F1016"
+
+# Main text color
+theme[main_fg]="#E2E6F1"
+
+# Title color for boxes
+theme[title]="#E2E6F1"
+
+# Highlight color for keyboard shortcuts
+theme[hi_fg]="#FF6A1F"
+
+# Background color of selected item in processes box
+theme[selected_bg]="#272A34"
+
+# Foreground color of selected item in processes box
+theme[selected_fg]="#1BC5C9"
+
+# Color of inactive/disabled text
+theme[inactive_fg]="#8D887C"
+
+# Misc colors for processes box including mini cpu graphs, details memory graph and details status text
+theme[proc_misc]="#1BC5C9"
+
+# Cpu box outline color
+theme[cpu_box]="#272A34"
+
+# Memory/disks box outline color
+theme[mem_box]="#272A34"
+
+# Net up/down box outline color
+theme[net_box]="#272A34"
+
+# Processes box outline color
+theme[proc_box]="#272A34"
+
+# Box divider line and small boxes line color
+theme[div_line]="#333845"
+
+# Temperature graph colors
+theme[temp_start]="#1BC5C9"
+theme[temp_mid]="#FF9A3D"
+theme[temp_end]="#FF6A1F"
+
+# CPU graph colors
+theme[cpu_start]="#5FE6E9"
+theme[cpu_mid]="#1BC5C9"
+theme[cpu_end]="#FF6A1F"
+
+# Mem/Disk free meter
+theme[free_start]="#7D8BA0"
+theme[free_mid]="#BEBFD5"
+theme[free_end]="#E2E6F1"
+
+# Mem/Disk cached meter
+theme[cached_start]="#333845"
+theme[cached_mid]="#4E4A47"
+theme[cached_end]="#8D887C"
+
+# Mem/Disk available meter
+theme[available_start]="#1BC5C9"
+theme[available_mid]="#62A9C7"
+theme[available_end]="#8AF2F4"
+
+# Mem/Disk used meter
+theme[used_start]="#FF6A1F"
+theme[used_mid]="#FF8140"
+theme[used_end]="#FFC268"
+
+# Download graph colors
+theme[download_start]="#1BC5C9"
+theme[download_mid]="#5FE6E9"
+theme[download_end]="#8AF2F4"
+
+# Upload graph colors
+theme[upload_start]="#FF6A1F"
+theme[upload_mid]="#FF9A3D"
+theme[upload_end]="#FFC268"

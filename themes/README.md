@@ -59,7 +59,7 @@ rm -rf .git  # Remove git history
 **No modifications needed!** Omarchy themes include:
 - `hyprland.conf` - Hyprland colors
 - `kitty.conf` - Kitty terminal colors
-- `walker.css` - Walker launcher
+- `rofi.rasi` - Rofi launcher
 - `btop.theme` - btop monitor
 - `backgrounds/` - Theme wallpapers
 
@@ -80,7 +80,7 @@ Create these files (copy from another theme as a starting point):
 
 **Optional files:**
 - `kitty.conf` - Kitty terminal colors (omarchy standard)
-- `walker.css` - Launcher colors
+- `rofi.rasi` - Launcher colors
 - `btop.theme` - btop system monitor colors
 - `backgrounds/` - Theme wallpapers
 
@@ -123,7 +123,7 @@ color1 #ed8274  # red
 # ... etc
 ```
 
-### Walker (walker.css)
+### Walker (rofi.rasi)
 
 ```css
 @define-color selected-text #73d0ff;
@@ -147,7 +147,7 @@ theme[title]="#ffd173"
 2. Application configs import from symlinked "active" theme files:
    - `~/.config/hypr/hyprland.conf` sources `~/Fedpunk/themes/<theme-name>/hyprland.conf`
    - `~/.config/kitty/theme.conf` → `~/Fedpunk/themes/<theme-name>/kitty.conf`
-   - `~/.config/walker/theme.css` → `~/Fedpunk/themes/<theme-name>/walker.css`
+   - `~/.config/walker/theme.css` → `~/Fedpunk/themes/<theme-name>/rofi.rasi`
    - `~/.config/btop/themes/active.theme` → `~/Fedpunk/themes/<theme-name>/btop.theme`
    - `~/.config/hypr/wallpapers/current` → `~/Fedpunk/themes/<theme-name>/backgrounds/<wallpaper>`
 3. Theme switcher updates all symlinks at once
@@ -194,7 +194,7 @@ cp ayu-mirage/hyprland.conf custom/
 # Take terminal colors from another
 cp default/kitty.conf custom/
 # Create custom walker theme
-nano custom/walker.css
+nano custom/rofi.rasi
 ```
 
 ## Tips
@@ -233,7 +233,7 @@ Fedpunk is built on the omarchy theming framework, which means:
 
 - **100% compatible** with all omarchy themes
 - **Same directory structure** (`~/Fedpunk/themes/` instead of `~/.local/share/omarchy/themes/`)
-- **Same file formats** (hyprland.conf, kitty.conf, walker.css, btop.theme, etc.)
+- **Same file formats** (hyprland.conf, kitty.conf, rofi.rasi, btop.theme, etc.)
 - **Same tools** (swaybg for wallpapers)
 - **Fully interchangeable** - copy themes between omarchy and Fedpunk installations
 
