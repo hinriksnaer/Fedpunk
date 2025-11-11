@@ -1,0 +1,129 @@
+#!/usr/bin/env fish
+# Fedpunk CLI - Unified command-line interface
+# Usage: fedpunk <command> [args...]
+
+set script_dir (dirname (status -f))
+
+# Show help if no arguments
+if test (count $argv) -eq 0
+    echo "Fedpunk CLI - Modern Fedora development environment"
+    echo ""
+    echo "Usage: fedpunk <command> [args...]"
+    echo ""
+    echo "Theme Management:"
+    echo "  theme set <name>     Switch to a theme"
+    echo "  theme list           List available themes"
+    echo "  theme current        Show current theme"
+    echo "  theme select         Interactive theme selector (fzf)"
+    echo "  theme next           Switch to next theme"
+    echo "  theme prev           Switch to previous theme"
+    echo "  theme refresh        Refresh current theme"
+    echo ""
+    echo "Wallpaper Management (Desktop):"
+    echo "  wallpaper set <theme>  Set wallpaper from theme"
+    echo "  wallpaper next         Switch to next wallpaper"
+    echo ""
+    echo "Other Commands:"
+    echo "  bluetooth            Bluetooth manager (bluetui)"
+    echo "  help                 Show this help message"
+    echo "  version              Show version information"
+    echo ""
+    echo "Examples:"
+    echo "  fedpunk theme set nord"
+    echo "  fedpunk theme select"
+    echo "  fedpunk theme list"
+    exit 0
+end
+
+set command $argv[1]
+set args $argv[2..-1]
+
+switch $command
+    case theme
+        # Theme subcommands
+        if test (count $args) -eq 0
+            echo "Usage: fedpunk theme <subcommand> [args...]"
+            echo ""
+            echo "Subcommands:"
+            echo "  set <name>     Switch to a theme"
+            echo "  list           List available themes"
+            echo "  current        Show current theme"
+            echo "  select         Interactive theme selector"
+            echo "  next           Switch to next theme"
+            echo "  prev           Switch to previous theme"
+            echo "  refresh        Refresh current theme"
+            exit 1
+        end
+
+        set theme_cmd $args[1]
+        set theme_args $args[2..-1]
+
+        switch $theme_cmd
+            case set
+                exec $script_dir/fedpunk-theme-set $theme_args
+            case list
+                exec $script_dir/fedpunk-theme-list
+            case current
+                exec $script_dir/fedpunk-theme-current
+            case select
+                exec $script_dir/fedpunk-theme-select-cli
+            case next
+                exec $script_dir/fedpunk-theme-next
+            case prev
+                exec $script_dir/fedpunk-theme-prev
+            case refresh
+                exec $script_dir/fedpunk-theme-refresh
+            case '*'
+                echo "Unknown theme subcommand: $theme_cmd"
+                echo "Run 'fedpunk theme' for help"
+                exit 1
+        end
+
+    case wallpaper
+        # Wallpaper subcommands (desktop only)
+        if test (count $args) -eq 0
+            echo "Usage: fedpunk wallpaper <subcommand> [args...]"
+            echo ""
+            echo "Subcommands:"
+            echo "  set <theme>    Set wallpaper from theme"
+            echo "  next           Switch to next wallpaper"
+            exit 1
+        end
+
+        set wallpaper_cmd $args[1]
+        set wallpaper_args $args[2..-1]
+
+        switch $wallpaper_cmd
+            case set
+                exec $script_dir/fedpunk-wallpaper-set $wallpaper_args
+            case next
+                exec $script_dir/fedpunk-wallpaper-next
+            case '*'
+                echo "Unknown wallpaper subcommand: $wallpaper_cmd"
+                echo "Run 'fedpunk wallpaper' for help"
+                exit 1
+        end
+
+    case bluetooth
+        # Bluetooth manager
+        if command -v bluetui >/dev/null 2>&1
+            exec bluetui
+        else
+            exec $script_dir/fedpunk-bluetooth
+        end
+
+    case help
+        exec $script_dir/fedpunk help
+
+    case version
+        echo "Fedpunk CLI v1.0.0"
+        echo "A modern Fedora development environment"
+        if set -q FEDPUNK_PATH
+            echo "Installation: $FEDPUNK_PATH"
+        end
+
+    case '*'
+        echo "Unknown command: $command"
+        echo "Run 'fedpunk' or 'fedpunk help' for usage"
+        exit 1
+end

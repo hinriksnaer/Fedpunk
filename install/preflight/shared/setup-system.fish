@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
-# System-level setup: repositories, updates, submodules, SELinux
-# Run this after setup-fish.fish and before package installation
+# Shared system setup: git submodules, system upgrade, core utilities, SELinux
+# This runs for both terminal and desktop setups
 
 # Source helper functions
 source "$FEDPUNK_INSTALL/helpers/all.fish"
@@ -27,20 +27,6 @@ gum spin --spinner dot --title "Syncing git submodules..." -- fish -c '
 gum spin --spinner dot --title "Updating git submodules..." -- fish -c '
     git submodule update --init --recursive >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && gum style --foreground $GUM_SUCCESS "✓ Updating git submodules" || gum style --foreground $GUM_ERROR "✗ Updating git submodules failed"
-
-# Enable repositories
-echo ""
-info "Enabling package repositories"
-
-# Get Fedora version
-set fedora_version (rpm -E %fedora)
-set free_url "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$fedora_version.noarch.rpm"
-set nonfree_url "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$fedora_version.noarch.rpm"
-
-# Use line spinner for network download operations
-gum spin --spinner line --title "Enabling RPM Fusion repositories..." -- fish -c '
-    sudo dnf install -qy --skip-broken '$free_url' '$nonfree_url' >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "RPM Fusion repositories enabled" || warning "RPM Fusion repositories may already be enabled"
 
 # System upgrade (only once!)
 echo ""
@@ -103,16 +89,5 @@ else
     info "SELinux not enforcing, skipping SELinux setup"
 end
 
-# Setup user directories
 echo ""
-info "Setting up user directories"
-if command -v xdg-user-dirs-update >/dev/null 2>&1
-    gum spin --spinner dot --title "Configuring user directories..." -- fish -c '
-        xdg-user-dirs-update >>'"$FEDPUNK_LOG_FILE"' 2>&1
-    ' && success "User directories configured" || warning "xdg-user-dirs-update failed"
-else
-    warning "xdg-user-dirs not available, will be installed with desktop components"
-end
-
-echo ""
-box "System Setup Complete!" $GUM_SUCCESS
+box "Shared System Setup Complete!" $GUM_SUCCESS

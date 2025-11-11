@@ -3,6 +3,9 @@
 # Also calls terminal theme switcher for consistent theming
 # Usage: fedpunk-theme-set-desktop <theme-name>
 
+# Find script directory for calling other scripts
+set script_dir (dirname (status -f))
+
 # Source helper functions for consistent interface
 set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
@@ -13,11 +16,20 @@ if test (count $argv) -lt 1
     echo "Usage: fedpunk-theme-set-desktop <theme-name>"
     echo ""
     echo "Available themes:"
-    fedpunk-theme-list
+    $script_dir/fedpunk-theme-list
     exit 1
 end
 
-set themes_dir "$HOME/.local/share/fedpunk/themes"
+# Find themes directory - works both before and after deployment
+if set -q FEDPUNK_PATH
+    set themes_dir "$FEDPUNK_PATH/themes"
+else if test -d "$HOME/.local/share/fedpunk/themes"
+    set themes_dir "$HOME/.local/share/fedpunk/themes"
+else
+    # Try to find relative to script location (for running from repo)
+    set themes_dir (realpath "$script_dir/../themes")
+end
+
 set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
 
 # Normalize theme name (lowercase, convert spaces to dashes)
@@ -29,7 +41,7 @@ if not test -d "$theme_path"
     error "Theme '$theme_name' does not exist"
     echo ""
     echo "Available themes:"
-    fedpunk-theme-list
+    $script_dir/fedpunk-theme-list
     exit 1
 end
 
@@ -97,7 +109,7 @@ end
 # Apply terminal themes
 echo ""
 info "Applying terminal themes"
-set terminal_result (fedpunk-theme-set-terminal $theme_name)
+set terminal_result ($script_dir/fedpunk-theme-set-terminal $theme_name)
 set terminal_counts (string split ":" $terminal_result)
 set terminal_applied $terminal_counts[1]
 set terminal_skipped $terminal_counts[2]
@@ -107,7 +119,7 @@ success "Terminal themes applied"
 
 # Set wallpaper from theme
 echo ""
-if step "Setting wallpaper" "fedpunk-wallpaper-set $theme_name"
+if step "Setting wallpaper" "$script_dir/fedpunk-wallpaper-set $theme_name"
     # Success handled by step function
 end
 

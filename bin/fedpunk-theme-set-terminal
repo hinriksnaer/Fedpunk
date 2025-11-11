@@ -8,7 +8,17 @@ if test (count $argv) -lt 1
     exit 1
 end
 
-set themes_dir "$HOME/.local/share/fedpunk/themes"
+# Find themes directory - works both before and after deployment
+if set -q FEDPUNK_PATH
+    set themes_dir "$FEDPUNK_PATH/themes"
+else if test -d "$HOME/.local/share/fedpunk/themes"
+    set themes_dir "$HOME/.local/share/fedpunk/themes"
+else
+    # Try to find relative to script location (for running from repo)
+    set script_dir (dirname (status -f))
+    set themes_dir (realpath "$script_dir/../themes")
+end
+
 set theme_name (echo $argv[1] | string lower | string replace -a ' ' '-')
 set theme_path "$themes_dir/$theme_name"
 

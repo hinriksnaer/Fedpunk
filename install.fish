@@ -112,7 +112,12 @@ gum style --foreground 35 "✓ Sudo credentials verified"
 echo ""
 
 # Run each installation phase with proper logging
-run_fish_script "$FEDPUNK_INSTALL/preflight/all.fish" "System Setup & Preflight Checks"
+run_fish_script "$FEDPUNK_INSTALL/preflight/all.fish" "Shared System Setup & Preflight"
+
+# Desktop-specific preflight (conditional)
+if not set -q FEDPUNK_SKIP_DESKTOP
+    run_fish_script "$FEDPUNK_INSTALL/desktop/preflight/all.fish" "Desktop System Setup"
+end
 
 # Terminal components (always installed)
 run_fish_script "$FEDPUNK_INSTALL/terminal/packaging/all.fish" "Terminal Package Installation"

@@ -2,18 +2,29 @@
 # Get the currently active theme
 # Usage: fedpunk-theme-current
 
-set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
-
-# Extract current theme from hyprland.conf source line
-set current_line (grep "source.*themes.*hyprland.conf" $hyprland_conf 2>/dev/null)
-
-if test -n "$current_line"
-    # Extract theme name from path
-    set theme_name (echo $current_line | sed 's|.*themes/\([^/]*\)/.*|\1|')
-
+# First try to get theme from the common theme link (works for both desktop and terminal)
+if test -L "$HOME/.config/fedpunk/current/theme"
+    set theme_name (basename (readlink "$HOME/.config/fedpunk/current/theme"))
     # Format nicely: convert dashes to spaces and capitalize
     echo $theme_name | sed 's/-/ /g; s/\b\(.\)/\u\1/g'
-else
-    echo "No theme set"
-    exit 1
+    exit 0
 end
+
+# Fallback: try hyprland.conf (desktop only)
+set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
+if test -f "$hyprland_conf"
+    set current_line (grep "source.*themes.*hyprland.conf" $hyprland_conf 2>/dev/null)
+
+    if test -n "$current_line"
+        # Extract theme name from path
+        set theme_name (echo $current_line | sed 's|.*themes/\([^/]*\)/.*|\1|')
+
+        # Format nicely: convert dashes to spaces and capitalize
+        echo $theme_name | sed 's/-/ /g; s/\b\(.\)/\u\1/g'
+        exit 0
+    end
+end
+
+# No theme found
+echo "No theme set"
+exit 1
