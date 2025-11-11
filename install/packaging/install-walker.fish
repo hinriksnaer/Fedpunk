@@ -1,18 +1,18 @@
 #!/usr/bin/env fish
 
 # Source helper functions
-# Don't override FEDPUNK_INSTALL if it's already set
-if not set -q FEDPUNK_INSTALL
-    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+# Don't override if already set
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 end
+
+if not set -q FEDPUNK_INSTALL
+    set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
+end
+
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
-
-# Get target directory (either /root or /home/USER)
-set TARGET_DIR (test (id -u) -eq 0; and echo "/root"; or echo "/home/"(whoami))
-
-cd $FEDPUNK_PATH
 
 info "Installing Walker launcher and Elephant service"
 
@@ -36,26 +36,28 @@ end
 success "Walker installed: "(which walker)
 success "Elephant installed: "(which elephant)
 
-step "Deploying Walker configuration" "stow -d config -t $TARGET_DIR walker"
+# Deploy Walker configuration using stow
+cd "$FEDPUNK_PATH"
+step "Deploying Walker configuration" "stow --restow -d config -t ~ walker"
 
 info "Enabling and starting Elephant systemd service"
 
 # First enable the service in elephant's config
-gum spin --spinner dot --title "Configuring Elephant service..." -- fish -c '
-    elephant service enable >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "Elephant service configured"
+gum spin --spinner dot --title "Configuring Elephant service..." -- fish -c "
+    elephant service enable >>$FEDPUNK_LOG_FILE 2>&1
+" && success "Elephant service configured"
 
 # IMPORTANT: Reload systemd daemon to pick up the new service file
 step "Reloading systemd daemon" "systemctl --user daemon-reload"
 
 # Enable and start the systemd service
-gum spin --spinner dot --title "Enabling Elephant service..." -- fish -c '
-    systemctl --user enable elephant >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "Elephant service enabled"
+gum spin --spinner dot --title "Enabling Elephant service..." -- fish -c "
+    systemctl --user enable elephant >>$FEDPUNK_LOG_FILE 2>&1
+" && success "Elephant service enabled"
 
-gum spin --spinner dot --title "Starting Elephant service..." -- fish -c '
-    systemctl --user start elephant >>'"$FEDPUNK_LOG_FILE"' 2>&1
-'
+gum spin --spinner dot --title "Starting Elephant service..." -- fish -c "
+    systemctl --user start elephant >>$FEDPUNK_LOG_FILE 2>&1
+"
 
 # Give it a moment to start
 sleep 1
@@ -66,10 +68,13 @@ if systemctl --user is-active --quiet elephant
 else
     warning "Elephant service failed to start, attempting restart..."
     step "Reloading systemd daemon again" "systemctl --user daemon-reload"
-    gum spin --spinner dot --title "Restarting Elephant service..." -- fish -c '
-        systemctl --user restart elephant >>'"$FEDPUNK_LOG_FILE"' 2>&1
-    '
+    
+    gum spin --spinner dot --title "Restarting Elephant service..." -- fish -c "
+        systemctl --user restart elephant >>$FEDPUNK_LOG_FILE 2>&1
+    "
+    
     sleep 1
+    
     if systemctl --user is-active --quiet elephant
         success "Elephant service is now running"
     else

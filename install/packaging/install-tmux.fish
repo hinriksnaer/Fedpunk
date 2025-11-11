@@ -1,16 +1,18 @@
 #!/usr/bin/env fish
 
 # Source helper functions
-# Don't override FEDPUNK_INSTALL if it's already set
-if not set -q FEDPUNK_INSTALL
-    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+# Don't override if already set
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 end
+
+if not set -q FEDPUNK_INSTALL
+    set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
+end
+
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
-
-# Get target directory (either /root or /home/USER)
-set TARGET_DIR (test (id -u) -eq 0; and echo "/root"; or echo "/home/"(whoami))
 
 cd $FEDPUNK_PATH
 
@@ -22,7 +24,7 @@ set packages tmux
 step "Installing tmux" "sudo dnf install -qy $packages"
 
 # Stow the configuration
-step "Deploying tmux configuration" "stow -d config -t $TARGET_DIR tmux"
+step "Deploying tmux configuration" "stow --restow -d config -t ~ tmux"
 
 info "Setting up tmux plugin manager"
 

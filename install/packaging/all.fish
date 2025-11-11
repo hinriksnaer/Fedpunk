@@ -36,12 +36,6 @@ info "Installing terminal components"
 echo ""
 
 set current_component (math $current_component + 1)
-progress $current_component $total_components "Essential development tools"
-echo "" >> $FEDPUNK_LOG_FILE
-echo "[INSTALLER] Running: install-essentials.fish" >> $FEDPUNK_LOG_FILE
-fish "$FEDPUNK_INSTALL/packaging/install-essentials.fish"
-
-set current_component (math $current_component + 1)
 progress $current_component $total_components "Fonts"
 echo "" >> $FEDPUNK_LOG_FILE
 echo "[INSTALLER] Running: install-fonts.fish" >> $FEDPUNK_LOG_FILE

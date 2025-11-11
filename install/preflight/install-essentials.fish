@@ -3,17 +3,18 @@
 # Installs all core dev tools, languages, and modern CLI utilities
 
 # Source helper functions
-# Don't override FEDPUNK_INSTALL if it's already set
+# Don't override if already set
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+end
+
 if not set -q FEDPUNK_INSTALL
-    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+    set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 end
 
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
-
-# Get target directory (either /root or /home/USER)
-set TARGET_DIR (test (id -u) -eq 0; and echo "/root"; or echo "/home/"(whoami))
 
 # Core development tools and utilities
 info "Installing core development tools"
@@ -31,6 +32,48 @@ set core_tools \
   openssl-devel
 
 step "Installing core tools" "sudo dnf install -qy --skip-broken $core_tools"
+
+# Install Rust/Cargo first (needed for CLI tool fallback installations)
+echo ""
+info "Installing Rust toolchain"
+
+if not command -v rustc >/dev/null 2>&1
+    gum spin --spinner dot --title "Installing Rust toolchain..." -- fish -c '
+        curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    '
+
+    # Source cargo env for current session
+    source $HOME/.cargo/env
+
+    # Add to installer-managed config (never committed to git)
+    set installer_config "$HOME/.config/fish/conf.d/installer-managed.fish"
+    mkdir -p (dirname "$installer_config")
+
+    # Create/update the installer-managed config with Rust PATH
+    if test -f "$installer_config"
+        # Update existing file - add Rust if not present
+        if not grep -q "Rust/Cargo" "$installer_config" 2>/dev/null
+            printf "\n# Rust/Cargo\nset -gx PATH \$HOME/.cargo/bin \$PATH\n" >> "$installer_config"
+        end
+    else
+        # Create new file
+        printf "# Auto-managed by Fedpunk installer - DO NOT EDIT\n" > "$installer_config"
+        printf "# This file is regenerated on installation\n\n" >> "$installer_config"
+        printf "# Rust/Cargo\nset -gx PATH \$HOME/.cargo/bin \$PATH\n" >> "$installer_config"
+    end
+
+    success "Rust toolchain installed"
+else
+    success "Rust already installed: "(rustc --version)
+
+    # Ensure cargo is in PATH for current session
+    set -gx PATH $HOME/.cargo/bin $PATH
+end
+
+# Update Rust to latest stable
+if step "Updating Rust to latest stable" "rustup update stable"
+    # Success
+end
 
 # Modern CLI tools (via DNF or cargo fallback)
 echo ""
@@ -72,48 +115,9 @@ for tool in $modern_tools
     end
 end
 
-# Programming languages and runtimes
+# Other programming languages and runtimes
 echo ""
-info "Installing programming languages"
-
-# Rust and Cargo
-if not command -v rustc >/dev/null 2>&1
-    gum spin --spinner dot --title "Installing Rust toolchain..." -- fish -c '
-        curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path >>'"$FEDPUNK_LOG_FILE"' 2>&1
-    '
-
-    # Source cargo env for current session
-    source $HOME/.cargo/env
-
-    # Add to installer-managed config (never committed to git)
-    set installer_config "$HOME/.config/fish/conf.d/installer-managed.fish"
-    mkdir -p (dirname "$installer_config")
-
-    # Create/update the installer-managed config with Rust PATH
-    if test -f "$installer_config"
-        # Update existing file - add Rust if not present
-        if not grep -q "Rust/Cargo" "$installer_config" 2>/dev/null
-            printf "\n# Rust/Cargo\nset -gx PATH \$HOME/.cargo/bin \$PATH\n" >> "$installer_config"
-        end
-    else
-        # Create new file
-        printf "# Auto-managed by Fedpunk installer - DO NOT EDIT\n" > "$installer_config"
-        printf "# This file is regenerated on installation\n\n" >> "$installer_config"
-        printf "# Rust/Cargo\nset -gx PATH \$HOME/.cargo/bin \$PATH\n" >> "$installer_config"
-    end
-
-    success "Rust toolchain installed"
-else
-    success "Rust already installed: "(rustc --version)
-
-    # Ensure cargo is in PATH for current session
-    set -gx PATH $HOME/.cargo/bin $PATH
-end
-
-# Update Rust to latest stable
-if step "Updating Rust to latest stable" "rustup update stable"
-    # Success
-end
+info "Installing Python, Node.js, and Go"
 
 # Python, Node.js, Go
 set language_tools \

@@ -54,9 +54,6 @@ echo ""
 echo -e "${C_BLUE}━━━ Bootstrap: Installing Fish Shell ━━━${C_RESET}"
 echo ""
 
-# Get either /root or /home/USER depending on the user
-DIR=$(if [ "$(id -u)" -eq 0 ]; then echo "/root"; else echo "/home/$(whoami)"; fi)
-
 cd "$FEDPUNK_PATH"
 
 # Install Fish, stow, and gum (for interactive installation interface)
@@ -71,7 +68,7 @@ echo ""
 
 # Deploy Fish configuration using gum
 gum spin --spinner dot --title "Deploying Fish configuration..." -- \
-    bash -c "stow -d config -t \"$DIR\" fish >> \"$FEDPUNK_LOG_FILE\" 2>&1" && \
+    bash -c "stow --restow -d config -t ~ fish >> \"$FEDPUNK_LOG_FILE\" 2>&1" && \
     gum_success "Fish configuration deployed" || \
     (gum_error "Failed to deploy Fish configuration" && exit 1)
 
