@@ -28,15 +28,47 @@ success "NVIDIA GPU detected"
 # Enable RPM Fusion repositories (required for NVIDIA drivers)
 info "Enabling RPM Fusion repositories"
 set fedora_version (rpm -E %fedora)
-step "Enabling RPM Fusion" "sudo dnf install -qy https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$fedora_version.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$fedora_version.noarch.rpm"
+# Enhanced progress for repository setup
+info "Setting up RPM Fusion repositories for NVIDIA drivers"
+gum spin --spinner line --title "Downloading and installing RPM Fusion repositories..." -- fish -c '
+    sudo dnf install -qy https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-'$fedora_version'.noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-'$fedora_version'.noarch.rpm >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "RPM Fusion repositories installed successfully" || warning "RPM Fusion repositories may already be installed"
 
 # Install NVIDIA proprietary drivers
 echo ""
-info "Installing NVIDIA drivers (this may take a while)"
-step "Installing NVIDIA driver and CUDA" "sudo dnf install -qy akmod-nvidia xorg-x11-drv-nvidia-cuda"
+info "Installing NVIDIA drivers (this will take several minutes)"
+echo ""
+info "📦 Downloading NVIDIA proprietary driver packages..."
+info "🔧 This includes the kernel module, CUDA runtime, and X11 driver"
+info "⏳ Please be patient - driver compilation can take 5-10 minutes"
+echo ""
+gum spin --spinner meter --title "Downloading and installing NVIDIA driver packages..." -- fish -c '
+    sudo dnf install -qy akmod-nvidia xorg-x11-drv-nvidia-cuda >>'"$FEDPUNK_LOG_FILE"' 2>&1
+'
+if test $status -eq 0
+    success "NVIDIA driver packages installed successfully"
+    echo ""
+    info "🔨 Checking kernel module compilation status..."
+    info "💡 The NVIDIA kernel module may still be compiling in the background"
+    
+    # Wait for akmods to potentially finish compilation
+    gum spin --spinner dots --title "Waiting for NVIDIA kernel module compilation..." -- fish -c '
+        # Give akmods a moment to start if needed
+        sleep 2
+        
+        # Check if akmods is running
+        if pgrep -f "akmods.*nvidia" >/dev/null 2>&1
+            # Wait for it to finish, but with a timeout
+            timeout 300 bash -c "while pgrep -f \"akmods.*nvidia\" >/dev/null 2>&1; do sleep 2; done" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+        end
+    ' && success "NVIDIA kernel module compilation completed" || info "Kernel module compilation may continue in background"
+else
+    error "Failed to install NVIDIA drivers"
+end
 
 # Install additional NVIDIA utilities
-info "Installing NVIDIA utilities"
+echo ""
+info "Installing NVIDIA utilities and support packages"
 set packages \
     nvidia-settings \
     nvidia-persistenced \
@@ -44,10 +76,17 @@ set packages \
     libva \
     libva-nvidia-driver
 
-step "Installing NVIDIA utilities" "sudo dnf install -qy $packages"
+info "📊 Installing: nvidia-settings, CUDA drivers, VA-API support..."
+gum spin --spinner dots --title "Installing NVIDIA utilities and support packages..." -- fish -c '
+    sudo dnf install -qy '$packages' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "NVIDIA utilities installed successfully" || warning "Some NVIDIA utilities may already be installed"
 
 # Enable nvidia-persistenced service
-step "Enabling NVIDIA persistence daemon" "sudo systemctl enable nvidia-persistenced"
+echo ""
+info "Configuring NVIDIA system services"
+gum spin --spinner dots --title "Enabling NVIDIA persistence daemon..." -- fish -c '
+    sudo systemctl enable nvidia-persistenced >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "NVIDIA persistence daemon enabled" || warning "Failed to enable NVIDIA persistence daemon"
 
 # Check if secure boot is enabled
 if bootctl status 2>/dev/null | grep -q "Secure Boot: enabled"
@@ -90,10 +129,15 @@ gum spin --spinner dot --title "Adding NVIDIA modules to initramfs..." -- fish -
 
 # Regenerate initramfs
 echo ""
-info "Regenerating initramfs (this may take a minute)"
-gum spin --spinner meter --title "Regenerating initramfs..." -- fish -c '
+info "Regenerating initramfs with NVIDIA modules"
+echo ""
+info "🔄 Rebuilding initial RAM filesystem..."
+info "📦 Including NVIDIA kernel modules for boot-time loading"
+info "⏳ This process typically takes 1-2 minutes"
+echo ""
+gum spin --spinner pulse --title "Regenerating initramfs with NVIDIA drivers..." -- fish -c '
     sudo dracut --force >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "Initramfs regenerated" || error "Failed to regenerate initramfs"
+' && success "Initramfs regenerated successfully with NVIDIA support" || error "Failed to regenerate initramfs"
 
 # Check for Wayland compatibility
 if test "$XDG_SESSION_TYPE" = "wayland"; or command -v hyprland >/dev/null 2>&1

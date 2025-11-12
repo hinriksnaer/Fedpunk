@@ -22,7 +22,11 @@ set core_tools \
   pkg-config \
   openssl-devel
 
-step "Installing core tools" "sudo dnf install -qy --skip-broken $core_tools"
+# Show detailed progress for core tools installation
+info "Installing essential development tools: $core_tools"
+gum spin --spinner meter --title "Downloading and installing core development tools..." -- fish -c '
+    sudo dnf install -qy --skip-broken '$core_tools' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Core development tools installed successfully" || warning "Some development tools may already be installed"
 
 # Note: Rust/Cargo is now installed in setup-cargo.fish (runs before this script)
 # Ensure cargo is in PATH for current session
@@ -35,11 +39,20 @@ info "Installing modern CLI utilities"
 
 # lsd (modern ls)
 if not command -v lsd >/dev/null 2>&1
-    if step "Installing lsd" "sudo dnf install -qy lsd"
-        # Success
+    gum spin --spinner dots --title "Installing lsd (modern ls replacement)..." -- fish -c '
+        sudo dnf install -qy lsd >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    '
+    if test $status -eq 0
+        success "lsd installed successfully"
     else
-        if step "Installing lsd via cargo" "cargo install lsd"
-            # Success
+        info "DNF installation failed, trying cargo..."
+        gum spin --spinner dots --title "Building lsd from source via cargo..." -- fish -c '
+            cargo install lsd >>'"$FEDPUNK_LOG_FILE"' 2>&1
+        '
+        if test $status -eq 0
+            success "lsd installed via cargo"
+        else
+            warning "Failed to install lsd"
         end
     end
 else
@@ -51,11 +64,20 @@ set modern_tools ripgrep fd-find bat
 
 for tool in $modern_tools
     if not command -v $tool >/dev/null 2>&1
-        if step "Installing $tool" "sudo dnf install -qy $tool"
-            # Success
+        gum spin --spinner dots --title "Installing $tool..." -- fish -c '
+            sudo dnf install -qy '$tool' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+        '
+        if test $status -eq 0
+            success "$tool installed successfully"
         else
-            if step "Installing $tool via cargo" "cargo install $tool"
-                # Success
+            info "DNF installation of $tool failed, trying cargo..."
+            gum spin --spinner dots --title "Building $tool from source via cargo..." -- fish -c '
+                cargo install '$tool' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+            '
+            if test $status -eq 0
+                success "$tool installed via cargo"
+            else
+                warning "Failed to install $tool"
             end
         end
     else
@@ -75,7 +97,11 @@ set language_tools \
   npm \
   golang
 
-step "Installing Python, Node.js, and Go" "sudo dnf install -qy --skip-broken $language_tools"
+# Show progress for programming language runtimes
+info "Installing programming language runtimes: $language_tools"
+gum spin --spinner line --title "Downloading and installing Python, Node.js, and Go..." -- fish -c '
+    sudo dnf install -qy --skip-broken '$language_tools' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Programming language runtimes installed successfully" || warning "Some language runtimes may already be installed"
 
 echo ""
 box "Essential Development Environment Installed!

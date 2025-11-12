@@ -54,9 +54,11 @@ set system_utils \
     pkgconf-pkg-config \
     util-linux-user
 
-gum spin --spinner points --title "Installing system utilities..." -- fish -c '
+# Show progress for each utility category
+info "Installing essential system utilities: $system_utils"
+gum spin --spinner meter --title "Downloading and installing system utilities..." -- fish -c '
     sudo dnf install -qy --skip-broken '$system_utils' >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "System utilities installed" || warning "Some system utilities may already be installed"
+' && success "System utilities installed successfully" || warning "Some system utilities may already be installed"
 
 # SELinux configuration
 echo ""
