@@ -6,6 +6,14 @@
 source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 section "System Setup"
+
+# Verify FEDPUNK_PATH exists before changing to it
+if not test -d "$FEDPUNK_PATH"
+    error "FEDPUNK_PATH not set or directory doesn't exist: $FEDPUNK_PATH"
+    error "This script must be run from install.fish with FEDPUNK_PATH set"
+    exit 1
+end
+
 cd "$FEDPUNK_PATH"
 
 # Git submodules

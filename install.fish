@@ -5,7 +5,8 @@ set -e
 
 # Define Fedpunk locations
 # Use existing FEDPUNK_PATH if set (e.g., from install.sh), otherwise default to $HOME
-if not set -q FEDPUNK_PATH
+# Note: Use test -n instead of set -q to properly detect exported env vars from Bash
+if test -z "$FEDPUNK_PATH"
     set -x FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 end
 set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
