@@ -1,0 +1,25 @@
+#!/usr/bin/env fish
+# Helper script for rofi theme preview
+# Called by rofi-theme-select-preview to apply themes on navigation
+
+set script_dir (dirname (status -f))
+
+# Get the index and theme list
+set selected_index $argv[1]
+shift
+
+set theme_list $argv
+
+# Convert to 1-based index for fish array
+set theme_index (math "$selected_index + 1")
+
+if test $theme_index -ge 1 -a $theme_index -le (count $theme_list)
+    set selected_theme $theme_list[$theme_index]
+    set selected_theme (echo $selected_theme | sed 's/^[● ]*//; s/  */ /g' | string trim | string lower | string replace -a ' ' '-')
+
+    # Apply theme silently and quickly
+    $script_dir/fedpunk-theme-set "$selected_theme" >/dev/null 2>&1 &
+
+    # Save last applied for cleanup
+    echo $selected_theme > /tmp/rofi-theme-last-preview
+end

@@ -11,13 +11,14 @@ end
 # Get list of available themes
 set theme_list (fedpunk-theme-list)
 
-# Get current theme
+# Get current theme (may be empty if theme was deleted)
 set current_theme (fedpunk-theme-current 2>/dev/null)
 
 # Mark current theme with indicator
 set display_list
 for theme in $theme_list
-    if test "$theme" = "$current_theme"
+    # Only mark if we have a valid current theme and it matches
+    if test -n "$current_theme" -a "$theme" = "$current_theme"
         set display_list $display_list "● $theme"
     else
         set display_list $display_list "  $theme"

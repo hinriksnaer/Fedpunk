@@ -1,162 +1,147 @@
--- Torrentz Hydra theme for Neovim
+-- Fedpunk theme: torrentz-hydra
 -- Matches the color palette from kitty/ghostty/hyprland configs
+
 return {
-  {
-    "folke/tokyonight.nvim",
-    priority = 1000,
-    opts = {
-      style = "night",
-      transparent = false,
-      on_colors = function(c)
-        -- Torrentz Hydra color palette
-        c.bg            = "#0F1016"  -- background
-        c.bg_dark       = "#0C0D11"  -- darker background (color0)
-        c.bg_highlight  = "#272A34"  -- selection background (color8)
-        c.bg_float      = "#272A34"  -- floating windows
-        c.bg_sidebar    = "#0F1016"  -- sidebar background
-        c.bg_statusline = "#272A34"  -- statusline background
-        c.bg_popup      = "#272A34"  -- popup background
-
-        c.fg            = "#E2E6F1"  -- foreground (color15)
-        c.fg_dark       = "#A5ABB8"  -- dimmed foreground (color7)
-        c.fg_gutter     = "#5A6070"  -- gutter foreground (brighter for visibility)
-
-        c.border        = "#3D4555"  -- border color (brighter for contrast)
-        c.comment       = "#6B7280"  -- comments (brighter for readability)
-
-        -- Main colors from terminal palette
-        c.red           = "#FF6A1F"  -- color1 (orange-red)
-        c.orange        = "#FF9A3D"  -- color3 (yellow/orange)
-        c.yellow        = "#FFC268"  -- color11 (bright yellow)
-        c.green         = "#9AE64F"  -- color2
-        c.cyan          = "#1BC5C9"  -- color4 (primary cyan)
-        c.blue          = "#39D8DF"  -- color12 (bright blue/cyan)
-        c.magenta       = "#FFC268"  -- using yellow instead of purple
-        c.purple        = "#FFC268"  -- using yellow instead of purple
-
-        -- Bright variants
-        c.red1          = "#FF8140"  -- color9
-        c.green1        = "#B8FF74"  -- color10
-        c.cyan1         = "#5FE6E9"  -- color6
-        c.cyan2         = "#8AF2F4"  -- color14
-
-        -- Additional semantic colors
-        c.git = {
-          add    = c.green,
-          change = c.cyan,
-          delete = c.red,
-        }
-        c.terminal_black = c.bg_dark
-      end,
-
-      on_highlights = function(hl, c)
-        -- Editor UI
-        hl.Normal         = { bg = c.bg, fg = c.fg }
-        hl.NormalFloat    = { bg = c.bg_float, fg = c.fg }
-        hl.FloatBorder    = { bg = c.bg_float, fg = c.cyan1 }
-        hl.NonText        = { fg = c.comment }
-        hl.Comment        = { fg = c.comment, italic = true }
-
-        -- Line numbers and cursor
-        hl.LineNr         = { fg = c.fg_gutter }
-        hl.CursorLineNr   = { fg = c.cyan, bold = true }
-        hl.CursorLine     = { bg = c.bg_highlight }
-        hl.Cursor         = { fg = c.bg, bg = c.cyan }
-
-        -- Visual selection
-        hl.Visual         = { bg = c.bg_highlight }
-        hl.VisualNOS      = { bg = c.bg_highlight }
-
-        -- Search
-        hl.Search          = { bg = c.cyan, fg = c.bg }
-        hl.IncSearch       = { bg = c.orange, fg = c.bg }
-        hl.MatchParen      = { fg = c.red, bold = true }
-
-        -- Statusline and tabs
-        hl.StatusLine     = { bg = c.bg_statusline, fg = c.fg }
-        hl.StatusLineNC   = { bg = c.bg_statusline, fg = c.fg_dark }
-        hl.WinSeparator   = { fg = c.fg_gutter }
-
-        hl.TabLine        = { bg = c.bg_statusline, fg = c.fg_dark }
-        hl.TabLineSel     = { bg = c.cyan, fg = c.bg, bold = true }
-        hl.TabLineFill    = { bg = c.bg_statusline }
-
-        -- Popups and menus
-        hl.Pmenu           = { bg = c.bg_popup, fg = c.fg_dark }
-        hl.PmenuSel        = { bg = c.cyan, fg = c.bg, bold = true }
-        hl.PmenuSbar       = { bg = c.bg_highlight }
-        hl.PmenuThumb      = { bg = c.cyan }
-
-        -- Diagnostics
-        hl.DiagnosticError            = { fg = c.red }
-        hl.DiagnosticWarn             = { fg = c.orange }
-        hl.DiagnosticInfo             = { fg = c.cyan }
-        hl.DiagnosticHint             = { fg = c.yellow }
-        hl.DiagnosticUnderlineError   = { sp = c.red, undercurl = true }
-        hl.DiagnosticUnderlineWarn    = { sp = c.orange, undercurl = true }
-        hl.DiagnosticUnderlineInfo    = { sp = c.cyan, undercurl = true }
-        hl.DiagnosticUnderlineHint    = { sp = c.yellow, undercurl = true }
-
-        -- Git signs
-        hl.GitSignsAdd    = { fg = c.green }
-        hl.GitSignsChange = { fg = c.cyan }
-        hl.GitSignsDelete = { fg = c.red }
-
-        -- Diff
-        hl.DiffAdd        = { bg = c.bg_highlight, fg = c.green }
-        hl.DiffChange     = { bg = c.bg_highlight, fg = c.cyan }
-        hl.DiffDelete     = { bg = c.bg_highlight, fg = c.red }
-        hl.DiffText       = { bg = c.bg_highlight, fg = c.blue, bold = true }
-
-        -- MiniIcons (file explorer icons)
-        hl.MiniIconsRed    = { fg = c.red }
-        hl.MiniIconsOrange = { fg = c.orange }
-        hl.MiniIconsYellow = { fg = c.yellow }
-        hl.MiniIconsGreen  = { fg = c.green }
-        hl.MiniIconsCyan   = { fg = c.cyan }
-        hl.MiniIconsBlue   = { fg = c.blue }
-        hl.MiniIconsPurple = { fg = c.yellow }
-        hl.MiniIconsGrey   = { fg = c.fg_dark }
-
-        -- Telescope
-        hl.TelescopeBorder          = { fg = c.cyan1, bg = c.bg_float }
-        hl.TelescopePromptBorder    = { fg = c.cyan, bg = c.bg_float }
-        hl.TelescopeSelection       = { bg = c.bg_highlight, fg = c.cyan, bold = true }
-        hl.TelescopeMatching        = { fg = c.red, bold = true }
-
-        -- Neo-tree
-        hl.NeoTreeNormal            = { fg = c.fg, bg = c.bg }
-        hl.NeoTreeDirectoryName     = { fg = c.cyan }
-        hl.NeoTreeDirectoryIcon     = { fg = c.cyan }
-        hl.NeoTreeFileName          = { fg = c.fg }
-        hl.NeoTreeFileIcon          = { fg = c.green }
-        hl.NeoTreeIndentMarker      = { fg = c.fg_gutter }
-        hl.NeoTreeRootName          = { fg = c.red, bold = true }
-        hl.NeoTreeGitModified       = { fg = c.cyan }
-        hl.NeoTreeGitAdded          = { fg = c.green }
-        hl.NeoTreeGitDeleted        = { fg = c.red }
-
-        -- Which-key
-        hl.WhichKeyNormal  = { bg = c.bg_float }
-        hl.WhichKeyFloat   = { bg = c.bg_float }
-        hl.WhichKeyBorder  = { bg = c.bg_float, fg = c.cyan1 }
-
-        -- Snacks
-        hl.SnacksPicker        = { bg = c.bg }
-        hl.SnacksPickerList    = { bg = c.bg }
-        hl.SnacksPickerPreview = { bg = c.bg }
-        hl.SnacksPickerPrompt  = { bg = c.bg }
-      end,
-    },
-    config = function(_, opts)
-      require("tokyonight").setup(opts)
-      vim.cmd("colorscheme tokyonight")
-    end,
-  },
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "tokyonight",
+      colorscheme = function()
+        vim.opt.termguicolors = true
+        vim.o.background = 'dark'
+        vim.g.colors_name = 'torrentz-hydra'
+
+        -- Reset highlighting
+        vim.cmd('highlight clear')
+        if vim.fn.exists('syntax_on') then
+          vim.cmd('syntax reset')
+        end
+
+        local hl = vim.api.nvim_set_hl
+
+        -- Torrentz Hydra color palette
+        local c = {
+          bg            = "#0F1016",  -- background
+          bg_dark       = "#0C0D11",  -- darker background
+          bg_highlight  = "#272A34",  -- selection background
+          bg_float      = "#272A34",  -- floating windows
+          bg_statusline = "#272A34",  -- statusline background
+          bg_popup      = "#272A34",  -- popup background
+
+          fg            = "#E2E6F1",  -- foreground
+          fg_dark       = "#A5ABB8",  -- dimmed foreground
+          fg_gutter     = "#5A6070",  -- gutter foreground
+
+          border        = "#3D4555",  -- border color
+          comment       = "#6B7280",  -- comments
+
+          -- Main colors
+          red           = "#FF6A1F",  -- orange-red
+          orange        = "#FF9A3D",  -- yellow/orange
+          yellow        = "#FFC268",  -- bright yellow
+          green         = "#9AE64F",  -- green
+          cyan          = "#1BC5C9",  -- primary cyan
+          blue          = "#39D8DF",  -- bright blue/cyan
+
+          -- Bright variants
+          red1          = "#FF8140",
+          green1        = "#B8FF74",
+          cyan1         = "#5FE6E9",
+          cyan2         = "#8AF2F4",
+        }
+
+        -- Editor UI
+        hl(0, 'Normal', { bg = c.bg, fg = c.fg })
+        hl(0, 'NormalFloat', { bg = c.bg_float, fg = c.fg })
+        hl(0, 'FloatBorder', { bg = c.bg_float, fg = c.cyan1 })
+        hl(0, 'NonText', { fg = c.comment })
+        hl(0, 'Comment', { fg = c.comment, italic = true })
+
+        -- Line numbers and cursor
+        hl(0, 'LineNr', { fg = c.fg_gutter })
+        hl(0, 'CursorLineNr', { fg = c.cyan, bold = true })
+        hl(0, 'CursorLine', { bg = c.bg_highlight })
+        hl(0, 'Cursor', { fg = c.bg, bg = c.cyan })
+
+        -- Visual selection
+        hl(0, 'Visual', { bg = c.bg_highlight })
+        hl(0, 'VisualNOS', { bg = c.bg_highlight })
+
+        -- Search
+        hl(0, 'Search', { bg = c.cyan, fg = c.bg })
+        hl(0, 'IncSearch', { bg = c.orange, fg = c.bg })
+        hl(0, 'MatchParen', { fg = c.red, bold = true })
+
+        -- Syntax
+        hl(0, 'Constant', { fg = c.yellow })
+        hl(0, 'String', { fg = c.green })
+        hl(0, 'Character', { fg = c.green })
+        hl(0, 'Number', { fg = c.yellow })
+        hl(0, 'Boolean', { fg = c.yellow })
+        hl(0, 'Float', { fg = c.yellow })
+        hl(0, 'Identifier', { fg = c.fg })
+        hl(0, 'Function', { fg = c.cyan })
+        hl(0, 'Statement', { fg = c.red })
+        hl(0, 'Conditional', { fg = c.red })
+        hl(0, 'Repeat', { fg = c.red })
+        hl(0, 'Label', { fg = c.red })
+        hl(0, 'Operator', { fg = c.orange })
+        hl(0, 'Keyword', { fg = c.red })
+        hl(0, 'Type', { fg = c.blue })
+        hl(0, 'Special', { fg = c.cyan1 })
+
+        -- Statusline and tabs
+        hl(0, 'StatusLine', { bg = c.bg_statusline, fg = c.fg })
+        hl(0, 'StatusLineNC', { bg = c.bg_statusline, fg = c.fg_dark })
+        hl(0, 'WinSeparator', { fg = c.fg_gutter })
+        hl(0, 'TabLine', { bg = c.bg_statusline, fg = c.fg_dark })
+        hl(0, 'TabLineSel', { bg = c.cyan, fg = c.bg, bold = true })
+        hl(0, 'TabLineFill', { bg = c.bg_statusline })
+
+        -- Popups and menus
+        hl(0, 'Pmenu', { bg = c.bg_popup, fg = c.fg_dark })
+        hl(0, 'PmenuSel', { bg = c.cyan, fg = c.bg, bold = true })
+        hl(0, 'PmenuSbar', { bg = c.bg_highlight })
+        hl(0, 'PmenuThumb', { bg = c.cyan })
+
+        -- Diagnostics
+        hl(0, 'DiagnosticError', { fg = c.red })
+        hl(0, 'DiagnosticWarn', { fg = c.orange })
+        hl(0, 'DiagnosticInfo', { fg = c.cyan })
+        hl(0, 'DiagnosticHint', { fg = c.yellow })
+        hl(0, 'DiagnosticUnderlineError', { sp = c.red, undercurl = true })
+        hl(0, 'DiagnosticUnderlineWarn', { sp = c.orange, undercurl = true })
+        hl(0, 'DiagnosticUnderlineInfo', { sp = c.cyan, undercurl = true })
+        hl(0, 'DiagnosticUnderlineHint', { sp = c.yellow, undercurl = true })
+
+        -- Git signs
+        hl(0, 'GitSignsAdd', { fg = c.green })
+        hl(0, 'GitSignsChange', { fg = c.cyan })
+        hl(0, 'GitSignsDelete', { fg = c.red })
+
+        -- Diff
+        hl(0, 'DiffAdd', { bg = c.bg_highlight, fg = c.green })
+        hl(0, 'DiffChange', { bg = c.bg_highlight, fg = c.cyan })
+        hl(0, 'DiffDelete', { bg = c.bg_highlight, fg = c.red })
+        hl(0, 'DiffText', { bg = c.bg_highlight, fg = c.blue, bold = true })
+
+        -- Telescope
+        hl(0, 'TelescopeBorder', { fg = c.cyan1, bg = c.bg_float })
+        hl(0, 'TelescopePromptBorder', { fg = c.cyan, bg = c.bg_float })
+        hl(0, 'TelescopeSelection', { bg = c.bg_highlight, fg = c.cyan, bold = true })
+        hl(0, 'TelescopeMatching', { fg = c.red, bold = true })
+
+        -- Neo-tree
+        hl(0, 'NeoTreeNormal', { fg = c.fg, bg = c.bg })
+        hl(0, 'NeoTreeDirectoryName', { fg = c.cyan })
+        hl(0, 'NeoTreeDirectoryIcon', { fg = c.cyan })
+        hl(0, 'NeoTreeFileName', { fg = c.fg })
+        hl(0, 'NeoTreeFileIcon', { fg = c.green })
+        hl(0, 'NeoTreeIndentMarker', { fg = c.fg_gutter })
+        hl(0, 'NeoTreeRootName', { fg = c.red, bold = true })
+        hl(0, 'NeoTreeGitModified', { fg = c.cyan })
+        hl(0, 'NeoTreeGitAdded', { fg = c.green })
+        hl(0, 'NeoTreeGitDeleted', { fg = c.red })
+      end,
     },
   },
 }
