@@ -1,11 +1,18 @@
 #!/bin/bash
 
-# Fedpunk Terminal-Only Installer
-# Run this script from within your cloned Fedpunk repository
+# Fedpunk Terminal-Only Bootstrap
+# Downloads and installs terminal-only components to ~/.local/share/fedpunk
 # This installs only terminal components (Fish, Neovim, tmux, etc.)
 # without the desktop environment (Hyprland, Kitty, Rofi, etc.)
+#
+# Usage:
+#   bash <(wget -qO- https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
 
 set -eEo pipefail
+
+# Set install mode to online
+export FEDPUNK_ONLINE_INSTALL=true
 
 ansi_art='
 ███████╗███████╗██████╗ ██████╗ ██╗   ██╗███╗   ██╗██╗  ██╗
@@ -16,46 +23,6 @@ ansi_art='
 ╚═╝     ╚══════╝╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝
                     Terminal-Only Installation
 '
-
-echo -e "\n$ansi_art\n"
-
-# Verify we're in the repository
-if [[ ! -f "$(dirname "$0")/install.fish" ]]; then
-    echo "❌ Error: This script must be run from within the Fedpunk repository"
-    echo "   Please clone the repository first:"
-    echo "   git clone https://github.com/hinriksnaer/Fedpunk.git"
-    echo "   cd Fedpunk"
-    echo "   bash boot-terminal.sh"
-    exit 1
-fi
-
-# Get repository root
-REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
-INSTALL_DIR="$HOME/.local/share/fedpunk"
-
-# Copy repository to installation directory if not already there
-if [[ "$REPO_ROOT" != "$INSTALL_DIR" ]]; then
-    echo "→ Copying repository to: $INSTALL_DIR"
-
-    # Create parent directory
-    mkdir -p "$(dirname "$INSTALL_DIR")"
-
-    # Remove existing installation if present
-    if [[ -d "$INSTALL_DIR" ]]; then
-        echo "→ Removing existing installation..."
-        rm -rf "$INSTALL_DIR"
-    fi
-
-    # Copy repository
-    cp -r "$REPO_ROOT" "$INSTALL_DIR"
-
-    # Change to installation directory
-    cd "$INSTALL_DIR"
-    echo "✓ Repository copied to $INSTALL_DIR"
-else
-    echo "→ Already running from installation directory: $INSTALL_DIR"
-fi
-echo ""
 
 # Preflight checks
 echo "🔍 Running preflight checks..."
@@ -77,12 +44,34 @@ if ! sudo -n true 2>/dev/null; then
     fi
 fi
 
+clear
+echo -e "\n$ansi_art\n"
 echo "✅ Preflight checks passed"
-echo ""
 
-# Install dependencies
 echo "→ Installing git, fish, and gum..."
 sudo dnf install -y git fish gum
+
+# Use custom repo if specified, otherwise default to your repo
+FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
+
+echo -e "\nCloning Fedpunk from: https://github.com/${FEDPUNK_REPO}.git"
+
+# Check if existing installation exists and remove non-interactively
+if [[ -d ~/.local/share/fedpunk ]]; then
+    echo "→ Removing existing installation at ~/.local/share/fedpunk"
+    rm -rf ~/.local/share/fedpunk/
+fi
+
+FEDPUNK_PATH="$HOME/.local/share/fedpunk"
+git clone "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
+
+# Use custom branch if instructed, otherwise default to main
+FEDPUNK_REF="${FEDPUNK_REF:-main}"
+if [[ $FEDPUNK_REF != "main" ]]; then
+  echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"
+  cd "$FEDPUNK_PATH"
+  git fetch origin "${FEDPUNK_REF}" && git checkout "${FEDPUNK_REF}"
+fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -104,4 +93,4 @@ echo "  • Desktop components (Rofi, Mako, etc.)"
 echo ""
 
 # Run the Fish installer with terminal-only and non-interactive flags
-fish "$INSTALL_DIR/install.fish" --terminal-only --non-interactive
+fish "$FEDPUNK_PATH/install.fish" --terminal-only --non-interactive

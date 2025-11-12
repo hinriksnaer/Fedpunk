@@ -55,11 +55,21 @@ This installs:
 - **Themes**: 14 complete omarchy themes with live switching
 
 ### Method 2: Terminal-Only Install (Recommended for Servers/Devcontainers)
+
+**One-line install with wget or curl:**
 ```bash
-# Clone the repository anywhere you like
+# Using wget
+bash <(wget -qO- https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
+
+# Or using curl
+bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
+```
+
+**Or clone first:**
+```bash
 git clone https://github.com/hinriksnaer/Fedpunk.git
 cd Fedpunk
-bash boot-terminal.sh  # Non-interactive, copies to ~/.local/share/fedpunk
+bash boot-terminal.sh
 ```
 
 This installs:
