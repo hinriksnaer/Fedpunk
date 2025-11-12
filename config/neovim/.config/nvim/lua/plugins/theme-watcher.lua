@@ -47,7 +47,7 @@ return {
                       -- Handle string colorscheme (e.g., "ayu-mirage")
                       if type(colorscheme) == 'string' and colorscheme ~= '' then
                         -- Always reload to ensure theme is properly applied
-                        pcall(vim.cmd, 'colorscheme ' .. colorscheme)
+                        pcall(vim.cmd.colorscheme, colorscheme)
                         if current_theme ~= colorscheme then
                           vim.notify('Theme switched to: ' .. colorscheme, vim.log.levels.INFO)
                         end
