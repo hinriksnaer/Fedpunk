@@ -16,8 +16,8 @@ set -gx GUM_SUCCESS 35   # Green/Cyan
 set -gx GUM_WARNING 214  # Orange
 set -gx GUM_ERROR 9      # Red
 
-# Get log file from environment (set by bash install.sh)
-# This should ALWAYS be set by the main install.sh script
+# Get log file from environment (set by boot script or install.fish)
+# This should ALWAYS be set by the main installation script
 if not set -q FEDPUNK_LOG_FILE
     # Fallback: create new log file (shouldn't normally happen)
     set -gx FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"

@@ -59,7 +59,7 @@ This installs:
 # Clone the repository anywhere you like
 git clone https://github.com/hinriksnaer/Fedpunk.git
 cd Fedpunk
-./install.sh  # Non-interactive by default
+bash boot-terminal.sh  # Non-interactive, copies to ~/.local/share/fedpunk
 ```
 
 This installs:

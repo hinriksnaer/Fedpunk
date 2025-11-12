@@ -25,13 +25,36 @@ if [[ ! -f "$(dirname "$0")/install.fish" ]]; then
     echo "   Please clone the repository first:"
     echo "   git clone https://github.com/hinriksnaer/Fedpunk.git"
     echo "   cd Fedpunk"
-    echo "   ./install.sh"
+    echo "   bash boot-terminal.sh"
     exit 1
 fi
 
-# Get repository root for display
+# Get repository root
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
-echo "→ Installing from: $REPO_ROOT"
+INSTALL_DIR="$HOME/.local/share/fedpunk"
+
+# Copy repository to installation directory if not already there
+if [[ "$REPO_ROOT" != "$INSTALL_DIR" ]]; then
+    echo "→ Copying repository to: $INSTALL_DIR"
+
+    # Create parent directory
+    mkdir -p "$(dirname "$INSTALL_DIR")"
+
+    # Remove existing installation if present
+    if [[ -d "$INSTALL_DIR" ]]; then
+        echo "→ Removing existing installation..."
+        rm -rf "$INSTALL_DIR"
+    fi
+
+    # Copy repository
+    cp -r "$REPO_ROOT" "$INSTALL_DIR"
+
+    # Change to installation directory
+    cd "$INSTALL_DIR"
+    echo "✓ Repository copied to $INSTALL_DIR"
+else
+    echo "→ Already running from installation directory: $INSTALL_DIR"
+fi
 echo ""
 
 # Preflight checks
@@ -81,4 +104,4 @@ echo "  • Desktop components (Rofi, Mako, etc.)"
 echo ""
 
 # Run the Fish installer with terminal-only and non-interactive flags
-fish "$REPO_ROOT/install.fish" --terminal-only --non-interactive
+fish "$INSTALL_DIR/install.fish" --terminal-only --non-interactive
