@@ -50,3 +50,8 @@ else
     info "No NVIDIA GPU detected, skipping drivers"
     echo "[SKIPPED] NVIDIA drivers (no GPU detected)" >> $FEDPUNK_LOG_FILE
 end
+
+# Extra applications
+echo ""
+info "Installing extra applications"
+source "$FEDPUNK_INSTALL/desktop/packaging/extra-apps.fish"

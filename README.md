@@ -1,440 +1,456 @@
-# Fedpunk Linux Setup
+# Fedpunk
 
-**An awesome omarchy-based Fedora setup with Hyprland**
+**A modern, keyboard-driven Fedora development environment with Hyprland Wayland compositor**
 
-Fedpunk is a modern, fish-first development environment built on top of the excellent [omarchy](https://github.com/basecamp/omarchy) framework. It transforms your Fedora installation into a sleek, productive workspace featuring the Hyprland Wayland compositor, comprehensive theming system, and carefully curated development tools.
-
-**✨ Fully compatible with omarchy themes** - Use any theme from omarchy or create your own!
+Fedpunk transforms Fedora into a productivity-focused workspace featuring tiling window management, seamless theming, and a curated set of development tools—all driven by Fish shell and designed for developers who value efficiency and aesthetics.
 
 ---
 
-## 🚀 Features
+## Why Fedpunk?
 
-- **🎨 Omarchy-based theming** - Built on omarchy's excellent theme framework with full compatibility
-- **🐟 Fish-first architecture** - Modern shell with intelligent autocompletion and scripting
-- **🪟 Hyprland compositor** - Blazing fast tiling Wayland window manager with master layout support
-- **⚡ Dynamic theme switching** - Switch themes on-the-fly with Super+Shift+T (14 complete themes included)
-- **🖼️ Integrated wallpaper management** - Per-theme wallpapers with swaybg integration
-- **⚡ NVIDIA support** - Proprietary driver installation with Wayland compatibility
-- **🛠️ Premium development tools** - Neovim, tmux, lazygit, btop, bluetui, and more
-- **🐱 Kitty terminal** - GPU-accelerated with live theme synchronization
-- **🎨 Live theme reloading** - Neovim, Kitty, Mako, and btop reload automatically
-- **📦 Automated setup** - One command installs and configures everything
-- **✨ Beautiful install UI** - Interactive spinners and progress indicators with gum
-- **🔄 Re-run safe** - Gracefully handles already-installed components
+**🚀 Zero-friction setup** - One command installs everything: from compositor to terminal to themes
+**⚡ Blazing fast workflow** - Hyprland compositor with optimized keybindings and vim-style navigation
+**🎨 Live theme switching** - 11 complete themes that update across all applications instantly
+**🐟 Fish-first design** - Modern shell with intelligent completions and powerful scripting
+**🖥️ Flexible deployment** - Full desktop or terminal-only for servers and containers
+**🔄 Layout persistence** - Remembers your window layout preferences across theme changes
+**📦 Modular architecture** - Clean separation between terminal and desktop components
 
 ---
 
-## 📋 System Requirements
+## Quick Start
 
-- **OS**: Fedora Linux (39+)
-- **Architecture**: x86_64
-- **Internet**: Required for package downloads
-- **Storage**: ~2GB free space
-- **Optional**: NVIDIA GPU (for NVIDIA driver installation)
+### Full Desktop Install (Hyprland + Terminal)
 
----
-
-## ⚡ Quick Start
-
-### Method 1: Full Desktop Install (Hyprland + Terminal)
 ```bash
-# One-line install - clones repo and installs everything
 curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
-
-# Or manually:
-git clone https://github.com/hinriksnaer/Fedpunk.git ~/.local/share/fedpunk
-cd ~/.local/share/fedpunk
-fish install.fish
 ```
 
-This installs:
-- **Desktop**: Hyprland, Kitty, Rofi, Mako, NVIDIA drivers (optional)
-- **Terminal**: Fish Shell, Neovim, tmux, Lazygit, btop
-- **Tools**: Claude Code AI assistant (optional)
-- **Themes**: 14 complete omarchy themes with live switching
+**Installs:**
+- Hyprland compositor with optimized window management
+- Kitty terminal with GPU acceleration
+- Neovim, tmux, lazygit, btop
+- 11 beautiful themes with instant switching
+- NVIDIA drivers (optional, interactive prompt)
 
-### Method 2: Terminal-Only Install (Recommended for Servers/Devcontainers)
+### Terminal-Only Install (Servers/Containers)
 
-**One-line install with wget or curl:**
 ```bash
-# Using wget
-bash <(wget -qO- https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
-
-# Or using curl
 bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
 ```
 
-**Or clone first:**
-```bash
-git clone https://github.com/hinriksnaer/Fedpunk.git
-cd Fedpunk
-bash boot-terminal.sh
-```
+**Installs:**
+- Fish shell with modern tooling
+- Neovim with LSP and plugins
+- tmux, lazygit, btop
+- Theme system (terminal apps only)
+- Skips all desktop components
 
-This installs:
-- **Terminal**: Fish Shell, Neovim, tmux, Lazygit, btop
-- **Tools**: Claude Code AI assistant (automatically installed)
-- **Skips**: Hyprland, Kitty, and all desktop components
-
-The configs will be deployed to standard XDG locations (`~/.config/`) via stow.
-
-**Note:** Terminal setup is non-interactive by default (perfect for devcontainers/CI). For interactive prompts, use `fish install.fish` instead.
+Perfect for devcontainers, remote servers, or when you already have a compositor.
 
 ---
 
-## 📦 Components
+## What You Get
 
-### 🐟 Terminal Setup
-| Component | Description | Configuration |
-|-----------|-------------|---------------|
-| **Fish Shell** | Modern shell with intelligent features | `~/.config/fish/` |
-| **Claude Code** | AI coding assistant | `~/.config/claude/` |
-| **Neovim** | Modern vim-based editor | `~/.config/nvim/` |
-| **Tmux** | Terminal multiplexer | `~/.config/tmux/` |
-| **Lazygit** | Terminal git UI | `~/.config/lazygit/` |
-| **btop** | Resource monitor | `~/.config/btop/` |
-| **Audio Stack** | PipeWire audio server | System-wide |
+### Terminal Environment
+| Tool | Purpose |
+|------|---------|
+| **Fish Shell** | Modern shell with intelligent autocompletion and syntax highlighting |
+| **Starship** | Fast, customizable prompt with git integration |
+| **Neovim** | Vim-based editor with LSP, tree-sitter, and modern plugins |
+| **Tmux** | Terminal multiplexer with sensible defaults |
+| **Lazygit** | Terminal UI for git with vim bindings |
+| **btop** | Beautiful resource monitor |
+| **ripgrep, fzf** | Fast searching and fuzzy finding |
 
-### 🪟 Desktop Setup
-| Component | Description | Configuration |
-|-----------|-------------|---------------|
-| **Hyprland** | Tiling Wayland compositor | `~/.config/hypr/` |
-| **Kitty** | GPU-accelerated terminal | `~/.config/kitty/` |
-| **Rofi** | Application launcher | `~/.config/rofi/` |
-| **Mako** | Notification daemon | `~/.config/mako/` |
-| **Firefox** | Default web browser | System default |
-| **swaybg** | Wallpaper manager | Theme-controlled |
-| **Desktop Portals** | File dialogs, authentication | Auto-configured |
-| **NVIDIA** | Proprietary drivers (optional) | Auto-configured |
+### Desktop Environment
+| Component | Purpose |
+|-----------|---------|
+| **Hyprland** | Tiling Wayland compositor with dynamic layouts |
+| **Kitty** | GPU-accelerated terminal with ligature support |
+| **Rofi** | Application launcher with theme integration |
+| **Mako** | Notification daemon with theme support |
+| **swaybg** | Wallpaper manager with per-theme backgrounds |
+| **Firefox** | Default web browser |
 
----
-
-## 🔧 Installation Details
-
-### What Gets Installed
-
-**System Packages:**
-- Fish shell with Starship prompt
-- Claude Code AI assistant with Fish integration
-- Hyprland compositor with essential tools
-- Firefox browser with privacy optimizations
-- Development utilities (ripgrep, fzf, git)
-- Audio/video support (PipeWire, codecs)
-- Desktop integration (portals, authentication)
-
-**Configurations:**
-- Fish shell with AI-enhanced functions and aliases
-- Claude Code with project-aware assistance
-- Hyprland with sensible keybindings and theming
-- Neovim with LSP, modern plugins, and AI integration
-- Tmux with plugin manager and Claude Code bindings
-- Git integration with Lazygit and AI commit messages
-
-**Optional Components:**
-- NVIDIA proprietary drivers with Wayland support
-- Additional browsers (Chromium, Brave)
-- Extended development tools
-
-### Architecture
-
-Fedpunk uses a **modular Fish-first approach**:
-
-1. **Boot** (`boot.sh`) - Preflight checks, installs git, fish, and gum
-2. **Preflight** (`install/preflight/`) - Critical setup in order:
-   - `setup-cargo.fish` - Rust/Cargo installation (many tools depend on this)
-   - `setup-fish.fish` - Fish shell configuration, stow, and plugins
-   - `install-essentials.fish` - Core development tools
-   - `setup-system.fish` - System setup, repositories, and submodules
-3. **Packaging** (`install/packaging/`) - Pure package installations (no configs):
-   - `audio.fish`, `bluetui.fish`, `fonts.fish`, `claude.fish`, `nvidia.fish`
-4. **Configuration** (`install/config/`) - End-to-end component setup (install + deploy):
-   - Each script installs packages AND stows configs for easier troubleshooting
-   - `btop.fish`, `neovim.fish`, `tmux.fish`, `lazygit.fish`, `kitty.fish`, `hyprland.fish`
-5. **Post-install** (`install/post-install/`) - Theme setup and final configuration
-
-### Installation UI
-
-The installer features a **modern terminal UI** powered by gum:
-
-- **Interactive spinners** - Visual feedback for all operations (downloads, installs, configuration)
-- **Contextual animations** - Different spinner styles for different operations:
-  - `line` - Downloads and network operations
-  - `dot` - Package installations and quick operations
-  - `meter` - System upgrades and heavy operations
-  - `moon` - Discovery and scanning operations
-  - `pulse` - Service reloads and restarts
-- **Smart error handling** - Detailed error messages with log file references
-- **Progress indicators** - Track installation progress ([1/8], [2/8], etc.)
-- **Graceful re-runs** - Detects already-installed components and continues smoothly
-- **Clean output** - Verbose command output captured in logs, only status messages shown
-
-All installation logs are saved to `/tmp/fedpunk-install-*.log` for troubleshooting.
+### Hyprland Features
+- **Dual layout support** - Switch between dwindle and master layouts (optimized for ultrawide)
+- **Vim-based navigation** - H/J/K/L for all window operations
+- **Smart modifier scheme** - Consistent Super/Shift/Alt/Ctrl for different operations
+- **Workspace management** - Direct switching, cycling, and silent window moves
+- **Layout persistence** - Remembers your preferred layout across theme changes
+- **No flicker** - Theme changes preserve window positions and layouts
 
 ---
 
-## 🎨 Post-Installation
+## Keybindings
 
-### Starting Hyprland
-```bash
-# From display manager: Select "Hyprland" session
-# From TTY:
-Hyprland
-```
+### Navigation (SUPER)
+| Key | Action |
+|-----|--------|
+| `Super+H/J/K/L` | Focus windows (vim-style) |
+| `Super+Arrow Keys` | Focus windows (arrows) |
+| `Super+1-9` | Switch to workspace |
+| `Super+Tab` | Toggle to last workspace |
 
-### Key Bindings (Hyprland)
+### Workspace Operations (SUPER+SHIFT)
+| Key | Action |
+|-----|--------|
+| `Super+Shift+H/L` | Cycle workspaces |
+| `Super+Shift+1-9` | Move window to workspace |
 
-**Applications:**
-- `Super + Return` - Terminal (Kitty)
-- `Super + B` - Browser (Firefox)
-- `Super + Space` - Application launcher (Rofi)
-- `Super + E` - File manager (Thunar)
-- `Super + Shift + B` - Bluetooth manager (bluetui)
+### Window Manipulation (SUPER+ALT)
+| Key | Action |
+|-----|--------|
+| `Super+Alt+H/J/K/L` | Move window |
+| `Super+Alt+R` | Rotate split direction |
+| `Super+Alt+Space` | Toggle layout (dwindle ↔ master) |
 
-**Window Management:**
-- `Super + Q` - Close window
-- `Super + Shift + E` - Exit Hyprland
-- `Super + V` - Toggle floating
-- `Super + F` - Toggle fullscreen
-- `Super + h/j/k/l` - Focus windows (Vim keys)
-- `Super + Shift + h/j/k/l` - Move windows
-- `Super + Ctrl + h/j/k/l` - Resize windows
+### Adjustments (SUPER+CTRL)
+| Key | Action |
+|-----|--------|
+| `Super+Ctrl+H/J/K/L` | Resize window |
+| `Super+Ctrl+1-9` | Move window silently (no focus) |
 
-**Workspaces:**
-- `Super + 1-9` - Switch workspaces
-- `Super + Shift + 1-9` - Move window to workspace
+### Applications
+| Key | Action |
+|-----|--------|
+| `Super+Return` | Terminal (Kitty) |
+| `Super+Space` | Application launcher (Rofi) |
+| `Super+B` | Browser (Firefox) |
+| `Super+E` | File manager |
+| `Super+Shift+B` | Bluetooth manager |
 
-**Theme & Appearance:**
-- `Super + Shift + T` - Next theme
-- `Super + Shift + Y` - Previous theme
-- `Super + Shift + R` - Refresh current theme
-- `Super + Shift + W` - Next wallpaper
+### Window Management
+| Key | Action |
+|-----|--------|
+| `Super+Q` | Close window |
+| `Super+V` | Toggle floating |
+| `Super+F` | Toggle fullscreen |
+| `Super+P` | Pseudo tile |
 
-**Layouts:**
-- `Super + Alt + L` - Toggle layout (dwindle ↔ master)
+### Themes
+| Key | Action |
+|-----|--------|
+| `Super+T` | Theme selection menu |
+| `Super+Shift+T` | Next theme |
+| `Super+Shift+Y` | Previous theme |
+| `Super+Shift+R` | Refresh theme |
+| `Super+Shift+W` | Next wallpaper |
 
-**Screenshots:**
-- `Print` - Selection screenshot
-- `Super + Print` - Full screen screenshot
-- `Super + Shift + S` - Alternative selection
-
-### Shell Usage
-```fish
-# Fish is now your default shell with AI assistance
-# Starship provides a modern prompt
-# Use 'help' for Fish documentation
-
-# Claude Code AI assistance
-claude auth login          # Set up AI assistance
-cc ask "your question"     # Quick AI queries
-ai_commit                  # AI-generated commit messages
-ai_explain some_command    # Explain commands or files
-ai_fix                     # Fix code issues
-ai_review                  # Code review assistance
-```
-
----
-
-## 🤖 AI-Enhanced Development
-
-Fedpunk includes Claude Code for intelligent coding assistance:
-
-### Quick AI Commands
-```fish
-# Basic assistance
-cc ask "how do I optimize this function?"
-ask "explain this error message"
-
-# Development workflow  
-ai_commit                    # Generate commit messages
-ai_review                   # Code review assistance
-ai_fix error.log           # Debug errors
-ai_explain main.py         # Explain code files
-ai_optimize slow_function  # Performance suggestions
-
-# Project context
-ai_project "how should I structure this app?"
-```
-
-### Integrated Features
-- **Context-aware**: Automatically detects git repos and project files
-- **Fish integration**: Native completions and shortcuts
-- **tmux binding**: `Ctrl+a, C-a` opens Claude interactive mode
-- **Neovim plugin**: AI assistance directly in your editor
-- **Git workflow**: Smart commit messages and code reviews
+### Screenshots
+| Key | Action |
+|-----|--------|
+| `Print` | Selection screenshot |
+| `Super+Print` | Full screen screenshot |
 
 ---
 
-## 🔄 Updates
+## Themes
 
-```fish
-# Navigate to wherever you cloned the repository
-cd /path/to/Fedpunk
-git pull
-fish install.fish  # Re-run installation (safe to re-run)
-```
+**11 carefully curated themes included:**
 
----
-
-## 🛠️ Customization
-
-### Installation Structure
-
-The installation system is organized by component type:
-
-```
-install/
-├── preflight/        # System setup & prerequisites
-├── terminal/         # Terminal-only components
-│   ├── config/       # btop, neovim, tmux, lazygit
-│   └── packaging/    # claude CLI
-├── desktop/          # Desktop-only components
-│   ├── config/       # hyprland, kitty, rofi
-│   └── packaging/    # fonts, audio, bluetui, nvidia
-├── post-install/     # Final cleanup tasks
-└── helpers/          # Shared utility functions
-```
-
-### Adding Custom Packages
-
-**Terminal components:**
-- Add to `install/terminal/packaging/` for pure packages
-- Add to `install/terminal/config/` for components with configs
-
-**Desktop components:**
-- Add to `install/desktop/packaging/` for pure packages
-- Add to `install/desktop/config/` for components with configs
-
-### Modifying Configurations
-All configurations use standard XDG paths:
-- `~/.config/` - Application configurations
-- `~/.local/bin/` - User binaries
-
-### Theming
-
-Fedpunk uses the omarchy theming system for coordinated themes across all applications:
+- **aetheria** - Ethereal purple and blue gradients
+- **ayu-mirage** - Warm, muted desert tones
+- **catppuccin** - Soothing pastel palette (mocha)
+- **catppuccin-latte** - Light mode variant
+- **matte-black** - Pure minimalist black
+- **nord** - Arctic-inspired cool tones
+- **osaka-jade** - Vibrant teal and green
+- **ristretto** - Rich espresso browns
+- **rose-pine** - Soft rose and pine palette
+- **tokyo-night** - Deep blues with neon accents
+- **torrentz-hydra** - Bold contrast scheme
 
 **Theme Management:**
 ```fish
-fedpunk-theme-list      # List all available themes
-fedpunk-theme-current   # Show current theme
-fedpunk-theme-set <name>  # Switch to a specific theme
-fedpunk-theme-next      # Cycle to next theme (Super+Shift+T)
-fedpunk-theme-prev      # Cycle to previous theme (Super+Shift+Y)
-fedpunk-theme-refresh   # Refresh current theme (Super+Shift+R)
+fedpunk-theme-list              # List all themes
+fedpunk-theme-set <name>        # Switch to specific theme
+fedpunk-theme-next              # Cycle forward (Super+Shift+T)
+fedpunk-theme-prev              # Cycle backward (Super+Shift+Y)
 ```
 
-**Creating Custom Themes:**
-Themes are located in the `themes/` directory of your Fedpunk repository. Each theme directory contains:
-- `hyprland.conf` - Hyprland colors and variables
-- `kitty.conf` - Kitty terminal colors (omarchy standard)
-- `rofi.rasi` - Rofi launcher theme
-- `mako.ini` - Mako notification daemon theme
-- `neovim.lua` - Neovim colorscheme (with live reload)
-- `btop.theme` - btop resource monitor theme
-- `backgrounds/` - Theme wallpapers
-
-**Omarchy Theme Compatibility:**
-14 complete themes included by default. You can also copy themes directly from any omarchy installation - they work out of the box!
-
-**Supported Applications:**
-- Hyprland - Window borders and decorations (instant)
-- Kitty - Terminal colors (auto-reload on theme change)
-- Rofi - Application launcher (instant)
-- Mako - Notification daemon (auto-reload on theme change)
-- Neovim - Editor colorscheme (live reload while editing)
-- btop - Resource monitor (auto-reload on theme change)
-- swaybg - Wallpapers (instant switching)
+**What themes control:**
+- Hyprland - Border colors, gaps, decorations
+- Kitty - Terminal colors (live reload)
+- Rofi - Launcher appearance
+- Mako - Notification styling (live reload)
+- Neovim - Editor colorscheme (live reload)
+- btop - System monitor colors (live reload)
+- Wallpapers - Per-theme backgrounds
 
 ---
 
-## 🐛 Troubleshooting
+## System Requirements
 
-### Common Issues
+- **OS:** Fedora Linux 39+
+- **Arch:** x86_64
+- **RAM:** 4GB minimum, 8GB recommended
+- **Storage:** ~2GB free space
+- **Optional:** NVIDIA GPU (proprietary drivers available)
 
-**Fish not found after installation:**
+---
+
+## Installation Details
+
+### What Gets Installed
+
+**Core System:**
+- Fish shell with Starship prompt
+- Development tools (git, ripgrep, fzf, fd)
+- PipeWire audio stack
+- Desktop portals (file pickers, authentication)
+
+**Terminal Tools:**
+- Neovim with LSP support and modern plugins
+- Tmux with plugin manager
+- Lazygit for git workflow
+- btop for system monitoring
+
+**Desktop (unless --terminal-only):**
+- Hyprland compositor with dependencies
+- Kitty terminal emulator
+- Rofi application launcher
+- Mako notification daemon
+- Firefox browser
+- Font packages (JetBrainsMono, Nerd Fonts)
+- Optional: NVIDIA drivers with Wayland support
+
+### Architecture
+
+Fedpunk uses a **modular installation system**:
+
+```
+1. Preflight (install/preflight/)
+   - Cargo/Rust toolchain
+   - Fish shell setup
+   - Essential development tools
+   - System repository configuration
+
+2. Terminal Components (install/terminal/)
+   - btop, neovim, tmux, lazygit
+   - Configs deployed via GNU Stow
+
+3. Desktop Components (install/desktop/)
+   - hyprland, kitty, rofi
+   - Audio, fonts, bluetooth
+   - Optional NVIDIA drivers
+
+4. Post-Install (install/post-install/)
+   - Theme system initialization
+   - Final configurations
+```
+
+**Installation is re-run safe** - gracefully handles already-installed components.
+
+All logs saved to `/tmp/fedpunk-install-*.log` for troubleshooting.
+
+---
+
+## Configuration
+
+### File Locations
+All configs use standard XDG paths:
+```
+~/.config/fish/          # Fish shell
+~/.config/hypr/          # Hyprland compositor
+~/.config/kitty/         # Kitty terminal
+~/.config/nvim/          # Neovim
+~/.config/tmux/          # Tmux
+~/.config/lazygit/       # Lazygit
+~/.config/btop/          # btop
+~/.config/rofi/          # Rofi launcher
+```
+
+### Customization
+
+**Hyprland keybindings:**
+Edit `~/.config/hypr/conf.d/keybinds.conf`
+
+**Window rules:**
+Edit `~/.config/hypr/conf.d/windowrules.conf`
+
+**Monitor configuration:**
+Edit `~/.config/hypr/monitors.conf`
+
+**Fish functions:**
+Add files to `~/.config/fish/functions/`
+
+**Theme creation:**
+Copy a theme directory in `~/.local/share/fedpunk/themes/`, customize the files, then switch to it with `fedpunk-theme-set`.
+
+---
+
+## Updates
+
 ```bash
-# Restart shell or:
+cd ~/.local/share/fedpunk
+git pull
+fish install.fish  # Re-run installation (safe to repeat)
+```
+
+The installer detects existing components and only updates what's needed.
+
+---
+
+## Advanced Usage
+
+### Terminal-Only Deployment
+
+Perfect for:
+- Devcontainers
+- Remote servers
+- WSL environments
+- Existing desktop setups
+
+```bash
+# During install
+fish install.fish --terminal-only --non-interactive
+
+# Or use the boot script
+bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
+```
+
+### Layout Management
+
+Fedpunk includes intelligent layout persistence:
+
+```bash
+# Toggle between dwindle (standard tiling) and master (ultrawide optimized)
+Super+Alt+Space
+
+# Your choice is remembered across:
+# - Theme changes
+# - Hyprland reloads
+# - System restarts
+```
+
+The system writes your preference to `~/.config/hypr/layout-preference` and automatically restores it.
+
+### Custom Packages
+
+Add packages to the appropriate module:
+
+**Terminal packages:**
+```fish
+# install/terminal/packaging/yourpackage.fish
+function install-yourpackage
+    sudo dnf install -y yourpackage
+end
+```
+
+**Desktop packages:**
+```fish
+# install/desktop/packaging/yourpackage.fish
+function install-yourpackage
+    sudo dnf install -y yourpackage
+end
+```
+
+Then call it from the main install sequence.
+
+---
+
+## Troubleshooting
+
+### Fish Not Available After Install
+```bash
 exec fish
+# Or restart your terminal
 ```
 
-**Hyprland won't start:**
+### Hyprland Won't Start
 ```bash
-# Check for NVIDIA driver conflicts:
-dmesg | grep nvidia
-# Ensure Wayland is properly configured
+# Check for driver issues
+dmesg | grep -i error
+
+# NVIDIA users - ensure drivers loaded
+lsmod | grep nvidia
+
+# Check Hyprland logs
+cat /tmp/hypr/$(ls -t /tmp/hypr/ | head -1)/hyprland.log
 ```
 
-**Browser login issues:**
+### Audio Not Working
 ```bash
-# Use device flow for GitHub CLI:
-gh auth login --web=false
-```
-
-**Permission errors:**
-```bash
-# Fix SELinux contexts:
-sudo restorecon -R ~/.config
-```
-
-**Audio not working:**
-```bash
-# Check PipeWire status:
+# Check PipeWire status
 systemctl --user status pipewire pipewire-pulse wireplumber
 
-# Restart audio services:
+# Restart audio services
 systemctl --user restart pipewire pipewire-pulse wireplumber
 
-# List audio devices:
+# List audio devices
 wpctl status
-
-# Test audio output:
-paplay /usr/share/sounds/alsa/Front_Center.wav
 ```
 
-**Bluetooth audio issues:**
+### Theme Changes Reset Layout
+This should not happen as of the latest version. If it does:
 ```bash
-# Restart Bluetooth service:
-sudo systemctl restart bluetooth
+# Check if restore script exists
+ls ~/.config/hypr/scripts/restore-layout.fish
 
-# Connect via bluetoothctl:
-bluetoothctl
-# Then: scan on, pair <device>, connect <device>
+# Verify preference file
+cat ~/.config/hypr/layout-preference
+
+# Should contain "dwindle" or "master"
+```
+
+### Permission Errors
+```bash
+# Fix SELinux contexts if needed
+sudo restorecon -R ~/.config
+
+# Ensure ownership
+sudo chown -R $USER:$USER ~/.config
 ```
 
 ---
 
-## 📖 Documentation
+## Philosophy
 
-- [Fish Shell Documentation](https://fishshell.com/docs/)
-- [Hyprland Wiki](https://wiki.hyprland.org/)
-- [Neovim Documentation](https://neovim.io/doc/)
+Fedpunk is built around core principles:
+
+**Keyboard-first** - Mouse is optional, everything accessible via keybindings
+**Consistency** - Similar operations use similar key combinations
+**Vim-inspired** - H/J/K/L navigation throughout the system
+**Modular** - Components can be installed independently
+**Fish-powered** - Leverage Fish's modern shell features
+**Aesthetic** - Beautiful themes that work across all applications
+**Productive** - Optimized for developer workflows
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test the installation
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Test your changes: `fish install.fish`
+4. Commit with clear messages
 5. Submit a pull request
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- [omarchy](https://github.com/basecamp/omarchy) - The excellent theming framework this project is built upon
-- [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Fedora-Hyprland) - Inspiration and package references
-- [Fish Shell Community](https://fishshell.com/) - Amazing shell and ecosystem
-- [Hyprland Community](https://hyprland.org/) - Cutting-edge Wayland compositor
+**Areas for contribution:**
+- New themes
+- Additional window rules
+- Package additions
+- Documentation improvements
+- Bug fixes
 
 ---
 
-**Fedpunk - An awesome omarchy-based Fedora setup where aesthetics meet productivity**
+## Acknowledgments
+
+- [omarchy](https://github.com/basecamp/omarchy) - Theming framework inspiration
+- [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Fedora-Hyprland) - Package references
+- [Fish Shell Community](https://fishshell.com/) - Amazing modern shell
+- [Hyprland](https://hyprland.org/) - Revolutionary Wayland compositor
+- The Fedora Project - Solid Linux foundation
+
+---
+
+## License
+
+MIT License - See LICENSE file for details
+
+---
+
+**Fedpunk - Where keyboard-driven workflow meets modern aesthetics**
