@@ -4,10 +4,15 @@
 set -e
 
 # Define Fedpunk locations
-# Use existing FEDPUNK_PATH if set (e.g., from install.sh), otherwise default to $HOME
-# Note: Use test -n instead of set -q to properly detect exported env vars from Bash
+# Use existing FEDPUNK_PATH if set (e.g., from install.sh), otherwise default to current directory
+# Fish should inherit environment variables from parent Bash shell
 if test -z "$FEDPUNK_PATH"
-    set -x FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+    # If not set by parent, derive from script location
+    set script_dir (dirname (status -f))
+    set -x FEDPUNK_PATH (realpath "$script_dir")
+    echo "[DEBUG] FEDPUNK_PATH not set by parent, using script directory: $FEDPUNK_PATH"
+else
+    echo "[DEBUG] FEDPUNK_PATH inherited from parent: $FEDPUNK_PATH"
 end
 set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 set -x PATH "$FEDPUNK_PATH/bin" $PATH

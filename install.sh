@@ -67,6 +67,10 @@ export FEDPUNK_TERMINAL_ONLY=true
 export FEDPUNK_SKIP_DESKTOP=true
 export FEDPUNK_NON_INTERACTIVE=true  # Terminal setup is non-interactive by default
 
+# Debug: Verify exports
+echo "[DEBUG] Bash FEDPUNK_PATH exported as: $FEDPUNK_PATH"
+echo "[DEBUG] Bash HOME is: $HOME"
+
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🐟 Starting Terminal-Only Installation"
