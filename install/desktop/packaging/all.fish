@@ -26,6 +26,11 @@ echo ""
 info "Installing audio stack"
 source "$FEDPUNK_INSTALL/desktop/packaging/audio.fish"
 
+# Multimedia codecs and hardware acceleration
+echo ""
+info "Installing multimedia codecs"
+source "$FEDPUNK_INSTALL/desktop/packaging/multimedia.fish"
+
 # bluetui (Bluetooth TUI)
 echo ""
 info "Installing bluetui"
