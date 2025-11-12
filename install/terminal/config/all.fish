@@ -7,7 +7,8 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 info "Setting up terminal components"
 
-fish "$FEDPUNK_INSTALL/terminal/config/btop.fish"
-fish "$FEDPUNK_INSTALL/terminal/config/neovim.fish"
-fish "$FEDPUNK_INSTALL/terminal/config/tmux.fish"
-fish "$FEDPUNK_INSTALL/terminal/config/lazygit.fish"
+# Source scripts instead of running in new shells to preserve environment variables
+source "$FEDPUNK_INSTALL/terminal/config/btop.fish"
+source "$FEDPUNK_INSTALL/terminal/config/neovim.fish"
+source "$FEDPUNK_INSTALL/terminal/config/tmux.fish"
+source "$FEDPUNK_INSTALL/terminal/config/lazygit.fish"

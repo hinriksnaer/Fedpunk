@@ -22,8 +22,9 @@ success "Theme links created"
 step "Initializing theme directories" "mkdir -p ~/.config/fedpunk/current"
 
 gum spin --spinner dot --title "Setting default theme..." -- fish -c '
-    if test -d "'$FEDPUNK_PATH'/themes/default"
-        ln -snf ~/.config/fedpunk/themes/default ~/.config/fedpunk/current/theme
+    # Try ayu-mirage first, then fall back to first available theme
+    if test -d "'$FEDPUNK_PATH'/themes/ayu-mirage"
+        ln -snf "'$FEDPUNK_PATH'/themes/ayu-mirage" ~/.config/fedpunk/current/theme
     else
         # Use first available theme
         set first_theme (find "'$FEDPUNK_PATH'/themes" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1)
@@ -43,9 +44,17 @@ gum spin --spinner dot --title "Setting up terminal themes..." -- fish -c '
     end
 
     # neovim theme (copy instead of symlink - Lua module loader breaks with symlinks)
-    mkdir -p ~/.config/nvim/lua/plugins
-    if test -f ~/.config/fedpunk/current/theme/neovim.lua
-        cp -f ~/.config/fedpunk/current/theme/neovim.lua ~/.config/nvim/lua/plugins/theme.lua
+    # Only set up if neovim config directory exists
+    if test -d ~/.config/nvim
+        mkdir -p ~/.config/nvim/lua/plugins
+        if test -L ~/.config/fedpunk/current/theme
+            set theme_path (readlink ~/.config/fedpunk/current/theme)
+            if test -f "$theme_path/neovim.lua"
+                cp -f "$theme_path/neovim.lua" ~/.config/nvim/lua/plugins/theme.lua
+            end
+        else if test -f ~/.config/fedpunk/current/theme/neovim.lua
+            cp -f ~/.config/fedpunk/current/theme/neovim.lua ~/.config/nvim/lua/plugins/theme.lua
+        end
     end
 '
 success "Terminal themes set up"
