@@ -70,7 +70,8 @@ set -l desktop_theme_mappings \
     "kitty.conf:$HOME/.config/kitty/theme.conf" \
     ".fedpunk-foot.ini|foot.ini:$HOME/.config/foot/theme.ini" \
     "rofi.rasi:$HOME/.config/rofi/theme.rasi" \
-    "mako.ini:$HOME/.config/mako/theme.conf"
+    "mako.ini:$HOME/.config/mako/theme.conf" \
+    "waybar.css:$HOME/.config/waybar/theme.css"
 
 # Apply desktop theme files (symlinks)
 info "Linking desktop application themes"
@@ -149,6 +150,13 @@ end
 # Reload mako notification daemon if running
 if pgrep -x mako >/dev/null 2>&1
     if step "Reloading mako" "killall -SIGUSR2 mako"
+        # Success handled by step function
+    end
+end
+
+# Reload waybar if running (restart for reliable theme update)
+if pgrep -x waybar >/dev/null 2>&1
+    if step "Reloading waybar" "pkill waybar && sleep 0.1 && waybar &"
         # Success handled by step function
     end
 end
