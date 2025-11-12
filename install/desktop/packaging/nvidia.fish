@@ -52,7 +52,7 @@ if test $status -eq 0
     info "💡 The NVIDIA kernel module may still be compiling in the background"
     
     # Wait for akmods to potentially finish compilation
-    gum spin --spinner dots --title "Waiting for NVIDIA kernel module compilation..." -- fish -c '
+    gum spin --spinner dot --title "Waiting for NVIDIA kernel module compilation..." -- fish -c '
         # Give akmods a moment to start if needed
         sleep 2
         
@@ -77,14 +77,14 @@ set packages \
     libva-nvidia-driver
 
 info "📊 Installing: nvidia-settings, CUDA drivers, VA-API support..."
-gum spin --spinner dots --title "Installing NVIDIA utilities and support packages..." -- fish -c '
+gum spin --spinner dot --title "Installing NVIDIA utilities and support packages..." -- fish -c '
     sudo dnf install -qy '$packages' >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "NVIDIA utilities installed successfully" || warning "Some NVIDIA utilities may already be installed"
 
 # Enable nvidia-persistenced service
 echo ""
 info "Configuring NVIDIA system services"
-gum spin --spinner dots --title "Enabling NVIDIA persistence daemon..." -- fish -c '
+gum spin --spinner dot --title "Enabling NVIDIA persistence daemon..." -- fish -c '
     sudo systemctl enable nvidia-persistenced >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "NVIDIA persistence daemon enabled" || warning "Failed to enable NVIDIA persistence daemon"
 

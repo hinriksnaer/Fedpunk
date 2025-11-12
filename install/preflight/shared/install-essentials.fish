@@ -39,14 +39,14 @@ info "Installing modern CLI utilities"
 
 # lsd (modern ls)
 if not command -v lsd >/dev/null 2>&1
-    gum spin --spinner dots --title "Installing lsd (modern ls replacement)..." -- fish -c '
+    gum spin --spinner dot --title "Installing lsd (modern ls replacement)..." -- fish -c '
         sudo dnf install -qy lsd >>'"$FEDPUNK_LOG_FILE"' 2>&1
     '
     if test $status -eq 0
         success "lsd installed successfully"
     else
         info "DNF installation failed, trying cargo..."
-        gum spin --spinner dots --title "Building lsd from source via cargo..." -- fish -c '
+        gum spin --spinner dot --title "Building lsd from source via cargo..." -- fish -c '
             cargo install lsd >>'"$FEDPUNK_LOG_FILE"' 2>&1
         '
         if test $status -eq 0
@@ -64,14 +64,14 @@ set modern_tools ripgrep fd-find bat
 
 for tool in $modern_tools
     if not command -v $tool >/dev/null 2>&1
-        gum spin --spinner dots --title "Installing $tool..." -- fish -c '
+        gum spin --spinner dot --title "Installing $tool..." -- fish -c '
             sudo dnf install -qy '$tool' >>'"$FEDPUNK_LOG_FILE"' 2>&1
         '
         if test $status -eq 0
             success "$tool installed successfully"
         else
             info "DNF installation of $tool failed, trying cargo..."
-            gum spin --spinner dots --title "Building $tool from source via cargo..." -- fish -c '
+            gum spin --spinner dot --title "Building $tool from source via cargo..." -- fish -c '
                 cargo install '$tool' >>'"$FEDPUNK_LOG_FILE"' 2>&1
             '
             if test $status -eq 0
