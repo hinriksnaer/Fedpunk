@@ -28,5 +28,4 @@ group-by=app-name
 
 # Include theme-specific colors
 # This file is symlinked by fedpunk-theme-set
-[include]
-theme.conf
+include=~/.config/mako/theme.conf

@@ -80,14 +80,14 @@ if not loginctl show-user $USER 2>/dev/null | grep -q "Linger=yes"
     ' && success "User lingering enabled" || warning "Could not enable user lingering"
 end
 
-# Try to enable sockets if user session is available (optional, sockets may already be enabled)
+# Enable PipeWire services and sockets if user session is available
 if test -n "$XDG_RUNTIME_DIR" -a -S "$XDG_RUNTIME_DIR/bus"
-    gum spin --spinner dot --title "Enabling PipeWire sockets..." -- fish -c '
-        systemctl --user enable pipewire.socket pipewire-pulse.socket >>'"$FEDPUNK_LOG_FILE"' 2>&1
-    ' && success "PipeWire sockets enabled (will auto-start on demand)" || info "PipeWire sockets already configured"
+    gum spin --spinner dot --title "Enabling PipeWire services and sockets..." -- fish -c '
+        systemctl --user enable pipewire.socket pipewire-pulse.socket pipewire.service pipewire-pulse.service >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "PipeWire services and sockets enabled" || info "PipeWire already configured"
 else
-    info "PipeWire will auto-start when you log in and use audio"
-    echo "[INFO] PipeWire uses socket activation - will start automatically on first audio access" >> $FEDPUNK_LOG_FILE
+    info "PipeWire will be enabled on next login"
+    echo "[INFO] PipeWire will be enabled when user session is available" >> $FEDPUNK_LOG_FILE
 end
 
 # Ensure Bluetooth is enabled if hardware is present
@@ -114,9 +114,7 @@ Audio controls:
   • CLI: wpctl status
   • Hyprland: XF86Audio keys
 
-Note: PipeWire uses socket activation and will auto-start when needed.
-If audio doesn't work after login, manually start with:
-  systemctl --user start pipewire pipewire-pulse wireplumber
+Note: PipeWire is enabled and will start automatically on login.
 
 Troubleshooting:
   • Restart: systemctl --user restart pipewire

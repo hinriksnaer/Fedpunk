@@ -2,7 +2,7 @@
 # Cycle to the previous theme in the list
 # Usage: fedpunk-theme-prev
 
-set themes_dir "$HOME/.config/fedpunk/themes"
+set themes_dir "$HOME/.local/share/fedpunk/themes"
 set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
 
 # Get all available themes (sorted)

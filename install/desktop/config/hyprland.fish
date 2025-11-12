@@ -88,4 +88,7 @@ end
 cd "$FEDPUNK_PATH"
 run_quiet "Deploying Hyprland config" stow --restow -d config -t ~ hyprland
 
+# Enable mako notification daemon service
+step "Enabling mako notification service" "systemctl --user enable mako.service"
+
 success "Hyprland setup complete"

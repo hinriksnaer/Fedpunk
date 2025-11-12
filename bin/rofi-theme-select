@@ -47,5 +47,11 @@ set selected_theme (echo $selected | sed 's/^[● ]*//; s/  */ /g' | string trim
 # Convert to lowercase with dashes for theme name
 set theme_name (echo $selected_theme | string lower | string replace -a ' ' '-')
 
+# Get pretty name for notification
+set pretty_name (echo $selected_theme | string trim)
+
+# Send notification immediately
+notify-send "Theme Switching" "Applying theme: $pretty_name" -t 2000
+
 # Apply the theme silently in background
 nohup $HOME/.local/share/fedpunk/bin/fedpunk-theme-set "$theme_name" >/dev/null 2>&1 &

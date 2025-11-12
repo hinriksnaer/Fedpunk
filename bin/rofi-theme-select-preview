@@ -69,7 +69,11 @@ while test "$keep_running" = true
 
         if test $theme_index -ge 1 -a $theme_index -le (count $theme_list)
             set selected_theme $theme_list[$theme_index]
+            set pretty_name (echo $selected_theme | sed 's/-/ /g; s/\b\(.\)/\u\1/g')
             set selected_theme (echo $selected_theme | string lower | string replace -a ' ' '-')
+
+            # Send notification
+            notify-send "Theme Switching" "Applying theme: $pretty_name" -t 2000
 
             # Apply final theme
             $script_dir/fedpunk-theme-set "$selected_theme" >/dev/null 2>&1 &
