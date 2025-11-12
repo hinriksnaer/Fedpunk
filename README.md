@@ -2,7 +2,7 @@
 
 **An awesome omarchy-based Fedora setup with Hyprland**
 
-Fedpunk is a modern, fish-first development environment built on top of the excellent [omarchy](https://github.com/swaystudio/omarchy) framework. It transforms your Fedora installation into a sleek, productive workspace featuring the Hyprland Wayland compositor, comprehensive theming system, and carefully curated development tools.
+Fedpunk is a modern, fish-first development environment built on top of the excellent [omarchy](https://github.com/basecamp/omarchy) framework. It transforms your Fedora installation into a sleek, productive workspace featuring the Hyprland Wayland compositor, comprehensive theming system, and carefully curated development tools.
 
 **✨ Fully compatible with omarchy themes** - Use any theme from omarchy or create your own!
 
@@ -430,7 +430,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- [omarchy](https://github.com/swaystudio/omarchy) - The excellent theming framework this project is built upon
+- [omarchy](https://github.com/basecamp/omarchy) - The excellent theming framework this project is built upon
 - [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Fedora-Hyprland) - Inspiration and package references
 - [Fish Shell Community](https://fishshell.com/) - Amazing shell and ecosystem
 - [Hyprland Community](https://hyprland.org/) - Cutting-edge Wayland compositor
