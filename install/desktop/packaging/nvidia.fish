@@ -33,7 +33,7 @@ step "Enabling RPM Fusion" "sudo dnf install -qy https://mirrors.rpmfusion.org/f
 # Install NVIDIA proprietary drivers
 echo ""
 info "Installing NVIDIA drivers (this may take a while)"
-step "Installing NVIDIA driver and CUDA" "sudo dnf install -qy akmod-nvidia xorg-x11-drv-nvidia-cuda"
+step "Installing NVIDIA driver and CUDA" "sudo dnf install --refresh -qy akmod-nvidia xorg-x11-drv-nvidia-cuda"
 
 # Install additional NVIDIA utilities
 info "Installing NVIDIA utilities"
@@ -44,7 +44,7 @@ set packages \
     libva \
     libva-nvidia-driver
 
-step "Installing NVIDIA utilities" "sudo dnf install -qy $packages"
+step "Installing NVIDIA utilities" "sudo dnf install --refresh -qy $packages"
 
 # Enable nvidia-persistenced service
 step "Enabling NVIDIA persistence daemon" "sudo systemctl enable nvidia-persistenced"

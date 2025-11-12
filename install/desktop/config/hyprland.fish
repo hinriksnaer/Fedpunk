@@ -18,7 +18,7 @@ info "Setting up Hyprland and dependencies"
 
 # Enable COPR repositories
 gum spin --spinner dot --title "Enabling Hyprland COPR..." -- fish -c '
-    echo y | sudo dnf copr enable solopasha/hyprland >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    sudo dnf copr enable -y solopasha/hyprland >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "Hyprland COPR enabled" || warning "Hyprland COPR may already be enabled"
 
 # Core Hyprland packages
@@ -49,7 +49,7 @@ set packages \
   kitty \
   swaybg
 
-step "Installing Hyprland packages" "sudo dnf install -qy --skip-broken --best $packages"
+step "Installing Hyprland packages" "sudo dnf install --refresh -qy --skip-broken --best $packages"
 
 # Additional Wayland dependencies
 set wayland_deps \

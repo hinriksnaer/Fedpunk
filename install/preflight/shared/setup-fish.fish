@@ -57,7 +57,7 @@ echo ""
 info "Installing Starship prompt"
 if gum spin --spinner dot --title "Installing Starship prompt..." -- fish -c '
     sudo dnf copr enable -qy atim/starship >>'"$FEDPUNK_LOG_FILE"' 2>&1
-    sudo dnf install -qy starship >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    sudo dnf install --refresh -qy starship >>'"$FEDPUNK_LOG_FILE"' 2>&1
 '
     success "Starship prompt installed"
 else

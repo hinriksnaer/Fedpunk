@@ -13,7 +13,7 @@ info "Setting up lazygit"
 
 # Enable COPR and install
 step "Enabling lazygit COPR" "sudo dnf install -qy dnf-plugins-core && sudo dnf copr enable -qy atim/lazygit"
-step "Installing lazygit" "sudo dnf install -qy lazygit"
+step "Installing lazygit" "sudo dnf install --refresh -qy lazygit"
 
 # Deploy configuration
 if test -d "$FEDPUNK_PATH"
