@@ -7,7 +7,14 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 # Firefox browser
 echo ""
-step "Installing Firefox" "sudo dnf install -qy firefox"
+info "Installing Firefox web browser"
+gum spin --spinner dot --title "Refreshing package metadata..." -- fish -c '
+    sudo dnf makecache --refresh -q >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Package metadata refreshed" || warning "Could not refresh metadata"
+
+gum spin --spinner dot --title "Installing Firefox..." -- fish -c '
+    sudo dnf install -qy --skip-broken --best firefox >>'"$FEDPUNK_LOG_FILE"' 2>&1
+' && success "Firefox installed" || error "Firefox installation failed"
 
 # Fonts (needed for desktop)
 echo ""
