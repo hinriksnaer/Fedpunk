@@ -3,15 +3,8 @@
 # This must run before anything else as many tools depend on cargo
 # Note: Assumes gum is already installed by boot.sh
 
-# Source helper functions if available
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
-end
-
-if not set -q FEDPUNK_INSTALL
-    set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
-end
-
+# FEDPUNK_PATH and FEDPUNK_INSTALL should be set by parent install.fish
+# Source helper functions
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
