@@ -162,6 +162,17 @@ Perfect for devcontainers, remote servers, or when you already have a compositor
 - **tokyo-night** - Deep blues with neon accents
 - **torrentz-hydra** - Bold contrast scheme
 
+### Theme Previews
+
+**Ayu Mirage**
+![Ayu Mirage Theme](themes/ayu-mirage/theme.png)
+
+**Tokyo Night**
+![Tokyo Night Theme](themes/tokyo-night/preview.png)
+
+**Torrentz Hydra**
+![Torrentz Hydra Theme](themes/torrentz-hydra/preview.png)
+
 **Theme Management:**
 ```fish
 fedpunk-theme-list              # List all themes

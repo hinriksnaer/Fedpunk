@@ -1,14 +1,14 @@
-/* Default Theme for Rofi (Catppuccin Mocha) */
+/* Ayu-Mirage Theme for Rofi */
 
 * {
-    bg-col:              #1e1e2e;
-    bg-col-light:        #313244;
-    border-col:          #cba6f7;
-    selected-col:        #313244;
-    blue:                #89b4fa;
-    fg-col:              #cdd6f4;
-    fg-col2:             #f38ba8;
-    grey:                #6c7086;
+    bg-col:              #1f2430;
+    bg-col-light:        #232834;
+    border-col:          #73d0ff;
+    selected-col:        #232834;
+    blue:                #73d0ff;
+    fg-col:              #cccac2;
+    fg-col2:             #ffd173;
+    grey:                #707a8c;
 
     background-color:    transparent;
     text-color:          @fg-col;
