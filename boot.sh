@@ -79,8 +79,6 @@ if [[ $FEDPUNK_REF != "main" ]]; then
   git fetch origin "${FEDPUNK_REF}" && git checkout "${FEDPUNK_REF}"
 fi
 
-# Export FEDPUNK_PATH so install.fish can find it
-export FEDPUNK_PATH
-
 echo -e "\nInstallation starting..."
+# Desktop installation - interactive, includes all components
 fish "$FEDPUNK_PATH/install.fish"

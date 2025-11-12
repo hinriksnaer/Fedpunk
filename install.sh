@@ -29,9 +29,9 @@ if [[ ! -f "$(dirname "$0")/install.fish" ]]; then
     exit 1
 fi
 
-# Set FEDPUNK_PATH to the repository root
-FEDPUNK_PATH="$(cd "$(dirname "$0")" && pwd)"
-echo "→ Installing from: $FEDPUNK_PATH"
+# Get repository root for display
+REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+echo "→ Installing from: $REPO_ROOT"
 echo ""
 
 # Preflight checks
@@ -61,16 +61,6 @@ echo ""
 echo "→ Installing git, fish, and gum..."
 sudo dnf install -y git fish gum
 
-# Export environment variables for terminal-only installation
-export FEDPUNK_PATH
-export FEDPUNK_TERMINAL_ONLY=true
-export FEDPUNK_SKIP_DESKTOP=true
-export FEDPUNK_NON_INTERACTIVE=true  # Terminal setup is non-interactive by default
-
-# Debug: Verify exports
-echo "[DEBUG] Bash FEDPUNK_PATH exported as: $FEDPUNK_PATH"
-echo "[DEBUG] Bash HOME is: $HOME"
-
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🐟 Starting Terminal-Only Installation"
@@ -90,5 +80,5 @@ echo "  • Kitty terminal (uses your existing terminal)"
 echo "  • Desktop components (Rofi, Mako, etc.)"
 echo ""
 
-# Run the Fish installer
-fish "$FEDPUNK_PATH/install.fish"
+# Run the Fish installer with terminal-only and non-interactive flags
+fish "$REPO_ROOT/install.fish" --terminal-only --non-interactive

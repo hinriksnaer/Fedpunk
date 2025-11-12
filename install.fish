@@ -3,19 +3,34 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Define Fedpunk locations
-# Use existing FEDPUNK_PATH if set (e.g., from install.sh), otherwise default to current directory
-# Fish should inherit environment variables from parent Bash shell
-if test -z "$FEDPUNK_PATH"
-    # If not set by parent, derive from script location
-    set script_dir (dirname (status -f))
-    set -x FEDPUNK_PATH (realpath "$script_dir")
-    echo "[DEBUG] FEDPUNK_PATH not set by parent, using script directory: $FEDPUNK_PATH"
-else
-    echo "[DEBUG] FEDPUNK_PATH inherited from parent: $FEDPUNK_PATH"
+# Parse command-line flags
+set terminal_only false
+set non_interactive false
+
+for arg in $argv
+    switch $arg
+        case --terminal-only
+            set terminal_only true
+        case --non-interactive
+            set non_interactive true
+    end
 end
+
+# Define Fedpunk locations - always derive from script location
+set script_dir (dirname (status -f))
+set -x FEDPUNK_PATH (realpath "$script_dir")
 set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 set -x PATH "$FEDPUNK_PATH/bin" $PATH
+
+# Set environment variables based on flags
+if test "$terminal_only" = true
+    set -x FEDPUNK_TERMINAL_ONLY true
+    set -x FEDPUNK_SKIP_DESKTOP true
+end
+
+if test "$non_interactive" = true
+    set -x FEDPUNK_NON_INTERACTIVE true
+end
 
 # Color codes
 set C_RESET '\033[0m'
