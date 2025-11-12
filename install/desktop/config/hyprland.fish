@@ -57,8 +57,6 @@ set wayland_deps \
   wlogout \
   xorg-x11-server-Xwayland \
   qt5-qtwayland \
-  qt6-qtwayland \
-  hyprland-qt-support \
   mesa-dri-drivers \
   wayland-devel \
   libwayland-client \
@@ -66,7 +64,14 @@ set wayland_deps \
   libwayland-egl \
   glfw-devel
 
-step "Installing Wayland dependencies" "sudo dnf install -qy --skip-unavailable --best $wayland_deps"
+step "Installing Wayland dependencies" "sudo dnf install --refresh -qy --skip-unavailable --best $wayland_deps"
+
+# Install Qt6 and Hyprland Qt support separately to handle conflicts
+set qt6_packages \
+  qt6-qtwayland \
+  hyprland-qt-support
+
+step "Installing Qt6 Wayland support" "sudo dnf install --allowerasing --refresh -qy --skip-unavailable $qt6_packages"
 
 # Update graphics stack
 step "Updating graphics stack" "sudo dnf upgrade -qy --skip-unavailable mesa-dri-drivers mesa-libGL mesa-libEGL libdrm || true"
