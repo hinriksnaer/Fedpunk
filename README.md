@@ -50,6 +50,52 @@ Perfect for devcontainers, remote servers, or when you already have a compositor
 
 ---
 
+## Themes
+
+**11 carefully curated themes included:**
+
+- **aetheria** - Ethereal purple and blue gradients
+- **ayu-mirage** - Warm, muted desert tones
+- **catppuccin** - Soothing pastel palette (mocha)
+- **catppuccin-latte** - Light mode variant
+- **matte-black** - Pure minimalist black
+- **nord** - Arctic-inspired cool tones
+- **osaka-jade** - Vibrant teal and green
+- **ristretto** - Rich espresso browns
+- **rose-pine** - Soft rose and pine palette
+- **tokyo-night** - Deep blues with neon accents
+- **torrentz-hydra** - Bold contrast scheme
+
+### Theme Previews
+
+**Ayu Mirage**
+![Ayu Mirage Theme](themes/ayu-mirage/theme.png)
+
+**Tokyo Night**
+![Tokyo Night Theme](themes/tokyo-night/preview.png)
+
+**Torrentz Hydra**
+![Torrentz Hydra Theme](themes/torrentz-hydra/preview.png)
+
+**Theme Management:**
+```fish
+fedpunk-theme-list              # List all themes
+fedpunk-theme-set <name>        # Switch to specific theme
+fedpunk-theme-next              # Cycle forward (Super+Shift+T)
+fedpunk-theme-prev              # Cycle backward (Super+Shift+Y)
+```
+
+**What themes control:**
+- Hyprland - Border colors, gaps, decorations
+- Kitty - Terminal colors (live reload)
+- Rofi - Launcher appearance
+- Mako - Notification styling (live reload)
+- Neovim - Editor colorscheme (live reload)
+- btop - System monitor colors (live reload)
+- Wallpapers - Per-theme backgrounds
+
+---
+
 ## What You Get
 
 ### Terminal Environment
@@ -143,52 +189,6 @@ Perfect for devcontainers, remote servers, or when you already have a compositor
 |-----|--------|
 | `Print` | Selection screenshot |
 | `Super+Print` | Full screen screenshot |
-
----
-
-## Themes
-
-**11 carefully curated themes included:**
-
-- **aetheria** - Ethereal purple and blue gradients
-- **ayu-mirage** - Warm, muted desert tones
-- **catppuccin** - Soothing pastel palette (mocha)
-- **catppuccin-latte** - Light mode variant
-- **matte-black** - Pure minimalist black
-- **nord** - Arctic-inspired cool tones
-- **osaka-jade** - Vibrant teal and green
-- **ristretto** - Rich espresso browns
-- **rose-pine** - Soft rose and pine palette
-- **tokyo-night** - Deep blues with neon accents
-- **torrentz-hydra** - Bold contrast scheme
-
-### Theme Previews
-
-**Ayu Mirage**
-![Ayu Mirage Theme](themes/ayu-mirage/theme.png)
-
-**Tokyo Night**
-![Tokyo Night Theme](themes/tokyo-night/preview.png)
-
-**Torrentz Hydra**
-![Torrentz Hydra Theme](themes/torrentz-hydra/preview.png)
-
-**Theme Management:**
-```fish
-fedpunk-theme-list              # List all themes
-fedpunk-theme-set <name>        # Switch to specific theme
-fedpunk-theme-next              # Cycle forward (Super+Shift+T)
-fedpunk-theme-prev              # Cycle backward (Super+Shift+Y)
-```
-
-**What themes control:**
-- Hyprland - Border colors, gaps, decorations
-- Kitty - Terminal colors (live reload)
-- Rofi - Launcher appearance
-- Mako - Notification styling (live reload)
-- Neovim - Editor colorscheme (live reload)
-- btop - System monitor colors (live reload)
-- Wallpapers - Per-theme backgrounds
 
 ---
 
