@@ -153,6 +153,25 @@ if pgrep -x mako >/dev/null 2>&1
     end
 end
 
+# Update theme in running podman containers (devcontainers)
+if command -v podman >/dev/null 2>&1
+    # Get list of running containers
+    set containers (podman ps --format "{{.Names}}" 2>/dev/null)
+
+    for container in $containers
+        # Check if fedpunk is installed in the container
+        if podman exec $container test -f /root/.local/share/fedpunk/bin/fedpunk 2>/dev/null
+            echo ""
+            info "Updating theme in container: $container"
+            if podman exec $container /root/.local/share/fedpunk/bin/fedpunk theme set $theme_name >/dev/null 2>&1
+                success "Updated $container"
+            else
+                warning "Failed to update $container"
+            end
+        end
+    end
+end
+
 # Send notification
 if step "Sending notification" "notify-send 'Theme Changed' 'Switched to: $pretty_name\n$applied_count files applied, $skipped_count skipped' -t 3000"
     # Success handled by step function
