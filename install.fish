@@ -88,7 +88,7 @@ function run_fish_script
 
     info "Step $STEP_COUNT: $description"
 
-    if fish "$script_name"
+    if source "$script_name"
         set -g INSTALL_STEPS $INSTALL_STEPS "✓ $description"
         success "Completed: $description"
         echo "" >> "$FEDPUNK_LOG_FILE"

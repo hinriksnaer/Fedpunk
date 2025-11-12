@@ -3,7 +3,7 @@
 # Usage: fedpunk-theme-list
 
 # Find themes directory - works both before and after deployment
-if set -q FEDPUNK_PATH
+if test -n "$FEDPUNK_PATH"
     set themes_dir "$FEDPUNK_PATH/themes"
 else if test -d "$HOME/.local/share/fedpunk/themes"
     set themes_dir "$HOME/.local/share/fedpunk/themes"
