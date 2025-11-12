@@ -25,42 +25,143 @@ return {
         uv.fs_event_start(
           handle,
           watch_path,
-          {},
+          { watch_entry = false },
           vim.schedule_wrap(function(err, filename, events)
             if err then
               return
             end
 
             -- Check if the changed file is theme.lua
-            if filename == 'theme.lua' or events.rename then
-              -- Small delay to ensure file write is complete
+            if filename == 'theme.lua' then
+              -- Longer delay to ensure file write is complete
               vim.defer_fn(function()
                 -- Reload the theme configuration
                 local ok, theme_spec = pcall(dofile, theme_file)
-                if ok and theme_spec then
+                if ok and theme_spec and type(theme_spec) == 'table' then
                   -- Find and apply the colorscheme
                   for _, spec in ipairs(theme_spec) do
-                    if spec.opts and spec.opts.colorscheme then
+                    if type(spec) == 'table' and spec.opts and spec.opts.colorscheme then
                       local colorscheme = spec.opts.colorscheme
-                      -- Only reload if it's a different colorscheme
-                      if vim.g.colors_name ~= colorscheme then
-                        vim.cmd.colorscheme(colorscheme)
-                        vim.notify('Theme switched to: ' .. colorscheme, vim.log.levels.INFO)
+                      local current_theme = vim.g.colors_name
+
+                      -- Handle string colorscheme (e.g., "ayu-mirage")
+                      if type(colorscheme) == 'string' and colorscheme ~= '' then
+                        -- Always reload to ensure theme is properly applied
+                        pcall(vim.cmd, 'colorscheme ' .. colorscheme)
+                        if current_theme ~= colorscheme then
+                          vim.notify('Theme switched to: ' .. colorscheme, vim.log.levels.INFO)
+                        end
+                      -- Handle function colorscheme (e.g., custom aetheria theme)
+                      elseif type(colorscheme) == 'function' then
+                        -- Always call the function to ensure theme is properly applied
+                        local success = pcall(colorscheme)
+                        if success then
+                          local new_theme = vim.g.colors_name or 'custom'
+                          -- Only notify if theme name changed
+                          if current_theme ~= new_theme then
+                            vim.notify('Theme switched to: ' .. new_theme, vim.log.levels.INFO)
+                          end
+                        end
+                      end
+                      -- Update our tracked stats after successful reload
+                      local stat = vim.loop.fs_stat(theme_file)
+                      if stat then
+                        last_mtime = stat.mtime.sec
+                        last_size = stat.size
                       end
                       return
                     end
                   end
                 end
-              end, 100)
+              end, 300)
             end
           end)
         )
       end
 
+      -- Function to manually reload theme (useful as fallback)
+      local function reload_theme()
+        local ok, theme_spec = pcall(dofile, theme_file)
+        if ok and theme_spec and type(theme_spec) == 'table' then
+          for _, spec in ipairs(theme_spec) do
+            if type(spec) == 'table' and spec.opts and spec.opts.colorscheme then
+              local colorscheme = spec.opts.colorscheme
+
+              if type(colorscheme) == 'string' and colorscheme ~= '' then
+                pcall(vim.cmd.colorscheme, colorscheme)
+                vim.notify('Theme reloaded: ' .. colorscheme, vim.log.levels.INFO)
+              elseif type(colorscheme) == 'function' then
+                local success = pcall(colorscheme)
+                if success then
+                  local theme_name = vim.g.colors_name or 'custom'
+                  vim.notify('Theme reloaded: ' .. theme_name, vim.log.levels.INFO)
+                end
+              end
+              return true
+            end
+          end
+        end
+        vim.notify('Failed to reload theme', vim.log.levels.ERROR)
+        return false
+      end
+
+      -- Create user command for manual theme reload
+      vim.api.nvim_create_user_command('ReloadTheme', reload_theme, {
+        desc = 'Manually reload the current theme from theme.lua',
+      })
+
+      -- Track last theme by file modification time and size
+      local last_mtime = 0
+      local last_size = 0
+
+      -- Check if theme file has changed (by modification time and size)
+      local function check_theme_changed()
+        local stat = vim.loop.fs_stat(theme_file)
+        if stat then
+          -- Check both mtime and size to catch all changes
+          if stat.mtime.sec ~= last_mtime or stat.size ~= last_size then
+            last_mtime = stat.mtime.sec
+            last_size = stat.size
+            return true
+          end
+        end
+        return false
+      end
+
+      -- Auto-reload theme when gaining focus (catches missed file events)
+      -- Use a timer to debounce rapid focus changes
+      local focus_timer = nil
+      vim.api.nvim_create_autocmd({ 'FocusGained' }, {
+        callback = function()
+          -- Cancel any pending reload
+          if focus_timer then
+            focus_timer:stop()
+            focus_timer:close()
+          end
+
+          -- Set a short debounce timer
+          focus_timer = vim.loop.new_timer()
+          focus_timer:start(100, 0, vim.schedule_wrap(function()
+            -- Always check if file changed when we gain focus
+            if check_theme_changed() then
+              reload_theme()
+            end
+            focus_timer:close()
+            focus_timer = nil
+          end))
+        end,
+      })
+
       -- Start watching after Neovim is fully loaded
       vim.api.nvim_create_autocmd('VimEnter', {
         callback = function()
-          -- Delay slightly to ensure everything is loaded
+          -- Initialize last file stats
+          local stat = vim.loop.fs_stat(theme_file)
+          if stat then
+            last_mtime = stat.mtime.sec
+            last_size = stat.size
+          end
+          -- Start file watcher
           vim.defer_fn(watch_theme_file, 500)
         end,
       })
