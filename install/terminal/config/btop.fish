@@ -2,13 +2,8 @@
 # btop - Resource monitor
 # End-to-end setup: install package → deploy config
 
+# FEDPUNK_PATH and FEDPUNK_INSTALL should be set by parent install.fish
 # Source helper functions
-if not set -q FEDPUNK_INSTALL
-    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
-end
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
-end
 if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
     source "$FEDPUNK_INSTALL/helpers/all.fish"
 end
@@ -20,7 +15,12 @@ info "Setting up btop"
 step "Installing btop package" "sudo dnf install -qy btop"
 
 # Deploy configuration
-cd "$FEDPUNK_PATH"
-run_quiet "Deploying btop config" stow --restow -d config -t "$HOME" btop
+if test -d "$FEDPUNK_PATH"
+    cd "$FEDPUNK_PATH"
+    run_quiet "Deploying btop config" stow --restow -d config -t "$HOME" btop
+else
+    error "FEDPUNK_PATH not set or directory doesn't exist: $FEDPUNK_PATH"
+    exit 1
+end
 
 success "btop setup complete"
