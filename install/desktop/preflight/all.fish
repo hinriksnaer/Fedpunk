@@ -6,4 +6,4 @@
 source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 # Desktop system setup (RPM Fusion, XDG user directories)
-fish "$FEDPUNK_INSTALL/desktop/preflight/setup-desktop-system.fish"
+source "$FEDPUNK_INSTALL/desktop/preflight/setup-desktop-system.fish"

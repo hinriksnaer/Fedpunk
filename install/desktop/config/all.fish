@@ -7,6 +7,6 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 info "Setting up desktop components"
 
-fish "$FEDPUNK_INSTALL/desktop/config/kitty.fish"
-fish "$FEDPUNK_INSTALL/desktop/config/hyprland.fish"
-fish "$FEDPUNK_INSTALL/desktop/config/rofi.fish"
+source "$FEDPUNK_INSTALL/desktop/config/kitty.fish"
+source "$FEDPUNK_INSTALL/desktop/config/hyprland.fish"
+source "$FEDPUNK_INSTALL/desktop/config/rofi.fish"

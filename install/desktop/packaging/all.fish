@@ -12,24 +12,24 @@ step "Installing Firefox" "sudo dnf install -qy firefox"
 # Fonts (needed for desktop)
 echo ""
 info "Installing fonts"
-fish "$FEDPUNK_INSTALL/desktop/packaging/fonts.fish"
+source "$FEDPUNK_INSTALL/desktop/packaging/fonts.fish"
 
 # Audio stack
 echo ""
 info "Installing audio stack"
-fish "$FEDPUNK_INSTALL/desktop/packaging/audio.fish"
+source "$FEDPUNK_INSTALL/desktop/packaging/audio.fish"
 
 # bluetui (Bluetooth TUI)
 echo ""
 info "Installing bluetui"
-fish "$FEDPUNK_INSTALL/desktop/packaging/bluetui.fish"
+source "$FEDPUNK_INSTALL/desktop/packaging/bluetui.fish"
 
 # NVIDIA drivers (if GPU detected)
 echo ""
 if lspci | grep -i nvidia >/dev/null 2>&1
     info "NVIDIA GPU detected"
     if confirm "Install NVIDIA proprietary drivers?"
-        fish "$FEDPUNK_INSTALL/desktop/packaging/nvidia.fish"
+        source "$FEDPUNK_INSTALL/desktop/packaging/nvidia.fish"
     else
         info "Skipping NVIDIA drivers"
         echo "[SKIPPED] NVIDIA drivers (user declined)" >> $FEDPUNK_LOG_FILE
