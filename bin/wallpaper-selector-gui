@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Simple wallpaper browser - opens thunar to browse wallpapers
+
+THEME_DIR="$HOME/.local/share/fedpunk/themes"
+CURRENT_THEME=$(fedpunk-theme-current 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+WALLPAPER_DIR="$THEME_DIR/$CURRENT_THEME/backgrounds"
+
+# Check if wallpapers directory exists
+if [[ ! -d "$WALLPAPER_DIR" ]]; then
+    notify-send "Wallpaper Selector" "No wallpapers found for theme: $CURRENT_THEME"
+    exit 1
+fi
+
+# Open thunar to browse wallpapers
+# User can preview by selecting files, then use Super+Shift+W to cycle or manually set
+thunar "$WALLPAPER_DIR" &
+
+notify-send "Wallpaper Browser" "Browse wallpapers for $CURRENT_THEME\nUse Super+Shift+W to cycle through wallpapers"
