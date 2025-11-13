@@ -44,13 +44,15 @@ window#waybar {
 #battery,
 #cpu,
 #memory,
+#temperature,
+#custom-gpu,
 #network,
 #pulseaudio,
 #bluetooth,
 #tray,
 #custom-expand-icon {
   padding: 0 12px;
-  margin: 0 2px;
+  margin: 0 4px;
   color: @foreground;
 }
 
