@@ -118,11 +118,11 @@ set applied_count (math $applied_count + $terminal_applied)
 set skipped_count (math $skipped_count + $terminal_skipped)
 success "Terminal themes applied"
 
-# Set wallpaper from theme (disabled - wallpapers are now shared across themes)
-# echo ""
-# if step "Setting wallpaper" "$script_dir/fedpunk-wallpaper-set $theme_name"
-#     # Success handled by step function
-# end
+# Set wallpaper from theme
+echo ""
+if step "Setting wallpaper" "$script_dir/fedpunk-wallpaper-set $theme_name"
+    # Success handled by step function
+end
 
 # Reload applications
 echo ""

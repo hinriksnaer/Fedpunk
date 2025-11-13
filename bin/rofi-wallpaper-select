@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Wallpaper selector with image previews using swaybg
 
-WALLPAPER_DIR="$HOME/.local/share/fedpunk/wallpapers"
+THEME_DIR="$HOME/.local/share/fedpunk/themes"
 CURRENT_THEME=$(fedpunk-theme-current 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+WALLPAPER_DIR="$THEME_DIR/$CURRENT_THEME/backgrounds"
 CURRENT_WALLPAPER=$(readlink -f "$HOME/.config/hypr/wallpapers/current" 2>/dev/null)
 
 # Check if wallpapers directory exists
