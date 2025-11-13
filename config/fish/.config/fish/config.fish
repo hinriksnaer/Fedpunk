@@ -38,3 +38,8 @@ if test -z "$SSH_AUTH_SOCK"
     eval (ssh-agent -c) > /dev/null
     set -gx SSH_AGENT_PID (pgrep -u $USER ssh-agent)
 end
+
+# Source virtual environment if it exists
+if test -f ~/.venv/bin/activate.fish
+    source ~/.venv/bin/activate.fish
+end
