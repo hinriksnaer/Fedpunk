@@ -23,8 +23,8 @@ local/
 # Custom user configurations (personal customizations, won't cause merge conflicts)
 custom/
 
-# Active config symlink (points to user's selected config)
-.active-config
+# Devcontainer (for testing only)
+.devcontainer/
 
 # User-specific theme selections (symlinks to user paths)
 config/btop/.config/btop/themes/active.theme

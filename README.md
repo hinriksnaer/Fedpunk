@@ -18,6 +18,20 @@ Fedpunk transforms Fedora into a productivity-focused workspace featuring tiling
 
 ---
 
+## 📚 Documentation
+
+**Complete documentation available in [`docs/`](docs/)**
+
+- **[Installation Guide](docs/guides/installation.md)** - Detailed setup instructions
+- **[Customization Guide](docs/guides/customization.md)** - Make it your own
+- **[Themes Guide](docs/guides/themes.md)** - Theme system and creation
+- **[Keybindings Reference](docs/reference/keybindings.md)** - All keyboard shortcuts
+- **[Configuration Reference](docs/reference/configuration.md)** - Config files and structure
+- **[Scripts Reference](docs/reference/scripts.md)** - Utility scripts documentation
+- **[Contributing Guide](docs/development/contributing.md)** - How to contribute
+
+---
+
 ## Quick Start
 
 ### Full Desktop Install (Hyprland + Terminal)

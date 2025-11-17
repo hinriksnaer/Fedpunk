@@ -40,7 +40,7 @@ return {
     end,
     opts = {
       -- Enable yazi as default file manager
-      open_for_directories = false, -- Set to true if you want yazi to open for directories
+      open_for_directories = true, -- Yazi opens when you try to open a directory
 
       -- Keymappings inside yazi
       keymaps = {
