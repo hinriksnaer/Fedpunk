@@ -15,4 +15,9 @@ source "$FEDPUNK_INSTALL/post-install/optimize-system.fish"
 # Setup theme system
 source "$FEDPUNK_INSTALL/post-install/setup-themes.fish"
 
+# Setup Claude Code (if config exists)
+if test -f "$FEDPUNK_INSTALL/post-install/setup-claude-code.fish"
+    source "$FEDPUNK_INSTALL/post-install/setup-claude-code.fish"
+end
+
 success "Post-installation complete"

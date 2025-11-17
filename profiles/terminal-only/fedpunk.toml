@@ -1,0 +1,37 @@
+# Fedpunk Configuration - Terminal Only
+# CLI-focused setup for servers, containers, and WSL
+
+[config]
+name = "Terminal Only"
+slug = "terminal-only"
+description = "Terminal-focused setup without desktop - perfect for servers, containers, and WSL"
+author = "Fedpunk"
+version = "1.0.0"
+tags = ["terminal", "server", "container", "wsl", "minimal"]
+
+[install]
+# Installation requirements
+desktop = false             # NO desktop components
+terminal_tools = true       # Terminal tools only
+extras = false              # Skip extras to keep it minimal
+
+# Additional packages
+packages = []
+dnf_repos = []
+
+[defaults]
+# Default settings
+theme = "tokyo-night"       # Terminal-compatible theme
+layout = "dwindle"          # N/A for terminal but kept for compatibility
+
+[paths]
+themes = "themes"
+scripts = "scripts"
+dotfiles = "config"
+fish_config = "config.fish"
+hyprland_keybinds = ""      # No Hyprland in terminal-only
+
+[community]
+shareable = true
+repository = "https://github.com/yourusername/fedpunk"
+license = "MIT"

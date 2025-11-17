@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Reload NVIDIA kernel modules to fix driver/library version mismatch
+
+set -e
+
+echo "==> Checking current NVIDIA driver status..."
+nvidia-smi 2>&1 | head -3 || echo "Driver currently not working (expected)"
+
+echo ""
+echo "==> Unloading NVIDIA modules..."
+sudo modprobe -r nvidia_drm nvidia_modeset nvidia_uvm nvidia
+
+echo ""
+echo "==> Reloading NVIDIA modules..."
+sudo modprobe nvidia
+sudo modprobe nvidia_modeset
+sudo modprobe nvidia_drm
+sudo modprobe nvidia_uvm
+
+echo ""
+echo "==> Verifying driver status..."
+if nvidia-smi > /dev/null 2>&1; then
+    echo "SUCCESS: NVIDIA driver is now working!"
+    nvidia-smi | head -10
+else
+    echo "FAILED: Driver still not working. You may need to reboot."
+    exit 1
+fi
+
+echo ""
+echo "==> You can now start Hyprland"

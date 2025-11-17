@@ -3,6 +3,12 @@ set -gx PATH $HOME/.local/bin $PATH
 set -gx PATH $HOME/.local/share/fedpunk/bin $PATH
 # Note: Rust/Cargo PATH is managed in conf.d/installer-managed.fish
 
+# Add active config scripts to PATH if directory exists
+set -l active_config "$HOME/.local/share/fedpunk/.active-config"
+if test -L "$active_config"; and test -d "$active_config/scripts"
+    set -gx PATH "$active_config/scripts" $PATH
+end
+
 # History
 set -g fish_history_size 10000
 
@@ -43,3 +49,10 @@ end
 if test -f ~/.venv/bin/activate.fish
     source ~/.venv/bin/activate.fish
 end
+
+# Source active config's Fish configuration if it exists
+set -l active_config "$HOME/.local/share/fedpunk/.active-config"
+if test -L "$active_config"; and test -f "$active_config/config.fish"
+    source "$active_config/config.fish"
+end
+

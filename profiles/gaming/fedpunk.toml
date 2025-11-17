@@ -1,0 +1,40 @@
+# Fedpunk Configuration - Gaming
+# Performance-optimized desktop for gaming
+
+[config]
+name = "Gaming"
+slug = "gaming"
+description = "Performance-focused setup optimized for gaming with reduced effects"
+author = "Fedpunk"
+version = "1.0.0"
+tags = ["desktop", "gaming", "performance", "nvidia"]
+
+[install]
+desktop = true              # Full desktop
+terminal_tools = true       # Terminal tools
+extras = true               # Include extras (Steam, Discord, etc.)
+
+# Gaming-specific packages
+packages = [
+    "steam",
+    "discord",
+    "gamemode",
+    "mangohud"
+]
+dnf_repos = []
+
+[defaults]
+theme = "tokyo-night"       # Dark theme for gaming
+layout = "dwindle"          # Dwindle for better game management
+
+[paths]
+themes = "themes"
+scripts = "scripts"
+dotfiles = "config"
+fish_config = "config.fish"
+hyprland_keybinds = "keybinds.conf"
+
+[community]
+shareable = true
+repository = "https://github.com/yourusername/fedpunk"
+license = "MIT"

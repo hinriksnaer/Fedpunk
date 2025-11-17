@@ -4,15 +4,15 @@ return {
   ft = 'markdown', -- load only for markdown
   dependencies = { 'nvim-lua/plenary.nvim' },
 
-  -- keymaps live here; commands exist because we configure them in opts below
+  -- keymaps using new command names
   keys = {
-    { '<leader>nn', '<cmd>ObsidianNew<CR>', desc = 'Obsidian: New Note' },
-    { '<leader>ns', '<cmd>ObsidianSearch<CR>', desc = 'Obsidian: Search Notes' },
-    { '<leader>nw', '<cmd>ObsidianQuickSwitch<CR>', desc = 'Obsidian: Quick Switch' },
-    { '<leader>nb', '<cmd>ObsidianBacklinks<CR>', desc = 'Obsidian: Backlinks' },
-    { '<leader>nt', '<cmd>ObsidianTemplate<CR>', desc = 'Obsidian: Insert Template' },
-    { '<leader>np', '<cmd>ObsidianPasteImg<CR>', desc = 'Obsidian: Paste Image' },
-    { '<leader>nf', '<cmd>ObsidianFollowLink<CR>', desc = 'Obsidian: Follow Link' },
+    { '<leader>nn', '<cmd>Obsidian new<CR>', desc = 'Obsidian: New Note' },
+    { '<leader>ns', '<cmd>Obsidian search<CR>', desc = 'Obsidian: Search Notes' },
+    { '<leader>nw', '<cmd>Obsidian quick-switch<CR>', desc = 'Obsidian: Quick Switch' },
+    { '<leader>nb', '<cmd>Obsidian backlinks<CR>', desc = 'Obsidian: Backlinks' },
+    { '<leader>nt', '<cmd>Obsidian template<CR>', desc = 'Obsidian: Insert Template' },
+    { '<leader>np', '<cmd>Obsidian paste-img<CR>', desc = 'Obsidian: Paste Image' },
+    { '<leader>nf', '<cmd>Obsidian follow<CR>', desc = 'Obsidian: Follow Link' },
   },
 
   opts = {
@@ -20,8 +20,12 @@ return {
       { name = 'notes', path = vim.fn.expand '~/Documents/Notes' },
     },
 
+    -- Disable legacy commands (use new command names instead)
+    ui = { enable = false }, -- Disable UI if you prefer markdown.nvim
+    legacy_commands = false,
+
     -- completion
-    completion = { nvim_ = false },
+    completion = { nvim_cmp = false },
 
     -- new notes behavior
     new_notes_location = 'current_dir',

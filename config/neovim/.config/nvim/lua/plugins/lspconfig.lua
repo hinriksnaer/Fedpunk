@@ -60,10 +60,10 @@ return {
         -- Navigation
         map('gd', vim.lsp.buf.definition, 'Go to Definition')
         map('gD', vim.lsp.buf.declaration, 'Go to Declaration')
-        map('gr', require('telescope.builtin').lsp_references, 'Go to References')
+        map('gr', vim.lsp.buf.references, 'Go to References')
         map('gi', vim.lsp.buf.implementation, 'Go to Implementation')
         map('<leader>cD', vim.lsp.buf.type_definition, 'Type Definition')
-        map('<leader>cs', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'Workspace Symbols')
+        map('<leader>cs', vim.lsp.buf.workspace_symbol, 'Workspace Symbols')
 
         -- Hover & Info
         map('K', vim.lsp.buf.hover, 'Hover Documentation')

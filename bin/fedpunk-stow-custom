@@ -1,0 +1,228 @@
+#!/usr/bin/env fish
+# Stow dotfiles from active Fedpunk config
+# Usage: fedpunk-stow-custom [options] <package>
+
+set script_dir (dirname (status -f))
+set active_config_dir "$HOME/.local/share/fedpunk/.active-config/config"
+
+function show_usage
+    echo "Usage: fedpunk-stow-custom [options] <package>"
+    echo ""
+    echo "Manage dotfiles from your active Fedpunk config using GNU Stow"
+    echo ""
+    echo "Options:"
+    echo "  --all           Stow all packages in active config"
+    echo "  --delete, -D    Unstow (remove symlinks) for package"
+    echo "  --restow, -R    Restow (refresh symlinks) for package"
+    echo "  --list, -l      List all packages in active config"
+    echo "  --dry-run, -n   Show what would be done without doing it"
+    echo "  --help, -h      Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  fedpunk-stow-custom nvim-personal    # Stow nvim-personal package"
+    echo "  fedpunk-stow-custom --delete git     # Unstow git package"
+    echo "  fedpunk-stow-custom --all            # Stow all packages from active config"
+    echo "  fedpunk-stow-custom --list           # List available packages"
+    echo ""
+    echo "See .active-config/config/README.md for detailed documentation"
+end
+
+function list_packages
+    if not test -d "$active_config_dir"
+        echo "No custom config directory found at: $active_config_dir"
+        return 1
+    end
+
+    set packages (find "$active_config_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+
+    if test (count $packages) -eq 0
+        echo "No custom config packages found in: $active_config_dir"
+        echo ""
+        echo "Create a package with:"
+        echo "  mkdir -p custom/config/<package>/.config/<app>/"
+        return 0
+    end
+
+    echo "Available custom config packages:"
+    for pkg in $packages
+        # Check if package is stowed by looking for symlinks
+        set stowed_status ""
+        if test -L "$HOME/.config/$pkg" -o -L "$HOME/.$pkg"
+            set stowed_status " (stowed)"
+        end
+        echo "  • $pkg$stowed_status"
+    end
+    echo ""
+    echo "Total: "(count $packages)" package(s)"
+end
+
+function check_stow_installed
+    if not command -v stow >/dev/null 2>&1
+        echo "Error: GNU Stow is not installed" >&2
+        echo "Install with: sudo dnf install stow" >&2
+        return 1
+    end
+    return 0
+end
+
+function check_custom_config_dir
+    if not test -d "$active_config_dir"
+        echo "Error: Custom config directory not found: $active_config_dir" >&2
+        echo "Create it with: mkdir -p custom/config" >&2
+        return 1
+    end
+    return 0
+end
+
+function stow_package
+    set action $argv[1]  # "stow", "delete", or "restow"
+    set package $argv[2]
+    set dry_run $argv[3]  # "--dry-run" or empty
+
+    set package_path "$active_config_dir/$package"
+
+    if not test -d "$package_path"
+        echo "Error: Package '$package' not found in $active_config_dir" >&2
+        echo ""
+        echo "Available packages:"
+        list_packages
+        return 1
+    end
+
+    # Build stow command
+    set stow_cmd stow -d "$active_config_dir" -t "$HOME"
+
+    if test "$dry_run" = "--dry-run"
+        set stow_cmd $stow_cmd -n -v
+    end
+
+    switch $action
+        case delete
+            set stow_cmd $stow_cmd -D
+        case restow
+            set stow_cmd $stow_cmd -R
+        case stow
+            # Default action, no extra flag
+    end
+
+    set stow_cmd $stow_cmd "$package"
+
+    # Execute stow
+    if test "$dry_run" = "--dry-run"
+        echo "Dry run - would execute: $stow_cmd"
+        echo ""
+    end
+
+    eval $stow_cmd
+    set status_code $status
+
+    if test $status_code -eq 0
+        switch $action
+            case delete
+                echo "✓ Unstowed: $package"
+            case restow
+                echo "✓ Restowed: $package"
+            case stow
+                echo "✓ Stowed: $package"
+        end
+        return 0
+    else
+        echo "✗ Failed to $action package: $package" >&2
+        return 1
+    end
+end
+
+function stow_all
+    set dry_run $argv[1]
+
+    if not test -d "$active_config_dir"
+        echo "No custom config directory found"
+        return 1
+    end
+
+    set packages (find "$active_config_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+
+    if test (count $packages) -eq 0
+        echo "No packages to stow"
+        return 0
+    end
+
+    echo "Stowing all custom config packages..."
+    echo ""
+
+    set success_count 0
+    set fail_count 0
+
+    for pkg in $packages
+        if stow_package stow $pkg $dry_run
+            set success_count (math $success_count + 1)
+        else
+            set fail_count (math $fail_count + 1)
+        end
+    end
+
+    echo ""
+    echo "Summary: $success_count succeeded, $fail_count failed"
+
+    if test $fail_count -gt 0
+        return 1
+    end
+    return 0
+end
+
+# Main script
+check_stow_installed; or exit 1
+
+# Parse arguments
+set action "stow"
+set package ""
+set dry_run ""
+
+for arg in $argv
+    switch $arg
+        case --help -h
+            show_usage
+            exit 0
+        case --list -l
+            check_custom_config_dir; or exit 1
+            list_packages
+            exit $status
+        case --all
+            check_custom_config_dir; or exit 1
+            stow_all $dry_run
+            exit $status
+        case --delete -D
+            set action delete
+        case --restow -R
+            set action restow
+        case --dry-run -n
+            set dry_run "--dry-run"
+        case -*
+            echo "Error: Unknown option: $arg" >&2
+            echo ""
+            show_usage
+            exit 1
+        case '*'
+            if test -z "$package"
+                set package $arg
+            else
+                echo "Error: Multiple packages specified: $package and $arg" >&2
+                echo ""
+                show_usage
+                exit 1
+            end
+    end
+end
+
+# Check if package was specified (unless --all or --list)
+if test -z "$package"
+    echo "Error: No package specified" >&2
+    echo ""
+    show_usage
+    exit 1
+end
+
+# Execute the action
+check_custom_config_dir; or exit 1
+stow_package $action $package $dry_run
+exit $status

@@ -1,0 +1,34 @@
+# Fedpunk Configuration - Minimal Desktop
+# Lightweight desktop with essential tools only
+
+[config]
+name = "Minimal Desktop"
+slug = "minimal"
+description = "Lightweight Hyprland desktop with essential tools - fast and efficient"
+author = "Fedpunk"
+version = "1.0.0"
+tags = ["desktop", "minimal", "lightweight", "fast"]
+
+[install]
+desktop = true              # Desktop but minimal
+terminal_tools = true       # Core terminal tools
+extras = false              # No extras
+
+packages = []
+dnf_repos = []
+
+[defaults]
+theme = "catppuccin-latte"  # Light, minimal theme
+layout = "master"           # Master layout for simplicity
+
+[paths]
+themes = "themes"
+scripts = "scripts"
+dotfiles = "config"
+fish_config = "config.fish"
+hyprland_keybinds = "keybinds.conf"
+
+[community]
+shareable = true
+repository = "https://github.com/yourusername/fedpunk"
+license = "MIT"

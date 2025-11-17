@@ -1,0 +1,75 @@
+# Yazi Configuration for Fedpunk
+# https://yazi-rs.github.io/docs/configuration/yazi
+
+[mgr]
+# Ratio of the three panes (parent, current, preview)
+ratio = [1, 4, 3]
+# Sort files and directories
+sort_by = "alphabetical"
+sort_sensitive = false
+sort_reverse = false
+sort_dir_first = true
+# Show hidden files
+show_hidden = false
+# Show symlink target
+show_symlink = true
+# Scroll offset
+scrolloff = 5
+
+[preview]
+# Preview image/video
+tab_size = 2
+max_width = 600
+max_height = 900
+# Image/video quality (High, Medium, Low)
+cache_dir = ""
+# Use ueberzugpp for image preview (better for Wayland/Hyprland)
+ueberzug_scale = 1
+ueberzug_offset = [0, 0, 0, 0]
+
+[opener]
+# Default opener for different file types
+edit = [
+    { run = 'nvim "$@"', block = true, for = "linux" },
+]
+open = [
+    { run = 'xdg-open "$@"', desc = "Open" },
+]
+reveal = [
+    { run = 'dolphin --select "$@"', desc = "Reveal in file manager", for = "linux" },
+]
+play = [
+    { run = 'mpv "$@"', orphan = true, for = "linux" },
+]
+archive = [
+    { run = 'ouch decompress "$@"', desc = "Extract here" },
+]
+
+[open]
+# File associations
+rules = [
+    { mime = "text/*", use = "edit" },
+    { mime = "image/*", use = "open" },
+    { mime = "video/*", use = "play" },
+    { mime = "audio/*", use = "play" },
+    { mime = "inode/directory", use = "open" },
+    { mime = "application/json", use = "edit" },
+    { mime = "application/x-tar", use = "archive" },
+    { mime = "application/zip", use = "archive" },
+    { mime = "application/gzip", use = "archive" },
+    { mime = "*/javascript", use = "edit" },
+]
+
+[tasks]
+# Maximum number of concurrent tasks
+micro_workers = 10
+macro_workers = 25
+bizarre_retry = 5
+# Image decoding quality (50-100)
+image_alloc = 536870912  # 512MB
+image_bound = [0, 0]
+# Suppress task status messages
+suppress_preload = false
+
+[log]
+enabled = false

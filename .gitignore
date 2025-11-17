@@ -20,6 +20,12 @@ install/Install-Logs/
 # Local user config overrides (not tracked)
 local/
 
+# Custom user configurations (personal customizations, won't cause merge conflicts)
+custom/
+
+# Active config symlink (points to user's selected config)
+.active-config
+
 # User-specific theme selections (symlinks to user paths)
 config/btop/.config/btop/themes/active.theme
 config/btop/.config/btop/themes/current.theme

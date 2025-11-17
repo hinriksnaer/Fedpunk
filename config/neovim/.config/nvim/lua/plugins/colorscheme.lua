@@ -12,7 +12,6 @@ return {
         gitsigns = true,
         nvimtree = true,
         treesitter = true,
-        telescope = true,
         which_key = true,
         dap = true,
         dap_ui = true,

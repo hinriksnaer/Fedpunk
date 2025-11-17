@@ -43,19 +43,19 @@ return {
     },
 
     -- Document existing key chains
+    -- Note: 'Find' group is defined in fzf-lua.lua
     spec = {
-      { '<leader>b', group = 'Buffer' },
+      { '<leader>b', group = '󰓩 Buffer' },
       { '<leader>c', group = 'Code' },
       { '<leader>d', group = 'Debug' },
-      { '<leader>f', group = 'Find' },
       { '<leader>g', group = 'Git' },
       { '<leader>gt', group = 'Toggle' },
       { '<leader>l', group = 'LSP' },
       { '<leader>m', group = 'Messages' },
       { '<leader>n', group = 'Notes' },
-      { '<leader>o', group = 'Oil' },
       { '<leader>s', group = 'Session' },
       { '<leader>T', group = 'Treesitter' },
+      { '<leader>u', group = 'UI' },
       { '<leader>w', group = 'Windows' },
     },
   },

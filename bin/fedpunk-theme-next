@@ -2,18 +2,19 @@
 # Cycle to the next theme in the list
 # Usage: fedpunk-theme-next
 
-set themes_dir "$HOME/.local/share/fedpunk/themes"
+set script_dir (dirname (status -f))
 set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
 
-# Get all available themes (sorted)
+# Get all available themes (sorted) from fedpunk-theme-list (includes custom themes)
 set available_themes
-for theme_dir in (ls -d $themes_dir/*/ 2>/dev/null | sort)
-    test -d "$theme_dir"; or continue
-    set -a available_themes (basename "$theme_dir")
+for theme_name in ($script_dir/fedpunk-theme-list)
+    # Convert pretty name back to theme name (lowercase, spaces to dashes)
+    set theme_slug (echo $theme_name | string lower | string replace -a ' ' '-')
+    set -a available_themes $theme_slug
 end
 
 if test (count $available_themes) -eq 0
-    notify-send "Theme Error" "No themes found in $themes_dir" -t 3000 -u critical
+    notify-send "Theme Error" "No themes found" -t 3000 -u critical
     exit 1
 end
 
