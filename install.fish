@@ -203,9 +203,9 @@ if not command -v chezmoi >/dev/null 2>&1
 end
 
 # Run chezmoi apply with real-time output and timeout to prevent hanging
-info "Running: chezmoi apply --verbose (timeout: 5 minutes)"
+info "Running: chezmoi apply --force --verbose (timeout: 5 minutes)"
 echo "Real-time output:"
-if timeout 300 chezmoi apply --verbose 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
+if timeout 300 chezmoi apply --force --verbose 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
     success "All configurations deployed successfully"
 else
     error "Failed to deploy configurations with chezmoi (exit code: $status)"
