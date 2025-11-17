@@ -11,14 +11,11 @@ end
 echo ""
 info "Installing Yazi file manager"
 
-# Install Rust/Cargo if not present (required for yazi)
-if not command -v cargo >/dev/null 2>&1
-    step "Installing Rust toolchain" "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-    # Source cargo env
-    source ~/.cargo/env
-else
-    success "Rust/Cargo already installed"
-end
+# Enable Yazi Copr repository
+step "Enabling Yazi Copr repository" "sudo dnf copr enable -qy lihaohong/yazi"
+
+# Install Yazi
+step "Installing Yazi" "sudo dnf install -qy yazi"
 
 # Install required dependencies for yazi
 echo ""
@@ -34,59 +31,21 @@ step "Installing fzf" "sudo dnf install -qy fzf"
 step "Installing zoxide" "sudo dnf install -qy zoxide"
 step "Installing imagemagick" "sudo dnf install -qy ImageMagick"
 
-# Install Yazi via cargo
-echo ""
-info "Installing Yazi via cargo"
-gum spin --spinner dot --title "Building Yazi from source (this may take a few minutes)..." -- fish -c '
-    cargo install --locked yazi-fm yazi-cli >>'"$FEDPUNK_LOG_FILE"' 2>&1
-'
-
 # Verify installation
 if command -v yazi >/dev/null 2>&1
     success "Yazi installed successfully: "(yazi --version)
 else
     error "Yazi installation failed"
-    info "Trying alternative installation method..."
-
-    # Try installing from GitHub releases
-    set YAZI_VERSION (curl -s https://api.github.com/repos/sxyazi/yazi/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
-    set YAZI_URL "https://github.com/sxyazi/yazi/releases/download/v$YAZI_VERSION/yazi-x86_64-unknown-linux-gnu.zip"
-
-    step "Creating local bin directory" "mkdir -p ~/.local/bin"
-
-    gum spin --spinner line --title "Downloading Yazi binary..." -- fish -c '
-        cd /tmp
-        curl -fL "'$YAZI_URL'" -o yazi.zip >>'"$FEDPUNK_LOG_FILE"' 2>&1
-        unzip -o yazi.zip >>'"$FEDPUNK_LOG_FILE"' 2>&1
-        cd yazi-x86_64-unknown-linux-gnu
-        cp yazi ya ~/.local/bin/ >>'"$FEDPUNK_LOG_FILE"' 2>&1
-        chmod +x ~/.local/bin/yazi ~/.local/bin/ya >>'"$FEDPUNK_LOG_FILE"' 2>&1
-        rm -rf /tmp/yazi.zip /tmp/yazi-x86_64-unknown-linux-gnu >>'"$FEDPUNK_LOG_FILE"' 2>&1
-    '
-
-    if command -v yazi >/dev/null 2>&1
-        success "Yazi installed via binary download"
-    else
-        error "Yazi installation failed with both methods"
-        info "Please install manually from https://github.com/sxyazi/yazi"
-        exit 1
-    end
+    exit 1
 end
 
-# Stow yazi configuration
+# Yazi configuration is managed by chezmoi
 echo ""
-info "Setting up Yazi configuration"
-# Yazi config is managed by chezmoi
-info "yazi config prepared (will be deployed with chezmoi)"
+info "Yazi config prepared (will be deployed with chezmoi)"
 
 # Set up Fish integration
 echo ""
 info "Configuring Fish shell integration"
-
-# Add Yazi to Fish PATH (if using local install)
-if test -f ~/.local/bin/yazi
-    step "Adding Yazi to PATH" "set -U fish_user_paths ~/.local/bin \$fish_user_paths"
-end
 
 # Create Fish function for Yazi with cd on quit
 gum spin --spinner dot --title "Creating Fish function..." -- fish -c '
