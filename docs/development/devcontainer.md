@@ -255,7 +255,7 @@ After successful testing in the devcontainer:
 
 1. **Deploy on host** - Run full installation on your Fedora system
 2. **Test desktop mode** - Install with Hyprland on actual hardware
-3. **Customize** - Add personal themes to `custom/themes/`
+3. **Customize** - Add personal themes to `profile/dev/themes/`
 4. **Contribute** - Report issues or submit improvements
 
 ## Support

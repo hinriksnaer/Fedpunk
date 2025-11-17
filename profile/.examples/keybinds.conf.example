@@ -1,0 +1,115 @@
+# Custom Hyprland Keybindings
+# Copy this file to: custom/keybinds.conf (remove .example)
+# This file is sourced AFTER the main keybinds, so you can add or override
+
+# Note: Main modifier is defined in main config as $mainMod = SUPER
+
+# ============================================================================
+# Custom Application Launchers
+# ============================================================================
+
+# Launch your favorite apps with custom shortcuts
+# bind = $mainMod, C, exec, code                    # VS Code
+# bind = $mainMod, M, exec, spotify                 # Music player
+# bind = $mainMod, D, exec, discord                 # Discord
+# bind = $mainMod, S, exec, slack                   # Slack
+# bind = $mainMod SHIFT, C, exec, chromium          # Alternative browser
+
+# ============================================================================
+# Override Default Bindings
+# ============================================================================
+
+# Example: Use alacritty instead of kitty
+# bind = $mainMod, Return, exec, alacritty
+
+# Example: Different browser
+# bind = $mainMod, B, exec, chromium
+
+# Example: Different file manager
+# bind = $mainMod, E, exec, dolphin
+
+# ============================================================================
+# Custom Window Management
+# ============================================================================
+
+# Example: Custom window rules for specific apps
+# bind = $mainMod, N, exec, obsidian
+# bind = $mainMod SHIFT, N, exec, notion
+
+# Example: Quick scratchpad toggles
+# bind = $mainMod, grave, togglespecialworkspace, scratchpad
+# bind = $mainMod SHIFT, grave, movetoworkspace, special:scratchpad
+
+# ============================================================================
+# Productivity Shortcuts
+# ============================================================================
+
+# Example: Quick notes
+# bind = $mainMod, N, exec, kitty -e nvim ~/notes/$(date +%Y-%m-%d).md
+
+# Example: Screen recording
+# bind = $mainMod, R, exec, wf-recorder -g "$(slurp)" -f ~/Videos/recording-$(date +%Y%m%d-%H%M%S).mp4
+
+# Example: Color picker
+# bind = $mainMod, C, exec, hyprpicker -a
+
+# ============================================================================
+# Development Shortcuts
+# ============================================================================
+
+# Example: Quick terminal in project directory
+# bind = $mainMod ALT, T, exec, kitty --working-directory ~/Development
+
+# Example: Open terminal in same directory as focused window
+# bind = $mainMod CTRL, Return, exec, kitty --working-directory "$(hyprctl activewindow -j | jq -r .pid | xargs pwdx | cut -d' ' -f2)"
+
+# ============================================================================
+# Custom Workspace Assignments
+# ============================================================================
+
+# Example: Jump to specific workspace for specific tasks
+# bind = $mainMod ALT, C, workspace, name:code     # Coding workspace
+# bind = $mainMod ALT, W, workspace, name:web      # Browsing workspace
+# bind = $mainMod ALT, M, workspace, name:music    # Music workspace
+# bind = $mainMod ALT, D, workspace, name:discord  # Chat workspace
+
+# ============================================================================
+# System Controls
+# ============================================================================
+
+# Example: System power menu
+# bind = $mainMod SHIFT, P, exec, ~/.config/rofi/scripts/powermenu.sh
+
+# Example: Lock screen
+# bind = $mainMod, X, exec, swaylock
+
+# Example: Toggle night light
+# bind = $mainMod, F9, exec, ~/.local/bin/toggle-night-light
+
+# ============================================================================
+# Gaming Mode (disable compositor effects)
+# ============================================================================
+
+# Example: Toggle gaming mode
+# bind = $mainMod, F1, exec, hyprctl keyword decoration:blur:enabled 0
+# bind = $mainMod, F2, exec, hyprctl keyword decoration:blur:enabled 1
+
+# ============================================================================
+# Custom Resize Modes
+# ============================================================================
+
+# Example: Larger resize increments
+# bind = $mainMod SHIFT CTRL, h, resizeactive, -100 0
+# bind = $mainMod SHIFT CTRL, l, resizeactive, 100 0
+# bind = $mainMod SHIFT CTRL, k, resizeactive, 0 -100
+# bind = $mainMod SHIFT CTRL, j, resizeactive, 0 100
+
+# ============================================================================
+# Screenshot Enhancements
+# ============================================================================
+
+# Example: Screenshot to file instead of clipboard
+# bind = $mainMod ALT, Print, exec, grim -g "$(slurp)" ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
+# Example: Screenshot with delay
+# bind = $mainMod CTRL, Print, exec, sleep 3 && grim - | wl-copy

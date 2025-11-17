@@ -20,8 +20,9 @@ install/Install-Logs/
 # Local user config overrides (not tracked)
 local/
 
-# Custom user configurations (personal customizations, won't cause merge conflicts)
-custom/
+# User profiles (personal customizations, won't cause merge conflicts)
+profile/*/
+!profile/.examples/
 
 # Devcontainer (for testing only)
 .devcontainer/

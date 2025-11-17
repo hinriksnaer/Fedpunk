@@ -34,13 +34,13 @@ Complete documentation for Fedpunk - a modern, keyboard-driven Fedora developmen
 
 ### Customization
 1. Read the [Customization Guide](guides/customization.md)
-2. Everything goes in `custom/` directory
+2. Everything goes in `profile/dev/` directory
 3. Available customizations:
-   - Personal themes → `custom/themes/`
-   - Personal scripts → `custom/scripts/`
-   - Fish config → `custom/config.fish`
-   - Hyprland keys → `custom/keybinds.conf`
-   - Dotfiles → `custom/config/` (via Stow)
+   - Personal themes → `profile/dev/themes/`
+   - Personal scripts → `profile/dev/scripts/`
+   - Fish config → `profile/dev/config.fish`
+   - Hyprland keys → `profile/dev/keybinds.conf`
+   - Dotfiles → `profile/dev/config/` (via Stow)
 
 ### Themes
 1. Browse available themes: `fedpunk-theme-list`
@@ -104,7 +104,7 @@ Fedpunk is a complete development environment for Fedora Linux featuring:
 - ✅ Easy custom theme creation
 
 ### Customization
-- ✅ Single `custom/` directory for all personalizations
+- ✅ Single `profile/dev/` directory for all personalizations
 - ✅ Gitignored (no merge conflicts on updates)
 - ✅ Override any default configuration
 - ✅ Stow-based dotfile management
@@ -170,8 +170,8 @@ See [Installation Guide](guides/installation.md) for detailed steps.
 
 ### Day 3: Customization
 1. Read [Customization Guide](guides/customization.md)
-2. Add personal aliases to `custom/config.fish`
-3. Create custom keybindings in `custom/keybinds.conf`
+2. Add personal aliases to `profile/dev/config.fish`
+3. Create custom keybindings in `profile/dev/keybinds.conf`
 4. Explore theme creation
 
 ### Week 1: Mastery
@@ -215,28 +215,28 @@ fedpunk-theme-set tokyo-night   # Set theme
 
 ### Add Personal Alias
 ```bash
-echo "alias gs='git status'" >> custom/config.fish
+echo "alias gs='git status'" >> profile/dev/config.fish
 exec fish  # Reload shell
 ```
 
 ### Create Custom Theme
 ```bash
-cp -r themes/nord custom/themes/my-theme
-vim custom/themes/my-theme/kitty.conf
+cp -r themes/nord profile/dev/themes/my-theme
+vim profile/dev/themes/my-theme/kitty.conf
 fedpunk-theme-set my-theme
 ```
 
 ### Add Custom Keybinding
 ```bash
-echo "bind = Super, M, exec, spotify" >> custom/keybinds.conf
+echo "bind = Super, M, exec, spotify" >> profile/dev/keybinds.conf
 hyprctl reload  # Reload Hyprland
 ```
 
 ### Manage Dotfiles
 ```bash
-mkdir -p custom/config/git
-vim custom/config/git/.gitconfig
-fedpunk-stow-custom git  # Deploy with Stow
+mkdir -p profile/dev/config/git
+vim profile/dev/config/git/.gitconfig
+fedpunk-stow-profile git  # Deploy with Stow
 ```
 
 ---
@@ -253,7 +253,7 @@ fish install.fish  # Re-run installer (safe)
 The installer is re-run safe and will:
 - Detect existing installations
 - Only update what's needed
-- Preserve your `custom/` directory
+- Preserve your `profile/dev/` directory
 
 ---
 

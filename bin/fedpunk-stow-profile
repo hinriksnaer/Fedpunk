@@ -1,14 +1,14 @@
 #!/usr/bin/env fish
-# Stow dotfiles from active Fedpunk config
-# Usage: fedpunk-stow-custom [options] <package>
+# Stow dotfiles from active Fedpunk profile
+# Usage: fedpunk-stow-profile [options] <package>
 
 set script_dir (dirname (status -f))
 set active_config_dir "$HOME/.local/share/fedpunk/.active-config/config"
 
 function show_usage
-    echo "Usage: fedpunk-stow-custom [options] <package>"
+    echo "Usage: fedpunk-stow-profile [options] <package>"
     echo ""
-    echo "Manage dotfiles from your active Fedpunk config using GNU Stow"
+    echo "Manage dotfiles from your active Fedpunk profile using GNU Stow"
     echo ""
     echo "Options:"
     echo "  --all           Stow all packages in active config"
@@ -19,31 +19,31 @@ function show_usage
     echo "  --help, -h      Show this help message"
     echo ""
     echo "Examples:"
-    echo "  fedpunk-stow-custom nvim-personal    # Stow nvim-personal package"
-    echo "  fedpunk-stow-custom --delete git     # Unstow git package"
-    echo "  fedpunk-stow-custom --all            # Stow all packages from active config"
-    echo "  fedpunk-stow-custom --list           # List available packages"
+    echo "  fedpunk-stow-profile nvim-personal    # Stow nvim-personal package"
+    echo "  fedpunk-stow-profile --delete git     # Unstow git package"
+    echo "  fedpunk-stow-profile --all            # Stow all packages from active profile"
+    echo "  fedpunk-stow-profile --list           # List available packages"
     echo ""
     echo "See .active-config/config/README.md for detailed documentation"
 end
 
 function list_packages
     if not test -d "$active_config_dir"
-        echo "No custom config directory found at: $active_config_dir"
+        echo "No profile config directory found at: $active_config_dir"
         return 1
     end
 
     set packages (find "$active_config_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
 
     if test (count $packages) -eq 0
-        echo "No custom config packages found in: $active_config_dir"
+        echo "No profile config packages found in: $active_config_dir"
         echo ""
         echo "Create a package with:"
-        echo "  mkdir -p custom/config/<package>/.config/<app>/"
+        echo "  mkdir -p profile/dev/config/<package>/.config/<app>/"
         return 0
     end
 
-    echo "Available custom config packages:"
+    echo "Available profile config packages:"
     for pkg in $packages
         # Check if package is stowed by looking for symlinks
         set stowed_status ""
@@ -65,10 +65,10 @@ function check_stow_installed
     return 0
 end
 
-function check_custom_config_dir
+function check_profile_config_dir
     if not test -d "$active_config_dir"
-        echo "Error: Custom config directory not found: $active_config_dir" >&2
-        echo "Create it with: mkdir -p custom/config" >&2
+        echo "Error: Profile config directory not found: $active_config_dir" >&2
+        echo "Create it with: mkdir -p profile/dev/config" >&2
         return 1
     end
     return 0
@@ -136,7 +136,7 @@ function stow_all
     set dry_run $argv[1]
 
     if not test -d "$active_config_dir"
-        echo "No custom config directory found"
+        echo "No profile config directory found"
         return 1
     end
 
@@ -147,7 +147,7 @@ function stow_all
         return 0
     end
 
-    echo "Stowing all custom config packages..."
+    echo "Stowing all profile config packages..."
     echo ""
 
     set success_count 0
@@ -184,11 +184,11 @@ for arg in $argv
             show_usage
             exit 0
         case --list -l
-            check_custom_config_dir; or exit 1
+            check_profile_config_dir; or exit 1
             list_packages
             exit $status
         case --all
-            check_custom_config_dir; or exit 1
+            check_profile_config_dir; or exit 1
             stow_all $dry_run
             exit $status
         case --delete -D
@@ -223,6 +223,6 @@ if test -z "$package"
 end
 
 # Execute the action
-check_custom_config_dir; or exit 1
+check_profile_config_dir; or exit 1
 stow_package $action $package $dry_run
 exit $status

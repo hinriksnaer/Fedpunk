@@ -190,11 +190,11 @@ fedpunk-theme-set rose-pine
 cd ~/Fedpunk/themes
 mkdir custom
 # Take Hyprland colors from one theme
-cp ayu-mirage/hyprland.conf custom/
+cp ayu-mirage/hyprland.conf profile/dev/
 # Take terminal colors from another
-cp default/kitty.conf custom/
+cp default/kitty.conf profile/dev/
 # Create custom walker theme
-nano custom/rofi.rasi
+nano profile/dev/rofi.rasi
 ```
 
 ## Tips

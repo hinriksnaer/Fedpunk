@@ -186,7 +186,7 @@ All themes validated with complete configuration files:
 - `fedpunk-theme-*` - Theme management (7 scripts)
 - `fedpunk-wallpaper-*` - Wallpaper management (2 scripts)
 - `fedpunk-bluetooth` - Bluetooth TUI launcher
-- `fedpunk-stow-custom` - Custom dotfiles manager
+- `fedpunk-stow-profile` - Custom dotfiles manager
 - `fedpunk-use` - Profile selector
 - `fedpunk-nvidia-reload` - NVIDIA driver reload
 - `rofi-*` - Application launcher helpers
@@ -386,7 +386,7 @@ fish install.fish  # Re-run installer (safe to repeat)
 The installer is **re-run safe** and will:
 - Detect existing installations
 - Only update what's needed
-- Preserve user customizations in `custom/`
+- Preserve user customizations in `profile/dev/`
 - Not override manually configured files
 
 ---
@@ -395,10 +395,10 @@ The installer is **re-run safe** and will:
 
 ### User Customization Directory
 
-All personal customizations go in `custom/` (gitignored):
+All personal customizations go in `profile/dev/` (gitignored):
 
 ```
-custom/
+profile/dev/
 ├── themes/          # User-created themes (searched before stock)
 ├── scripts/         # Personal utility scripts (added to PATH)
 ├── config.fish      # Personal Fish configuration (sourced last)
@@ -408,18 +408,18 @@ custom/
 
 ### Managing Custom Dotfiles
 
-Use `fedpunk-stow-custom` to manage additional dotfiles:
+Use `fedpunk-stow-profile` to manage additional dotfiles:
 
 ```bash
-fedpunk-stow-custom --list          # List custom packages
-fedpunk-stow-custom --all           # Deploy all custom configs
-fedpunk-stow-custom --delete <pkg>  # Remove custom package
+fedpunk-stow-profile --list          # List custom packages
+fedpunk-stow-profile --all           # Deploy all custom configs
+fedpunk-stow-profile --delete <pkg>  # Remove custom package
 ```
 
 ### Creating Custom Themes
 
-1. Copy existing theme: `cp -r themes/nord custom/themes/my-theme`
-2. Edit theme files in `custom/themes/my-theme/`
+1. Copy existing theme: `cp -r themes/nord profile/dev/themes/my-theme`
+2. Edit theme files in `profile/dev/themes/my-theme/`
 3. Apply: `fedpunk-theme-set my-theme`
 
 ---
@@ -489,7 +489,7 @@ The Fedpunk repository is **production-ready** and can be used confidently for a
 1. **Immediate:** Run full installation on fresh Fedora system
 2. **Optional:** Test terminal-only mode in devcontainer
 3. **After install:** Configure monitors, select theme, customize keybindings
-4. **Long-term:** Create custom themes in `custom/themes/`
+4. **Long-term:** Create custom themes in `profile/dev/themes/`
 
 ---
 
