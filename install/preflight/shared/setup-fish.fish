@@ -13,8 +13,10 @@ echo ""
 section "Fish Shell Setup"
 
 # Install chezmoi (CRITICAL - needed for configuration deployment)
-if gum spin --spinner dot --title "Installing chezmoi (configuration management)..." -- \
-    fish -c "curl -sL https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-linux-amd64 -o $HOME/.local/bin/chezmoi && chmod +x $HOME/.local/bin/chezmoi >>$FEDPUNK_LOG_FILE 2>&1"
+mkdir -p $HOME/.local/bin
+if gum spin --spinner dot --title "Installing chezmoi (configuration management)..." -- fish -c '
+    curl -sL https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-linux-amd64 -o $HOME/.local/bin/chezmoi >>'"$FEDPUNK_LOG_FILE"' 2>&1 && chmod +x $HOME/.local/bin/chezmoi
+'
     success "chezmoi installed"
 else
     error "Failed to install chezmoi"
