@@ -1,0 +1,15 @@
+# Theme symlinks (managed by fedpunk theme system)
+.config/btop/themes/active.theme
+.config/btop/themes/current.theme
+.config/hypr/wallpapers/current
+.config/mako/theme.conf
+.config/kitty/theme.conf
+.config/rofi/theme.rasi
+.config/waybar/theme.css
+
+# Fish dynamic configs (managed by installer)
+.config/fish/conf.d/installer-managed.fish
+.config/fish/fish_variables
+
+# Tmux plugins (managed by tpm)
+.config/tmux/plugins/**

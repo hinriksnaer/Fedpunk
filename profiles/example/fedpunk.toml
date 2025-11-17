@@ -1,0 +1,23 @@
+# Example Profile Template
+# Copy this to create your own profile
+
+[profile]
+name = "My Profile"
+description = "My personal Fedpunk configuration"
+author = "Your Name"
+
+[packages]
+# Add any extra packages you need (beyond base fedpunk)
+extra = []
+# Example: extra = ["docker", "kubernetes-client", "terraform"]
+
+[scripts]
+# Setup scripts to run (in order)
+setup = []
+# Example: setup = ["scripts/my-setup.fish"]
+
+# Quick start:
+#   1. Copy: cp -r profiles/example profiles/myprofile
+#   2. Edit: Update this file and configs in profiles/myprofile/config/
+#   3. Activate: ln -sf profiles/myprofile .active-config
+#   4. Deploy: fedpunk-stow-profile fish hypr git ssh

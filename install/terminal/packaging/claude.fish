@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 # Claude - Claude Code CLI
-# Pure package installation (no config to stow)
+# Pure package installation (configs managed by chezmoi)
 
 # FEDPUNK_PATH and FEDPUNK_INSTALL should be set by parent install.fish
 # Source helper functions

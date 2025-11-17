@@ -254,7 +254,7 @@ Fedpunk uses a **modular installation system**:
 
 2. Terminal Components (install/terminal/)
    - btop, neovim, tmux, lazygit
-   - Configs deployed via GNU Stow
+   - Configs deployed via chezmoi
 
 3. Desktop Components (install/desktop/)
    - hyprland, kitty, rofi

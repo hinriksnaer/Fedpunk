@@ -19,8 +19,7 @@ info "Setting up Kitty"
 # Install package
 step "Installing kitty" "sudo dnf install -qy kitty"
 
-# Deploy configuration
-cd "$FEDPUNK_PATH"
-run_quiet "Deploying kitty config" stow --restow -d config -t ~ kitty
+# Configuration will be deployed by chezmoi at end of installation
+info "kitty config prepared (will be deployed with chezmoi)"
 
 success "Kitty setup complete"

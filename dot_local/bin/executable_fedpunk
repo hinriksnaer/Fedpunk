@@ -1,0 +1,377 @@
+#!/usr/bin/env fish
+# Fedpunk CLI - Unified command-line interface
+# Usage: fedpunk <command> [args...]
+
+set script_dir (dirname (status -f))
+
+# Show help if no arguments
+if test (count $argv) -eq 0
+    echo "Fedpunk CLI - Modern Fedora development environment"
+    echo ""
+    echo "Usage: fedpunk <command> [args...]"
+    echo ""
+    echo "Setup:"
+    echo "  init                   Interactive setup wizard (TUI)"
+    echo ""
+    echo "Profile Management:"
+    echo "  profile list           List available profiles (CLI)"
+    echo "  profile select         Select profile interactively (TUI)"
+    echo "  profile activate <name> Activate a profile (CLI)"
+    echo "  profile current        Show active profile (CLI)"
+    echo "  profile create [name]  Create new profile (TUI)"
+    echo ""
+    echo ""
+    echo "Theme Management:"
+    echo "  theme set <name>       Switch to a theme"
+    echo "  theme list             List available themes"
+    echo "  theme current          Show current theme"
+    echo "  theme select           Interactive theme selector (fzf)"
+    echo "  theme next             Switch to next theme"
+    echo "  theme prev             Switch to previous theme"
+    echo "  theme refresh          Refresh current theme"
+    echo ""
+    echo "Wallpaper Management (Desktop):"
+    echo "  wallpaper set <theme>  Set wallpaper from theme"
+    echo "  wallpaper next         Switch to next wallpaper"
+    echo ""
+    echo "Other Commands:"
+    echo "  bluetooth              Bluetooth manager (bluetui)"
+    echo "  help                   Show this help message"
+    echo "  version                Show version information"
+    echo ""
+    echo "Examples:"
+    echo "  fedpunk init                    # Interactive setup (TUI)"
+    echo "  fedpunk profile select          # Select profile (TUI)"
+    echo "  fedpunk profile activate dev    # Activate profile (CLI)"
+    echo "  fedpunk theme set nord          # Set theme (CLI)"
+    exit 0
+end
+
+set command $argv[1]
+set args $argv[2..-1]
+
+switch $command
+    case init
+        # Interactive setup wizard (TUI)
+        if not command -v gum >/dev/null 2>&1
+            echo "Error: gum is required for TUI mode"
+            echo "Install with: sudo dnf install gum"
+            exit 1
+        end
+
+        echo ""
+        gum style --border rounded --padding "1 2" --border-foreground 33 "Fedpunk Setup Wizard"
+        echo ""
+
+        # Main menu
+        set choice (gum choose --header "What would you like to do?" \
+            "Create a new profile" \
+            "Activate an existing profile" \
+            "Configure git settings" \
+            "Exit")
+
+        switch $choice
+            case "Create a new profile"
+                exec $script_dir/fedpunk profile create
+
+            case "Activate an existing profile"
+                exec $script_dir/fedpunk profile select
+
+            case "Configure git settings"
+                # Interactive git configuration
+                echo ""
+                echo "Git Configuration"
+                echo "━━━━━━━━━━━━━━━━━"
+                echo ""
+
+                # Get current git config if it exists
+                set current_name (git config --global user.name 2>/dev/null; or echo "")
+                set current_email (git config --global user.email 2>/dev/null; or echo "")
+
+                set git_name (gum input --placeholder "Your name" --value "$current_name")
+                set git_email (gum input --placeholder "Your email" --value "$current_email")
+
+                if test -n "$git_name"
+                    git config --global user.name "$git_name"
+                    echo "✓ Set git user.name = $git_name"
+                end
+
+                if test -n "$git_email"
+                    git config --global user.email "$git_email"
+                    echo "✓ Set git user.email = $git_email"
+                end
+
+                echo ""
+                echo "Git configuration updated!"
+
+            case "Exit"
+                echo "Goodbye!"
+                exit 0
+        end
+
+    case profile
+        # Profile subcommands
+        if test (count $args) -eq 0
+            echo "Usage: fedpunk profile <subcommand> [args...]"
+            echo ""
+            echo "Subcommands:"
+            echo "  list              List available profiles (CLI)"
+            echo "  select            Select a profile interactively (TUI)"
+            echo "  activate <name>   Activate a profile (CLI)"
+            echo "  current           Show active profile (CLI)"
+            echo "  create <name>     Create new profile from template (TUI)"
+            echo ""
+            echo "Examples:"
+            echo "  fedpunk profile select              # TUI mode"
+            echo "  fedpunk profile activate dev        # CLI mode"
+            echo "  fedpunk profile create myprofile    # TUI mode"
+            exit 1
+        end
+
+        set profile_cmd $args[1]
+        set profile_args $args[2..-1]
+
+        switch $profile_cmd
+            case activate
+                exec $script_dir/fedpunk-activate-profile $profile_args
+
+            case select
+                # TUI mode - interactive profile selector
+                if not command -v gum >/dev/null 2>&1
+                    echo "Error: gum is required for TUI mode"
+                    echo "Install with: sudo dnf install gum"
+                    exit 1
+                end
+
+                set profiles_dir "$HOME/.local/share/fedpunk/profiles"
+                if not test -d "$profiles_dir"
+                    echo "No profiles directory found"
+                    exit 1
+                end
+
+                # Get list of profiles
+                set profiles (find "$profiles_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sort)
+
+                if test (count $profiles) -eq 0
+                    echo "No profiles found"
+                    exit 1
+                end
+
+                # Get current profile for display
+                set current_profile ""
+                if test -L "$HOME/.local/share/fedpunk/.active-config"
+                    set current_profile (basename (readlink "$HOME/.local/share/fedpunk/.active-config"))
+                end
+
+                # Build display list with markers
+                set display_list
+                for profile in $profiles
+                    if test "$profile" = "$current_profile"
+                        set display_list $display_list "$profile (active)"
+                    else
+                        set display_list $display_list "$profile"
+                    end
+                end
+
+                # Show interactive selector
+                set selected (gum choose --header "Select a profile to activate:" $display_list)
+
+                if test -z "$selected"
+                    echo "No profile selected"
+                    exit 0
+                end
+
+                # Remove " (active)" marker if present
+                set profile_name (echo $selected | sed 's/ (active)//')
+
+                # Activate the selected profile
+                exec $script_dir/fedpunk-activate-profile $profile_name
+
+            case list
+                # List available profiles (CLI mode)
+                set profiles_dir "$HOME/.local/share/fedpunk/profiles"
+                if test -d "$profiles_dir"
+                    echo "Available profiles:"
+                    for profile in (find "$profiles_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sort)
+                        # Check if it's the active profile
+                        set active_marker ""
+                        if test -L "$HOME/.local/share/fedpunk/.active-config"
+                            set active_profile (basename (readlink "$HOME/.local/share/fedpunk/.active-config"))
+                            if test "$profile" = "$active_profile"
+                                set active_marker " (active)"
+                            end
+                        end
+                        echo "  • $profile$active_marker"
+                    end
+                else
+                    echo "No profiles directory found"
+                    exit 1
+                end
+
+            case current
+                # Show current active profile (CLI mode)
+                if test -L "$HOME/.local/share/fedpunk/.active-config"
+                    set active_profile (basename (readlink "$HOME/.local/share/fedpunk/.active-config"))
+                    echo "Active profile: $active_profile"
+                else
+                    echo "No active profile (no .active-config symlink)"
+                    exit 1
+                end
+
+            case create
+                # TUI mode - create new profile from template
+                if not command -v gum >/dev/null 2>&1
+                    echo "Error: gum is required for TUI mode"
+                    echo "Install with: sudo dnf install gum"
+                    exit 1
+                end
+
+                # Get profile name
+                set new_profile_name $profile_args[1]
+                if test -z "$new_profile_name"
+                    set new_profile_name (gum input --placeholder "Enter new profile name (e.g., myprofile)")
+                end
+
+                if test -z "$new_profile_name"
+                    echo "Profile name is required"
+                    exit 1
+                end
+
+                set profiles_dir "$HOME/.local/share/fedpunk/profiles"
+                set new_profile_path "$profiles_dir/$new_profile_name"
+
+                # Check if profile already exists
+                if test -d "$new_profile_path"
+                    echo "Error: Profile '$new_profile_name' already exists"
+                    exit 1
+                end
+
+                # Ask which template to use
+                set template (gum choose --header "Select template to copy from:" "example" "dev" "dev-terminal")
+
+                if test -z "$template"
+                    echo "No template selected"
+                    exit 0
+                end
+
+                # Copy template
+                echo "Creating profile '$new_profile_name' from template '$template'..."
+                cp -r "$profiles_dir/$template" "$new_profile_path"
+
+                # Update fedpunk.toml metadata
+                if test -f "$new_profile_path/fedpunk.toml"
+                    # Prompt for profile metadata
+                    set profile_desc (gum input --placeholder "Profile description" --value "My custom Fedpunk profile")
+                    set profile_author (gum input --placeholder "Author name" --value (whoami))
+
+                    # Update TOML file
+                    sed -i "s/^name = .*/name = \"$new_profile_name\"/" "$new_profile_path/fedpunk.toml"
+                    sed -i "s/^description = .*/description = \"$profile_desc\"/" "$new_profile_path/fedpunk.toml"
+                    sed -i "s/^author = .*/author = \"$profile_author\"/" "$new_profile_path/fedpunk.toml"
+                end
+
+                echo "✓ Profile created: $new_profile_path"
+                echo ""
+
+                # Ask if they want to activate it now
+                if gum confirm "Activate this profile now?"
+                    exec $script_dir/fedpunk-activate-profile $new_profile_name
+                else
+                    echo "Profile created but not activated."
+                    echo "To activate later, run: fedpunk profile activate $new_profile_name"
+                end
+
+            case '*'
+                echo "Unknown profile subcommand: $profile_cmd"
+                echo "Run 'fedpunk profile' for help"
+                exit 1
+        end
+
+    case theme
+        # Theme subcommands
+        if test (count $args) -eq 0
+            echo "Usage: fedpunk theme <subcommand> [args...]"
+            echo ""
+            echo "Subcommands:"
+            echo "  set <name>     Switch to a theme"
+            echo "  list           List available themes"
+            echo "  current        Show current theme"
+            echo "  select         Interactive theme selector"
+            echo "  next           Switch to next theme"
+            echo "  prev           Switch to previous theme"
+            echo "  refresh        Refresh current theme"
+            exit 1
+        end
+
+        set theme_cmd $args[1]
+        set theme_args $args[2..-1]
+
+        switch $theme_cmd
+            case set
+                exec $script_dir/fedpunk-theme-set $theme_args
+            case list
+                exec $script_dir/fedpunk-theme-list
+            case current
+                exec $script_dir/fedpunk-theme-current
+            case select
+                exec $script_dir/fedpunk-theme-select-cli
+            case next
+                exec $script_dir/fedpunk-theme-next
+            case prev
+                exec $script_dir/fedpunk-theme-prev
+            case refresh
+                exec $script_dir/fedpunk-theme-refresh
+            case '*'
+                echo "Unknown theme subcommand: $theme_cmd"
+                echo "Run 'fedpunk theme' for help"
+                exit 1
+        end
+
+    case wallpaper
+        # Wallpaper subcommands (desktop only)
+        if test (count $args) -eq 0
+            echo "Usage: fedpunk wallpaper <subcommand> [args...]"
+            echo ""
+            echo "Subcommands:"
+            echo "  set <theme>    Set wallpaper from theme"
+            echo "  next           Switch to next wallpaper"
+            exit 1
+        end
+
+        set wallpaper_cmd $args[1]
+        set wallpaper_args $args[2..-1]
+
+        switch $wallpaper_cmd
+            case set
+                exec $script_dir/fedpunk-wallpaper-set $wallpaper_args
+            case next
+                exec $script_dir/fedpunk-wallpaper-next
+            case '*'
+                echo "Unknown wallpaper subcommand: $wallpaper_cmd"
+                echo "Run 'fedpunk wallpaper' for help"
+                exit 1
+        end
+
+    case bluetooth
+        # Bluetooth manager
+        if command -v bluetui >/dev/null 2>&1
+            exec bluetui
+        else
+            exec $script_dir/fedpunk-bluetooth
+        end
+
+    case help
+        exec $script_dir/fedpunk help
+
+    case version
+        echo "Fedpunk CLI v1.0.0"
+        echo "A modern Fedora development environment"
+        if set -q FEDPUNK_PATH
+            echo "Installation: $FEDPUNK_PATH"
+        end
+
+    case '*'
+        echo "Unknown command: $command"
+        echo "Run 'fedpunk' or 'fedpunk help' for usage"
+        exit 1
+end

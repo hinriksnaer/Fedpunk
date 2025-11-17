@@ -15,13 +15,7 @@ info "Setting up lazygit"
 step "Enabling lazygit COPR" "sudo dnf install -qy dnf-plugins-core && sudo dnf copr enable -qy atim/lazygit"
 step "Installing lazygit" "sudo dnf install --refresh -qy lazygit"
 
-# Deploy configuration
-if test -d "$FEDPUNK_PATH"
-    cd "$FEDPUNK_PATH"
-    run_quiet "Deploying lazygit config" stow --restow -d config -t "$HOME" lazygit
-else
-    error "FEDPUNK_PATH not set or directory doesn't exist: $FEDPUNK_PATH"
-    exit 1
-end
+# Configuration will be deployed by chezmoi at end of installation
+info "lazygit config prepared (will be deployed with chezmoi)"
 
 success "lazygit setup complete"

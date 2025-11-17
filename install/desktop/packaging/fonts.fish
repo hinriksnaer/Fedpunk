@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 # Fonts - Programming and UI fonts
-# Pure package installation (no config to stow)
+# Pure package installation (configs managed by chezmoi)
 
 # Source helper functions
 if not set -q FEDPUNK_PATH

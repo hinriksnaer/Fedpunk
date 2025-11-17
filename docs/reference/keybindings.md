@@ -161,7 +161,7 @@ Complete keyboard shortcut reference for Fedpunk/Hyprland.
 
 ## 🎯 Custom Keybindings
 
-To add your own keybindings, edit `profile/dev/keybinds.conf`:
+To add your own keybindings, edit `profiles/dev/keybinds.conf`:
 
 ```conf
 # Example custom keybindings

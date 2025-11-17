@@ -14,13 +14,7 @@ info "Setting up btop"
 # Install package
 step "Installing btop package" "sudo dnf install -qy btop"
 
-# Deploy configuration
-if test -d "$FEDPUNK_PATH"
-    cd "$FEDPUNK_PATH"
-    run_quiet "Deploying btop config" stow --restow -d config -t "$HOME" btop
-else
-    error "FEDPUNK_PATH not set or directory doesn't exist: $FEDPUNK_PATH"
-    exit 1
-end
+# Configuration will be deployed by chezmoi at end of installation
+info "btop config prepared (will be deployed with chezmoi)"
 
 success "btop setup complete"

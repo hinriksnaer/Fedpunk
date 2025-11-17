@@ -386,7 +386,7 @@ fish install.fish  # Re-run installer (safe to repeat)
 The installer is **re-run safe** and will:
 - Detect existing installations
 - Only update what's needed
-- Preserve user customizations in `profile/dev/`
+- Preserve user customizations in `profiles/dev/`
 - Not override manually configured files
 
 ---
@@ -395,10 +395,10 @@ The installer is **re-run safe** and will:
 
 ### User Customization Directory
 
-All personal customizations go in `profile/dev/` (gitignored):
+All personal customizations go in `profiles/dev/` (gitignored):
 
 ```
-profile/dev/
+profiles/dev/
 ├── themes/          # User-created themes (searched before stock)
 ├── scripts/         # Personal utility scripts (added to PATH)
 ├── config.fish      # Personal Fish configuration (sourced last)
@@ -418,8 +418,8 @@ fedpunk-stow-profile --delete <pkg>  # Remove custom package
 
 ### Creating Custom Themes
 
-1. Copy existing theme: `cp -r themes/nord profile/dev/themes/my-theme`
-2. Edit theme files in `profile/dev/themes/my-theme/`
+1. Copy existing theme: `cp -r themes/nord profiles/dev/themes/my-theme`
+2. Edit theme files in `profiles/dev/themes/my-theme/`
 3. Apply: `fedpunk-theme-set my-theme`
 
 ---
@@ -489,7 +489,7 @@ The Fedpunk repository is **production-ready** and can be used confidently for a
 1. **Immediate:** Run full installation on fresh Fedora system
 2. **Optional:** Test terminal-only mode in devcontainer
 3. **After install:** Configure monitors, select theme, customize keybindings
-4. **Long-term:** Create custom themes in `profile/dev/themes/`
+4. **Long-term:** Create custom themes in `profiles/dev/themes/`
 
 ---
 

@@ -27,9 +27,8 @@ end
 
 success "Rofi installed: "(which rofi)
 
-# Deploy configuration
-cd "$FEDPUNK_PATH"
-run_quiet "Deploying Rofi config" stow --restow -d config -t ~ rofi
+# Configuration will be deployed by chezmoi at end of installation
+info "Rofi config prepared (will be deployed with chezmoi)"
 
 success "Rofi setup complete"
 

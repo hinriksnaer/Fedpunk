@@ -14,14 +14,8 @@ info "Setting up tmux"
 # Install package
 step "Installing tmux" "sudo dnf install -qy tmux"
 
-# Deploy configuration
-if test -d "$FEDPUNK_PATH"
-    cd "$FEDPUNK_PATH"
-    run_quiet "Deploying tmux config" stow --restow -d config -t "$HOME" tmux
-else
-    error "FEDPUNK_PATH not set or directory doesn't exist: $FEDPUNK_PATH"
-    exit 1
-end
+# Configuration will be deployed by chezmoi at end of installation
+info "tmux config prepared (will be deployed with chezmoi)"
 
 # Setup tmux plugin manager
 if not test -d $HOME/.tmux/plugins/tpm

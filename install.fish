@@ -153,20 +153,16 @@ else
     echo "[SKIPPED] Desktop installation (terminal-only mode)" >> "$FEDPUNK_LOG_FILE"
 end
 
-# Link bin directory
+# Deploy all configurations with chezmoi
 echo ""
-info "Linking bin scripts"
+info "Deploying all configurations with chezmoi"
 cd "$FEDPUNK_PATH"
-if mkdir -p $HOME/.local/bin >> "$FEDPUNK_LOG_FILE" 2>&1
-    success "Created bin directory"
-else
-    error "Failed to create bin directory"
-end
 
-if stow --restow -d $FEDPUNK_PATH -t $HOME/.local bin >> "$FEDPUNK_LOG_FILE" 2>&1
-    success "Linked bin scripts"
+if $HOME/.local/bin/chezmoi apply >> "$FEDPUNK_LOG_FILE" 2>&1
+    success "All configurations deployed successfully"
 else
-    error "Failed to link bin scripts"
+    error "Failed to deploy configurations with chezmoi"
+    exit 1
 end
 
 run_fish_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"

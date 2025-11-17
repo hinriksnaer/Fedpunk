@@ -12,23 +12,24 @@ end
 echo ""
 section "Fish Shell Setup"
 
-# Install stow (CRITICAL - needed for configuration deployment)
-if gum spin --spinner dot --title "Installing stow (configuration management)..." -- \
-    fish -c "sudo dnf install -qy stow >>$FEDPUNK_LOG_FILE 2>&1"
-    success "stow installed"
+# Install chezmoi (CRITICAL - needed for configuration deployment)
+if gum spin --spinner dot --title "Installing chezmoi (configuration management)..." -- \
+    fish -c "curl -sL https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-linux-amd64 -o $HOME/.local/bin/chezmoi && chmod +x $HOME/.local/bin/chezmoi >>$FEDPUNK_LOG_FILE 2>&1"
+    success "chezmoi installed"
 else
-    error "Failed to install stow"
+    error "Failed to install chezmoi"
     exit 1
 end
 
-# Deploy Fish configuration using stow
-if gum spin --spinner dot --title "Deploying Fish configuration..." -- \
-    fish -c "stow --restow -d $FEDPUNK_PATH/config -t ~ fish >>$FEDPUNK_LOG_FILE 2>&1"
-    success "Fish configuration deployed"
-else
-    error "Failed to deploy Fish configuration"
-    exit 1
+# Initialize chezmoi with fedpunk as source
+if test ! -f "$HOME/.config/chezmoi/chezmoi.toml"
+    mkdir -p "$HOME/.config/chezmoi"
+    echo 'sourceDir = "/home/'(whoami)'/.local/share/fedpunk"' > "$HOME/.config/chezmoi/chezmoi.toml"
+    success "Chezmoi configured"
 end
+
+# Fish configuration will be deployed by chezmoi at the end of installation
+info "Fish configuration prepared (will be deployed with chezmoi)"
 
 # Install chsh utility if needed
 if not command -v chsh >/dev/null 2>&1
@@ -105,11 +106,11 @@ box "Fish Shell Setup Complete!
 
 Configured:
   🐟 Fish shell - Set as default shell
-  📦 GNU Stow - Configuration management
+  📦 chezmoi - Configuration management
   ⭐ Starship - Fast, customizable prompt
   🎣 Fisher - Fish plugin manager
   🔎 fzf.fish - Fuzzy finder integration
-  ⚙️  Fish config - Deployed from ~/.local/share/fedpunk/config/fish
+  ⚙️  Fish config - Managed by chezmoi
 
 Note: gum was installed by boot.sh and is available system-wide" $GUM_SUCCESS
 echo ""

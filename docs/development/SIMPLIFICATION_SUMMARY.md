@@ -1,7 +1,7 @@
 # Fedpunk Simplification Summary
 
 **Date:** 2025-11-17
-**Changes:** Removed incomplete `profiles/` system in favor of simpler `profile/dev/` approach
+**Changes:** Removed incomplete `profiles/` system in favor of simpler `profiles/dev/` approach
 
 ---
 
@@ -10,12 +10,12 @@
 ### Removed
 - ❌ `profiles/` directory (4 empty profile directories)
 - ❌ `bin/fedpunk-use` script
-- ❌ `.active-config` from .gitignore (it's now just a symlink to `profile/dev/`)
+- ❌ `.active-config` from .gitignore (it's now just a symlink to `profiles/dev/`)
 - ❌ `PROFILES_VS_CUSTOM.md` documentation
 
 ### Kept
-- ✅ `profile/dev/` directory (the ONLY place for user customizations)
-- ✅ `.active-config` symlink → `profile/dev/` (used internally by theme scripts)
+- ✅ `profiles/dev/` directory (the ONLY place for user customizations)
+- ✅ `.active-config` symlink → `profiles/dev/` (used internally by theme scripts)
 - ✅ Installation mode selection via flags (`--terminal-only`)
 - ✅ All 12 built-in themes in `themes/`
 
@@ -26,11 +26,11 @@
 **The Problem:**
 1. **Not Implemented** - All `profiles/` subdirectories were empty
 2. **Installer Ignores It** - Installation uses `--terminal-only` flag, not profile configs
-3. **Confusion** - Two systems (`profiles/` and `profile/dev/`) doing similar things
+3. **Confusion** - Two systems (`profiles/` and `profiles/dev/`) doing similar things
 4. **Duplication** - Both had themes/, scripts/, config/ subdirectories
 
 **The Solution:**
-- Keep only `profile/dev/` - it's simpler, clearer, and already works
+- Keep only `profiles/dev/` - it's simpler, clearer, and already works
 - Use command-line flags for installation variants (already implemented)
 
 ---
@@ -40,7 +40,7 @@
 ```
 fedpunk/
 ├── themes/              ← 12 built-in themes (shared)
-├── profile/dev/              ← YOUR customizations (gitignored)
+├── profiles/dev/              ← YOUR customizations (gitignored)
 │   ├── themes/          ← Your themes (searched FIRST)
 │   ├── scripts/         ← Your scripts
 │   ├── config/          ← Stow-managed dotfiles
@@ -76,28 +76,28 @@ fish install.fish --terminal-only    # Terminal-only
 
 ### Customization (One Location)
 
-All customizations go in `profile/dev/`:
+All customizations go in `profiles/dev/`:
 
 ```bash
 # Personal aliases
-cat >> profile/dev/config.fish << 'EOF'
+cat >> profiles/dev/config.fish << 'EOF'
 alias gs='git status'
 set -x EDITOR nvim
 EOF
 
 # Personal theme
-cp -r themes/nord profile/dev/themes/my-theme
-vim profile/dev/themes/my-theme/kitty.conf
+cp -r themes/nord profiles/dev/themes/my-theme
+vim profiles/dev/themes/my-theme/kitty.conf
 fedpunk-theme-set my-theme
 
 # Personal Hyprland shortcuts
-cat >> profile/dev/keybinds.conf << 'EOF'
+cat >> profiles/dev/keybinds.conf << 'EOF'
 bind = Super, M, exec, spotify
 EOF
 
 # Manage dotfiles (git, alacritty, etc.)
-mkdir -p profile/dev/config/git
-vim profile/dev/config/git/.gitconfig
+mkdir -p profiles/dev/config/git
+vim profiles/dev/config/git/.gitconfig
 fedpunk-stow-profile git
 ```
 
@@ -111,18 +111,18 @@ profiles/default/       ← Empty, not used by installer
 profiles/minimal/       ← Empty, not used by installer
 profiles/gaming/        ← Empty, not used by installer
 profiles/terminal-only/ ← Empty, not used by installer
-profile/dev/                 ← Actually works
+profiles/dev/                 ← Actually works
 bin/fedpunk-use         ← Script that switches between profiles
 ```
 
 **Questions users would have:**
-- "Should I use profiles/ or profile/dev/?"
+- "Should I use profiles/ or profiles/dev/?"
 - "Why isn't fedpunk-use doing anything?"
 - "Where do I put my themes?"
 
 ### After (Simple)
 ```
-profile/dev/  ← Put ALL your customizations here
+profiles/dev/  ← Put ALL your customizations here
 ```
 
 **Clear answer:**
@@ -137,7 +137,7 @@ profile/dev/  ← Put ALL your customizations here
 The theme system continues to work exactly as before:
 
 **Search Order:**
-1. `profile/dev/themes/` ← Your themes (highest priority)
+1. `profiles/dev/themes/` ← Your themes (highest priority)
 2. `themes/` ← Built-in themes
 
 **Commands:**
@@ -162,7 +162,7 @@ There's nothing to migrate! The `profiles/` directories were all empty, so:
 
 **If you were confused by profiles:**
 
-Great news! Now there's only one place to look: `profile/dev/`
+Great news! Now there's only one place to look: `profiles/dev/`
 
 ---
 
@@ -170,18 +170,18 @@ Great news! Now there's only one place to look: `profile/dev/`
 
 ### How .active-config Works
 
-`.active-config` is a symlink to `profile/dev/`:
+`.active-config` is a symlink to `profiles/dev/`:
 
 ```bash
 $ ls -la ~/.local/share/fedpunk/.active-config
-lrwxrwxrwx 1 user user 41 Nov 16 02:22 .active-config -> profile/dev/
+lrwxrwxrwx 1 user user 41 Nov 16 02:22 .active-config -> profiles/dev/
 ```
 
 This symlink is used internally by theme scripts to find user themes:
 
 ```fish
 # Theme scripts check:
-1. $FEDPUNK_PATH/.active-config/themes/  (→ profile/dev/themes/)
+1. $FEDPUNK_PATH/.active-config/themes/  (→ profiles/dev/themes/)
 2. $FEDPUNK_PATH/themes/                  (→ themes/)
 ```
 
@@ -200,7 +200,7 @@ After cleanup, verified:
 - ✅ No `fedpunk-use` script
 - ✅ No references to "profiles" in bin/ or install/
 - ✅ No references to "profiles" in README.md
-- ✅ `.active-config` correctly points to `profile/dev/`
+- ✅ `.active-config` correctly points to `profiles/dev/`
 - ✅ All theme scripts still work
 - ✅ Installation scripts unchanged
 - ✅ Documentation updated
@@ -209,20 +209,20 @@ After cleanup, verified:
 
 ## 🎓 Best Practices
 
-### DO: Use profile/dev/
+### DO: Use profiles/dev/
 
 ```bash
 # ✅ Personal themes
-cp -r themes/catppuccin profile/dev/themes/my-theme
+cp -r themes/catppuccin profiles/dev/themes/my-theme
 
 # ✅ Personal aliases
-echo "alias ll='ls -lah'" >> profile/dev/config.fish
+echo "alias ll='ls -lah'" >> profiles/dev/config.fish
 
 # ✅ Personal keybinds
-echo "bind = Super, M, exec, spotify" >> profile/dev/keybinds.conf
+echo "bind = Super, M, exec, spotify" >> profiles/dev/keybinds.conf
 
 # ✅ Manage dotfiles
-mkdir -p profile/dev/config/git
+mkdir -p profiles/dev/config/git
 fedpunk-stow-profile git
 ```
 
@@ -232,15 +232,15 @@ fedpunk-stow-profile git
 # ❌ Don't edit core configs directly
 vim config/fish/.config/fish/config.fish  # NO
 
-# ✅ Instead, override in profile/dev/
-vim profile/dev/config.fish  # YES
+# ✅ Instead, override in profiles/dev/
+vim profiles/dev/config.fish  # YES
 
 # ❌ Don't edit built-in themes
 vim themes/nord/kitty.conf  # NO
 
-# ✅ Instead, copy to profile/dev/
-cp -r themes/nord profile/dev/themes/my-nord
-vim profile/dev/themes/my-nord/kitty.conf  # YES
+# ✅ Instead, copy to profiles/dev/
+cp -r themes/nord profiles/dev/themes/my-nord
+vim profiles/dev/themes/my-nord/kitty.conf  # YES
 ```
 
 ---
@@ -249,19 +249,19 @@ vim profile/dev/themes/my-nord/kitty.conf  # YES
 
 | Aspect | Before | After |
 |--------|--------|-------|
-| **Customization locations** | 2 (profiles/, profile/dev/) | 1 (profile/dev/) |
+| **Customization locations** | 2 (profiles/, profiles/dev/) | 1 (profiles/dev/) |
 | **Empty directories** | 12 (profiles/*/{config,scripts,themes}) | 0 |
 | **Unused scripts** | 1 (fedpunk-use) | 0 |
-| **User confusion** | "Where do I put things?" | "Everything in profile/dev/" |
+| **User confusion** | "Where do I put things?" | "Everything in profiles/dev/" |
 | **Functionality** | Installation flags work | Same (no change) |
-| **Themes** | profile/dev/ → themes/ | Same (no change) |
+| **Themes** | profiles/dev/ → themes/ | Same (no change) |
 
 ---
 
 ## 🚀 Going Forward
 
 **For Users:**
-- Put everything in `profile/dev/`
+- Put everything in `profiles/dev/`
 - Choose installation variant via bootstrap script
 - No more confusion about profiles
 

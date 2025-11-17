@@ -1,0 +1,21 @@
+# Development Profile (Terminal-Only)
+# For servers, containers, and headless environments
+
+[profile]
+name = "Development (Terminal)"
+description = "Terminal-only development with containers and Git workflow (no desktop/Hyprland)"
+author = "hinriksnaer"
+
+[packages]
+# Additional packages needed (beyond base fedpunk install)
+extra = []
+
+[scripts]
+# Setup scripts to run (in order)
+setup = []
+
+# To use this profile:
+#   1. Copy: cp -r profiles/dev-terminal profiles/yourname
+#   2. Customize: Edit configs in profiles/yourname/config/
+#   3. Activate: ln -sf profiles/yourname .active-config
+#   4. Deploy: fedpunk-stow-profile fish git ssh

@@ -1,18 +1,18 @@
 # Profile Configuration
 
-Your personal profile is stored in `profile/dev/` and is **gitignored**. This is your space for customizations.
+Your personal profile is stored in `profiles/dev/` and is **gitignored**. This is your space for customizations.
 Anything you put here won't cause merge conflicts when pulling updates.
 
-**Note:** The profile system supports multiple profiles (e.g., `profile/work/`, `profile/gaming/`), but you can start with just `dev/` for your development setup.
+**Note:** The profile system supports multiple profiles (e.g., `profiles/work/`, `profiles/gaming/`), but you can start with just `dev/` for your development setup.
 
 ## What Goes Here?
 
-### `profile/dev/themes/`
+### `profiles/dev/themes/`
 Add your own custom themes here. They'll appear alongside the built-in themes.
 
 **Structure:**
 ```
-profile/dev/themes/my-theme/
+profiles/dev/themes/my-theme/
 ├── hyprland.conf
 ├── kitty.conf
 ├── rofi.rasi
@@ -29,22 +29,22 @@ profile/dev/themes/my-theme/
 fedpunk-theme-set my-theme
 ```
 
-### `profile/dev/scripts/`
+### `profiles/dev/scripts/`
 Add personal utility scripts here. They'll be available in your PATH after sourcing Fish config.
 
 **Example:**
 ```fish
-# profile/dev/scripts/my-script.fish
+# profiles/dev/scripts/my-script.fish
 #!/usr/bin/env fish
 echo "My custom script!"
 ```
 
-### `profile/dev/config.fish`
+### `profiles/dev/config.fish`
 Personal Fish shell configuration that sources after the main config.
 
 **Example:**
 ```fish
-# profile/dev/config.fish
+# profiles/dev/config.fish
 
 # Personal aliases
 alias gs='git status'
@@ -58,12 +58,12 @@ set -x BROWSER firefox
 set -x FEDPUNK_DEFAULT_THEME "my-theme"
 ```
 
-### `profile/dev/keybinds.conf`
+### `profiles/dev/keybinds.conf`
 Custom Hyprland keybindings that supplement or override defaults.
 
 **Example:**
 ```conf
-# profile/dev/keybinds.conf
+# profiles/dev/keybinds.conf
 
 # Custom application launchers
 bind = Super, B, exec, firefox
@@ -73,19 +73,19 @@ bind = Super, M, exec, spotify
 bind = Super, Return, exec, kitty --class floating
 ```
 
-### `profile/dev/config/`
-**Stow-based custom dotfiles** - manage any dotfile using GNU Stow.
+### `profiles/dev/config/`
+**chezmoi-based custom dotfiles** - manage any dotfile using chezmoi.
 
 This is the most flexible option for managing dotfiles for apps not covered above or extending existing configs.
 
 **Structure:**
 ```
-profile/dev/config/
-├── nvim-profile/dev/          # Package name
+profiles/dev/config/
+├── nvim-profiles/dev/          # Package name
 │   └── .config/          # Mirrors home directory
 │       └── nvim/
 │           └── lua/
-│               └── profile/dev/
+│               └── profiles/dev/
 │                   └── init.lua
 ├── git/
 │   ├── .gitconfig
@@ -98,7 +98,7 @@ profile/dev/config/
 
 **Usage:**
 ```bash
-# Stow a package (creates symlinks from ~/ to profile/dev/config/)
+# Stow a package (creates symlinks from ~/ to profiles/dev/config/)
 fedpunk-stow-profile nvim-custom
 
 # List all packages
@@ -111,17 +111,17 @@ fedpunk-stow-profile --delete nvim-custom
 fedpunk-stow-profile --all
 ```
 
-**See [`profile/dev/config/README.md`](config/README.md) for detailed documentation.**
+**See [`profiles/dev/config/README.md`](config/README.md) for detailed documentation.**
 
 ## How It Works
 
-The installation and theme scripts check `profile/dev/` first, then fall back to defaults:
+The installation and theme scripts check `profiles/dev/` first, then fall back to defaults:
 
-1. **Themes**: `profile/dev/themes/` is searched before `themes/`
-2. **Scripts**: `profile/dev/scripts/` added to Fish function path
-3. **Config**: `profile/dev/config.fish` sourced if it exists
-4. **Keybinds**: `profile/dev/keybinds.conf` included in Hyprland config
-5. **Dotfiles**: `profile/dev/config/` packages stowed via `fedpunk-stow-profile`
+1. **Themes**: `profiles/dev/themes/` is searched before `themes/`
+2. **Scripts**: `profiles/dev/scripts/` added to Fish function path
+3. **Config**: `profiles/dev/config.fish` sourced if it exists
+4. **Keybinds**: `profiles/dev/keybinds.conf` included in Hyprland config
+5. **Dotfiles**: `profiles/dev/config/` packages stowed via `fedpunk-stow-profile`
 
 ## Getting Started
 
@@ -132,10 +132,10 @@ The installation and theme scripts check `profile/dev/` first, then fall back to
 **Quick Start:**
 ```bash
 # Create your custom config
-cp config/fish/.config/fish/config.fish profile/dev/config.fish
+cp config/fish/.config/fish/config.fish profiles/dev/config.fish
 
 # Create a custom theme based on existing one
-cp -r themes/ayu-mirage profile/dev/themes/my-theme
+cp -r themes/ayu-mirage profiles/dev/themes/my-theme
 
 # Edit to your heart's content!
 ```
@@ -143,7 +143,7 @@ cp -r themes/ayu-mirage profile/dev/themes/my-theme
 ## What's Safe to Commit?
 
 **Never committed (gitignored):**
-- Everything in `profile/dev/`
+- Everything in `profiles/dev/`
 - Active theme symlinks
 - Fish shell variables
 

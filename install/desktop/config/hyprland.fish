@@ -87,8 +87,8 @@ end
 
 # Deploy configuration
 cd "$FEDPUNK_PATH"
-run_quiet "Deploying Hyprland config" stow --restow -d config -t ~ hyprland
-run_quiet "Deploying Waybar config" stow --restow -d config -t ~ waybar
+info "Hyprland config prepared (will be deployed with chezmoi)"
+info "Waybar config prepared (will be deployed with chezmoi)"
 
 # Enable mako notification daemon service
 step "Enabling mako notification service" "systemctl --user enable mako.service"

@@ -76,13 +76,8 @@ end
 # Stow yazi configuration
 echo ""
 info "Setting up Yazi configuration"
-if test -d "$FEDPUNK_PATH/config/yazi"
-    step "Deploying yazi config with stow" "cd $FEDPUNK_PATH/config && stow -t ~ yazi"
-else
-    warning "Yazi config directory not found, skipping stow"
-    # Create minimal config directory
-    step "Creating config directory" "mkdir -p ~/.config/yazi"
-end
+# Yazi config is managed by chezmoi
+info "yazi config prepared (will be deployed with chezmoi)"
 
 # Set up Fish integration
 echo ""

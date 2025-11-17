@@ -9,7 +9,7 @@ Complete reference for Fedpunk configuration files and their locations.
 ```
 ~/.local/share/fedpunk/          ← Main Fedpunk directory
 ├── themes/                      ← Built-in themes (12 themes)
-├── profile/dev/                      ← Your customizations (gitignored)
+├── profiles/dev/                      ← Your customizations (gitignored)
 ├── config/                      ← Core application configs
 ├── bin/                         ← Utility scripts
 └── install/                     ← Installation scripts
@@ -42,12 +42,12 @@ Complete reference for Fedpunk configuration files and their locations.
 - Theme integration
 
 ### Custom Overrides
-**Location:** `profile/dev/config.fish`
+**Location:** `profiles/dev/config.fish`
 **Loaded:** After main config (your settings win)
 
 **Example:**
 ```fish
-# profile/dev/config.fish
+# profiles/dev/config.fish
 alias gs='git status'
 alias gp='git push'
 set -x EDITOR nvim
@@ -104,12 +104,12 @@ monitor=HDMI-A-1,1920x1080@60,2560x0,1
 **Configure workspace rules and assignments**
 
 ### Custom Keybindings
-**Location:** `profile/dev/keybinds.conf`
+**Location:** `profiles/dev/keybinds.conf`
 **Loaded:** After default keybinds (your bindings can override defaults)
 
 **Example:**
 ```conf
-# profile/dev/keybinds.conf
+# profiles/dev/keybinds.conf
 bind = Super, M, exec, spotify
 bind = Super+Shift, F, exec, firefox --private-window
 ```
@@ -157,7 +157,7 @@ bind = Super+Shift, F, exec, firefox --private-window
 - Theme integration
 
 ### Customization
-Edit files in `~/.config/nvim/lua/config/` or add to `profile/dev/config/nvim/`
+Edit files in `~/.config/nvim/lua/config/` or add to `profiles/dev/config/nvim/`
 
 ---
 
@@ -185,7 +185,7 @@ Edit files in `~/.config/nvim/lua/config/` or add to `profile/dev/config/nvim/`
 
 ### Theme Storage
 **Built-in:** `~/.local/share/fedpunk/themes/`
-**Custom:** `profile/dev/themes/`
+**Custom:** `profiles/dev/themes/`
 
 ### Theme Structure
 ```
@@ -262,12 +262,12 @@ themes/my-theme/
 ## 🔧 Custom Dotfiles (Stow)
 
 ### Location
-**Base:** `profile/dev/config/`
+**Base:** `profiles/dev/config/`
 
 ### Structure
 Each package mirrors your home directory:
 ```
-profile/dev/config/
+profiles/dev/config/
 ├── git/
 │   ├── .gitconfig
 │   └── .gitignore_global
@@ -306,11 +306,11 @@ fedpunk-stow-profile --delete git
 - Application defaults
 
 ### Custom Environment
-**Location:** `profile/dev/config.fish`
+**Location:** `profiles/dev/config.fish`
 
 **Example:**
 ```fish
-# profile/dev/config.fish
+# profiles/dev/config.fish
 set -x EDITOR nvim
 set -x BROWSER firefox
 set -x VISUAL nvim
@@ -339,7 +339,7 @@ Fedpunk follows XDG standards:
 ### Fish Shell
 1. System config: `/etc/fish/config.fish`
 2. Fedpunk config: `~/.config/fish/config.fish`
-3. Custom config: `profile/dev/config.fish` ← **Your overrides**
+3. Custom config: `profiles/dev/config.fish` ← **Your overrides**
 
 ### Hyprland
 1. Main config: `hyprland.conf`
@@ -348,11 +348,11 @@ Fedpunk follows XDG standards:
 4. Environment: `conf.d/env.conf`
 5. Core configs: `conf.d/*.conf`
 6. Keybinds: `conf.d/keybinds.conf`
-7. Custom keybinds: `profile/dev/keybinds.conf` ← **Your overrides**
+7. Custom keybinds: `profiles/dev/keybinds.conf` ← **Your overrides**
 8. Autostart: `conf.d/autostart.conf`
 
 ### Themes
-1. Custom themes: `profile/dev/themes/` ← **Searched first**
+1. Custom themes: `profiles/dev/themes/` ← **Searched first**
 2. Built-in themes: `themes/`
 
 ---
@@ -360,10 +360,10 @@ Fedpunk follows XDG standards:
 ## 📝 Configuration Tips
 
 ### Best Practices
-1. **Never edit core configs directly** - Use `profile/dev/` instead
+1. **Never edit core configs directly** - Use `profiles/dev/` instead
 2. **Test changes** before committing
 3. **Backup before major changes**
-4. **Use version control** for your `profile/dev/` directory
+4. **Use version control** for your `profiles/dev/` directory
 5. **Document custom changes**
 
 ### Testing Changes
@@ -389,7 +389,7 @@ hyprctl reload  # Reload config
 ```bash
 # Backup custom directory
 tar czf ~/fedpunk-custom-backup-$(date +%Y%m%d).tar.gz \
-    ~/.local/share/fedpunk/profile/dev/
+    ~/.local/share/fedpunk/profiles/dev/
 
 # Or use git
 cd ~/.local/share/fedpunk/custom
@@ -419,8 +419,8 @@ vim ~/.config/kitty/kitty.conf
 vim ~/.config/nvim/init.lua
 
 # Custom overrides
-vim ~/.local/share/fedpunk/profile/dev/config.fish
-vim ~/.local/share/fedpunk/profile/dev/keybinds.conf
+vim ~/.local/share/fedpunk/profiles/dev/config.fish
+vim ~/.local/share/fedpunk/profiles/dev/keybinds.conf
 ```
 
 ### Finding Files
