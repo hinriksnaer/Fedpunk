@@ -54,4 +54,4 @@ set pretty_name (echo $selected_theme | string trim)
 notify-send "Theme Switching" "Applying theme: $pretty_name" -t 2000
 
 # Apply the theme silently in background
-nohup $HOME/.local/share/fedpunk/bin/fedpunk-theme-set "$theme_name" >/dev/null 2>&1 &
+nohup $HOME/.local/bin/fedpunk-theme-set "$theme_name" >/dev/null 2>&1 &

@@ -174,10 +174,10 @@ if command -v podman >/dev/null 2>&1
 
     for container in $containers
         # Check if fedpunk is installed in the container
-        if podman exec $container test -f /root/.local/share/fedpunk/bin/fedpunk 2>/dev/null
+        if podman exec $container test -f /root/.local/bin/fedpunk 2>/dev/null
             echo ""
             info "Updating theme in container: $container"
-            if podman exec $container /root/.local/share/fedpunk/bin/fedpunk theme set $theme_name >/dev/null 2>&1
+            if podman exec $container /root/.local/bin/fedpunk theme set $theme_name >/dev/null 2>&1
                 success "Updated $container"
             else
                 warning "Failed to update $container"

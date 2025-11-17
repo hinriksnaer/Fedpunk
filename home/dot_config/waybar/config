@@ -138,7 +138,7 @@
     "on-click": "kitty btop"
   },
   "custom/gpu": {
-    "exec": "~/.local/share/fedpunk/bin/waybar-gpu.sh",
+    "exec": "~/.local/bin/waybar-gpu.sh",
     "return-type": "json",
     "interval": 2,
     "format": "󰢮 {}",
