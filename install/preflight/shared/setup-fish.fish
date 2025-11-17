@@ -26,9 +26,9 @@ end
 # Initialize chezmoi with fedpunk as source
 if test ! -f "$HOME/.config/chezmoi/chezmoi.toml"
     mkdir -p "$HOME/.config/chezmoi"
-    # Use $FEDPUNK_PATH for correct path in both host and container environments
-    echo "sourceDir = \"$FEDPUNK_PATH\"" > "$HOME/.config/chezmoi/chezmoi.toml"
-    success "Chezmoi configured with sourceDir: $FEDPUNK_PATH"
+    # Use $FEDPUNK_PATH/home for correct path in both host and container environments
+    echo "sourceDir = \"$FEDPUNK_PATH/home\"" > "$HOME/.config/chezmoi/chezmoi.toml"
+    success "Chezmoi configured with sourceDir: $FEDPUNK_PATH/home"
 end
 
 # Fish configuration will be deployed by chezmoi at the end of installation
