@@ -19,6 +19,7 @@ if not command -v rustc >/dev/null 2>&1
     '
 
     # Add cargo to PATH for current session (Fish-compatible way)
+    # Use -gx to ensure it's exported globally and persists across script boundaries
     set -gx PATH $HOME/.cargo/bin $PATH
 
     # Add to installer-managed config (never committed to git)

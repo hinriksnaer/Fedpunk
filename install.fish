@@ -34,6 +34,11 @@ if test "$non_interactive" = true
     set -x FEDPUNK_NON_INTERACTIVE true
 end
 
+# If FEDPUNK_TERMINAL_ONLY is already set via environment, ensure FEDPUNK_SKIP_DESKTOP is also set
+if set -q FEDPUNK_TERMINAL_ONLY; and test "$FEDPUNK_TERMINAL_ONLY" = "true"
+    set -x FEDPUNK_SKIP_DESKTOP true
+end
+
 # Color codes
 set C_RESET '\033[0m'
 set C_GREEN '\033[0;32m'
@@ -89,6 +94,13 @@ function run_fish_script
     echo "" >> "$FEDPUNK_LOG_FILE"
 
     info "Step $STEP_COUNT: $description"
+
+    # Ensure cargo is in PATH before each step (may have been installed in earlier steps)
+    if test -d "$HOME/.cargo/bin"
+        if not contains "$HOME/.cargo/bin" $PATH
+            set -gx PATH "$HOME/.cargo/bin" $PATH
+        end
+    end
 
     if source "$script_name"
         set -g INSTALL_STEPS $INSTALL_STEPS "✓ $description"
