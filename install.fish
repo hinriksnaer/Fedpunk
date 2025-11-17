@@ -96,10 +96,10 @@ function run_fish_script
     info "Step $STEP_COUNT: $description"
 
     # Ensure cargo is in PATH before each step (may have been installed in earlier steps)
-    if test -d "$HOME/.cargo/bin"
-        if not contains "$HOME/.cargo/bin" $PATH
-            set -gx PATH "$HOME/.cargo/bin" $PATH
-        end
+    # Always try to add cargo to PATH if it's not already there, regardless of directory existence
+    # This handles cases where cargo gets installed during the process
+    if not contains "$HOME/.cargo/bin" $PATH
+        set -gx PATH "$HOME/.cargo/bin" $PATH
     end
 
     if source "$script_name"
