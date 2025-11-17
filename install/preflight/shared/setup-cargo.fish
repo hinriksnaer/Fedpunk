@@ -67,8 +67,7 @@ set cargo_config "$cargo_config_dir/config.toml"
 
 if not test -f "$cargo_config"
     mkdir -p "$cargo_config_dir"
-    cat > "$cargo_config" << 'EOF'
-# Cargo configuration for faster builds
+    printf '# Cargo configuration for faster builds
 # This speeds up all cargo install commands in fedpunk
 
 [build]
@@ -98,7 +97,7 @@ opt-level = 2
 opt-level = 3
 lto = "thin"
 codegen-units = 1
-EOF
+' > "$cargo_config"
     success "Cargo config created with build optimizations"
 else
     success "Cargo config already exists"

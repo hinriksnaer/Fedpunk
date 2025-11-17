@@ -162,10 +162,21 @@ echo ""
 info "Deploying all configurations with chezmoi"
 cd "$FEDPUNK_PATH"
 
-if $HOME/.local/bin/chezmoi apply >> "$FEDPUNK_LOG_FILE" 2>&1
+# Ensure chezmoi is available and add to PATH if needed
+if not command -v chezmoi >/dev/null 2>&1
+    if test -f "$HOME/.local/bin/chezmoi"
+        set -gx PATH "$HOME/.local/bin" $PATH
+    else
+        error "chezmoi not found at $HOME/.local/bin/chezmoi"
+        exit 1
+    end
+end
+
+# Run chezmoi apply with verbose output and timeout to prevent hanging
+if timeout 300 chezmoi apply --verbose >> "$FEDPUNK_LOG_FILE" 2>&1
     success "All configurations deployed successfully"
 else
-    error "Failed to deploy configurations with chezmoi"
+    error "Failed to deploy configurations with chezmoi (may have timed out)"
     exit 1
 end
 
