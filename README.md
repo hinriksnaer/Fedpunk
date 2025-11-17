@@ -445,6 +445,40 @@ Fedpunk is built around core principles:
 
 ---
 
+## Known Issues (v0.1.0)
+
+The following issues are known in this release and will be addressed in future versions:
+
+**Installation:**
+- **Yazi file manager**: Installation may fail if `unzip` package is missing; cargo build can fail on minimal container systems
+- **Neovim configuration**: Git submodule deployment may require manual initialization with `git submodule update --init --recursive`
+- **Final chezmoi deployment**: May fail in some edge cases during installation; investigating root cause
+
+**Profile System:**
+- **Profile config deployment**: Profile-specific config deployment not fully implemented (see `fedpunk-activate-profile:236`)
+- **Stow migration**: Users upgrading from pre-0.1.0 need to migrate from Stow-based profiles (see CHANGELOG.md migration guide)
+
+**Desktop:**
+- **Theme symlink creation**: First-time theme setup may require manual `fedpunk theme set <theme-name>`
+- **Profile keybindings**: Profile-specific keybinds.conf inclusion pending full implementation
+
+**Workarounds:**
+```bash
+# Install yazi dependencies manually if needed
+sudo dnf install -y unzip
+
+# Initialize Neovim submodules if needed
+cd ~/.local/share/fedpunk
+git submodule update --init --recursive
+
+# Manually set theme on first install
+fedpunk theme set ayu-mirage
+```
+
+Installation logs are saved to `/tmp/fedpunk-install-*.log` for troubleshooting.
+
+---
+
 ## Contributing
 
 1. Fork the repository
