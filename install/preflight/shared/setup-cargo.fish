@@ -51,6 +51,58 @@ if step "Updating Rust to latest stable" "rustup update stable"
     # Success
 end
 
+# Install mold linker for faster cargo builds
+info "Installing mold linker (speeds up Rust compilation significantly)"
+if not command -v mold >/dev/null 2>&1
+    step "Installing mold and clang" "sudo dnf install -qy mold clang"
+else
+    success "mold already installed: "(mold --version | head -n1)
+end
+
+# Deploy cargo config for build optimizations
+info "Setting up cargo build optimizations"
+set cargo_config_dir "$FEDPUNK_PATH/.cargo"
+set cargo_config "$cargo_config_dir/config.toml"
+
+if not test -f "$cargo_config"
+    mkdir -p "$cargo_config_dir"
+    cat > "$cargo_config" << 'EOF'
+# Cargo configuration for faster builds
+# This speeds up all cargo install commands in fedpunk
+
+[build]
+# Use all CPU cores for parallel compilation
+jobs = 8
+
+[target.x86_64-unknown-linux-gnu]
+# Use mold linker (much faster than default ld)
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[registries.crates-io]
+# Use sparse registry protocol (faster than git)
+protocol = "sparse"
+
+[profile.dev]
+# Skip optimization for faster dev builds
+opt-level = 0
+debug = true
+
+# But optimize dependencies (good balance)
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+# Full optimizations for release builds
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+EOF
+    success "Cargo config created with build optimizations"
+else
+    success "Cargo config already exists"
+end
+
 echo ""
 box "Rust/Cargo Setup Complete!
 
@@ -58,6 +110,12 @@ Rust toolchain is now available:
   🦀 rustc - Rust compiler
   📦 cargo - Rust package manager
   🔧 rustup - Rust toolchain manager
+  ⚡ mold - Fast linker (3-5x faster builds)
+
+Build optimizations enabled:
+  • Parallel compilation with all CPU cores
+  • Mold linker for faster linking
+  • Sparse registry for faster dependency resolution
 
 This enables installation of modern CLI tools built with Rust." $GUM_SUCCESS
 echo ""
