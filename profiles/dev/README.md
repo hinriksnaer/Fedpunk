@@ -6,34 +6,27 @@ Use this as a starting point for your own profile, or keep your personal setup e
 
 ## What's Configured
 
-Everything is organized as **Stow packages** for consistency. Each package mirrors your home directory structure.
+Profiles provide overlays that extend or customize the base Fedpunk configuration.
 
-### Stow Packages
+### Profile Structure
 
-#### **config/fish/** - Fish shell customizations
-Location: `~/.config/fish/config.fish`
+#### **config.fish** - Fish shell customizations
+Sourced by the main Fish config at `~/.config/fish/config.fish`
+
+Add your personal:
 - Git aliases (gs, ga, gc, gp, gl, etc.)
-- Development shortcuts (dev, dots, .., ...)
-- Editor setup (nvim)
-- PATH additions (cargo, local bin)
+- Development shortcuts
+- Environment variables
+- Editor preferences
+- Custom PATH entries
 
-Deploy: `fedpunk-stow-profile fish`
+#### **keybinds.conf** - Hyprland keybindings
+Included by Hyprland config at `~/.config/hypr/conf.d/keybinds.conf`
 
-#### **config/hypr/** - Hyprland configuration
-Locations:
-- `~/.config/hypr/monitors.conf` - Ultrawide monitor (7679x2160@120)
-- `~/.config/hypr/conf.d/keybinds.conf` - Custom keybindings
-
-Deploy: `fedpunk-stow-profile hypr`
-
-#### **config/git/** - Git configuration
-Locations:
-- `~/.gitconfig` - Aliases and settings
-- `~/.gitignore_global` - Global ignore patterns
-
-**TODO**: Update email in `.gitconfig`
-
-Deploy: `fedpunk-stow-profile git`
+Add your custom:
+- Application launchers
+- Window management shortcuts
+- Workspace bindings
 
 ### Scripts
 
@@ -41,120 +34,100 @@ Deploy: `fedpunk-stow-profile git`
 - **scripts/setup-podman.fish** - Setup Podman for containers
 - **scripts/setup-devcontainer.fish** - Setup Devcontainer CLI
 
-### Container Development
-
-The profile includes Podman and Devcontainer CLI setup:
-
-**Setup:**
-```bash
-./scripts/setup-podman.fish           # Install and configure Podman
-./scripts/setup-devcontainer.fish     # Install devcontainer CLI
-```
-
-**Aliases included:**
-- `docker` → `podman` (Docker compatibility)
-- `docker-compose` → `podman-compose`
-- `dc-up` → Start devcontainer
-- `dc-exec` → Execute in devcontainer
-- `dc-rebuild` → Rebuild devcontainer
-
-**Environment:**
-- `DOCKER_HOST` set for Podman socket
-- Docker API compatibility enabled
-
 ### Themes
 
 - **themes/** - Your custom themes (if any)
 
 ## Setup Checklist
 
-- [ ] Update git email in `config/git/.gitconfig`
-- [ ] Update monitor name in `config/hypr/.config/hypr/monitors.conf` (run `hyprctl monitors`)
-- [ ] Deploy configs:
-  ```bash
-  fedpunk-stow-profile fish
-  fedpunk-stow-profile hypr
-  fedpunk-stow-profile git
-  ```
-- [ ] Customize aliases in `config/fish/.config/fish/config.fish`
-- [ ] Add custom keybinds in `config/hypr/.config/hypr/conf.d/keybinds.conf`
-- [ ] Setup container development (optional):
-  ```bash
-  ./scripts/setup-podman.fish
-  ./scripts/setup-devcontainer.fish
-  ```
+- [ ] Create your profile: `cp -r profiles/example profiles/myprofile`
+- [ ] Activate it: `ln -sf profiles/myprofile ~/.local/share/fedpunk/.active-config`
+- [ ] Customize `config.fish` with your aliases and environment
+- [ ] Add custom `keybinds.conf` if using desktop mode
+- [ ] Add utility scripts to `scripts/` directory
+- [ ] Reload Fish config: `source ~/.config/fish/config.fish`
 
-## Adding More Configs
+## Customization Examples
 
-### SSH Configuration
+### Fish Shell Aliases
 
-```bash
-# Copy example
-cp -r ../example/ssh-config.example config/ssh
+Edit `profiles/myprofile/config.fish`:
+```fish
+# Git shortcuts
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
 
-# Edit with your hosts
-nvim config/ssh/.ssh/config
+# Development
+set -x EDITOR nvim
+set -x BROWSER firefox
 
-# Deploy
-fedpunk-stow-profile ssh
-chmod 600 ~/.ssh/config
+# Custom PATH
+fish_add_path -g $HOME/my-tools/bin
 ```
 
-### NVIDIA Configuration (if needed)
+### Hyprland Keybindings
 
-NVIDIA setup is handled during installation. Re-run the installer if you need to add GPU support.
+Edit `profiles/myprofile/keybinds.conf`:
+```conf
+# Custom application launchers
+bind = Super, B, exec, firefox
+bind = Super, M, exec, spotify
 
-### Other Stow Packages
-
-Create any dotfile package in `config/`:
-
-```bash
-mkdir -p config/myapp
-# Add files mirroring home directory structure
-# Deploy with: fedpunk-stow-profile myapp
+# Override defaults
+bind = Super, Return, exec, kitty --class floating
 ```
 
-## Using This as a Template
+### Utility Scripts
 
-### Option 1: Copy to Your Own Profile
-
-```bash
-# Create your personal profile
-cp -r profiles/dev profiles/yourname
-
-# Update .active-config symlink
-ln -sf profiles/yourname .active-config
-
-# Customize your profile
-nvim profiles/yourname/config.fish
+Add to `profiles/myprofile/scripts/`:
+```fish
+#!/usr/bin/env fish
+# profiles/myprofile/scripts/my-tool.fish
+echo "My custom tool!"
 ```
 
-### Option 2: Start Fresh
-
-```bash
-# Create new profile
-mkdir -p profiles/yourname
-
-# Copy what you want from dev and example
-cp profiles/example/*.example profiles/yourname/
-cp profiles/dev/monitors.conf profiles/yourname/
-
-# Link it
-ln -sf profiles/yourname .active-config
-```
+Scripts in this directory are automatically added to your PATH.
 
 ## Profile Management
 
-The `.active-config` symlink determines which profile is active.
+Profiles are activated via the `.active-config` symlink in the Fedpunk directory.
 
-Switch profiles:
+### Creating a New Profile
+
 ```bash
-ln -sf profiles/work .active-config
-# Reload shell or restart Hyprland
+# Create from template
+cp -r ~/.local/share/fedpunk/profiles/example ~/.local/share/fedpunk/profiles/myprofile
+
+# Activate it
+ln -sf profiles/myprofile ~/.local/share/fedpunk/.active-config
+
+# Customize
+nvim ~/.local/share/fedpunk/profiles/myprofile/config.fish
 ```
+
+### Switching Profiles
+
+```bash
+# Switch to different profile
+ln -sf profiles/work ~/.local/share/fedpunk/.active-config
+
+# Reload shell
+source ~/.config/fish/config.fish
+
+# Or restart Hyprland to apply keybindings
+```
+
+### Multiple Profiles
+
+You can create profiles for different contexts:
+- `profiles/work/` - Work setup
+- `profiles/personal/` - Personal projects
+- `profiles/gaming/` - Gaming configuration
+- `profiles/presentation/` - Presentation mode
 
 ## See Also
 
-- [Profile Examples](../example/README.md) - Templates and examples
-- [Customization Guide](../../docs/guides/customization.md) - Full guide
+- [Example Profile](../example/README.md) - Minimal profile template
+- [Customization Guide](../../docs/guides/customization.md) - Full customization guide
 - [Configuration Reference](../../docs/reference/configuration.md) - All config files

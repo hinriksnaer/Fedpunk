@@ -1,159 +1,160 @@
 # Example Profile Template
 
-This is a **comprehensive template** with examples and extensive documentation.
+This is a minimal profile template to get you started.
 
-**Use this as your starting point!**
+**Copy this to create your own profile!**
 
 ## Quick Start
 
 ```bash
-# Copy this template to create your own profile
-cp -r profiles/example profiles/yourname
-
-# Customize it
-nvim profiles/yourname/config/git/.gitconfig      # Add your name/email
-nvim profiles/yourname/config/hypr/.config/hypr/monitors.conf  # Configure monitors
+# Copy this template
+cp -r ~/.local/share/fedpunk/profiles/example ~/.local/share/fedpunk/profiles/myprofile
 
 # Activate it
-ln -sf profiles/yourname .active-config
+ln -sf profiles/myprofile ~/.local/share/fedpunk/.active-config
 
-# Deploy configs
-fedpunk-stow-profile fish
-fedpunk-stow-profile hypr
-fedpunk-stow-profile git
+# Customize
+nvim ~/.local/share/fedpunk/profiles/myprofile/config.fish
 ```
 
-## What's Configured
+## Profile Structure
 
-Everything is organized as **Stow packages** for consistency. Each package mirrors your home directory structure.
+```
+profiles/myprofile/
+├── config.fish          # Fish shell customizations (sourced by main config)
+├── keybinds.conf        # Hyprland keybindings (included by main config)
+├── scripts/             # Utility scripts (automatically added to PATH)
+│   └── my-tool.fish
+├── themes/              # Custom themes (optional)
+│   └── my-theme/
+└── README.md            # Documentation
+```
 
-### Stow Packages
+## What Goes Where
 
-#### **config/fish/** - Fish shell customizations
-Location: `~/.config/fish/config.fish`
-- Git aliases (gs, ga, gc, gp, gl, etc.)
-- Development shortcuts (dev, dots, .., ...)
-- Editor setup (nvim)
-- PATH additions (cargo, local bin)
+### config.fish - Shell Customizations
 
-Deploy: `fedpunk-stow-profile fish`
+This file is automatically sourced by `~/.config/fish/config.fish`.
 
-#### **config/hypr/** - Hyprland configuration
-Locations:
-- `~/.config/hypr/monitors.conf` - Ultrawide monitor (7679x2160@120)
-- `~/.config/hypr/conf.d/keybinds.conf` - Custom keybindings
+Add your:
+- Aliases
+- Environment variables
+- Custom functions
+- PATH additions
 
-Deploy: `fedpunk-stow-profile hypr`
+**Example:**
+```fish
+# Git shortcuts
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit -m'
 
-#### **config/git/** - Git configuration
-Locations:
-- `~/.gitconfig` - Aliases and settings
-- `~/.gitignore_global` - Global ignore patterns
+# Development
+set -x EDITOR nvim
+set -x BROWSER firefox
 
-**TODO**: Update email in `.gitconfig`
+# Custom tools
+fish_add_path -g $HOME/my-tools/bin
+```
 
-Deploy: `fedpunk-stow-profile git`
+### keybinds.conf - Hyprland Keybindings
 
-#### **config/ssh/** - SSH configuration
-Location: `~/.ssh/config`
-- GitHub/GitLab setup
-- Jump host examples
-- Connection sharing
+This file is included by `~/.config/hypr/conf.d/keybinds.conf`.
 
-Deploy: `fedpunk-stow-profile ssh`
+Add your:
+- Application launchers
+- Custom shortcuts
+- Workspace bindings
 
-### Scripts
+**Example:**
+```conf
+# Launch applications
+bind = Super, B, exec, firefox
+bind = Super, M, exec, spotify
 
-- **scripts/install-nvim-mcp.fish** - Neovim MCP integration
+# Override defaults
+bind = Super, Return, exec, kitty --class floating
+```
 
-### Themes
+### scripts/ - Utility Scripts
 
-- **themes/** - Your custom themes (if any)
+Scripts in this directory are automatically added to your PATH.
+
+**Example:**
+```fish
+#!/usr/bin/env fish
+# profiles/myprofile/scripts/project-switch.fish
+
+function project-switch
+    set projects ~/projects/*
+    set choice (printf '%s\n' $projects | fzf)
+    cd $choice
+end
+
+project-switch
+```
+
+Make it executable:
+```bash
+chmod +x profiles/myprofile/scripts/project-switch.fish
+```
+
+### themes/ - Custom Themes
+
+Add custom themes that will be available via `fedpunk theme set`.
+
+See the main `themes/` directory for examples.
 
 ## Setup Checklist
 
-- [ ] Update git email in `config/git/.gitconfig`
-- [ ] Update monitor name in `config/hypr/.config/hypr/monitors.conf` (run `hyprctl monitors`)
-- [ ] Deploy configs:
-  ```bash
-  fedpunk-stow-profile fish
-  fedpunk-stow-profile hypr
-  fedpunk-stow-profile git
-  ```
-- [ ] Customize aliases in `config/fish/.config/fish/config.fish`
-- [ ] Add custom keybinds in `config/hypr/.config/hypr/conf.d/keybinds.conf`
-
-## Adding More Configs
-
-### SSH Configuration
-
-```bash
-# Copy example
-cp -r ../example/ssh-config.example config/ssh
-
-# Edit with your hosts
-nvim config/ssh/.ssh/config
-
-# Deploy
-fedpunk-stow-profile ssh
-chmod 600 ~/.ssh/config
-```
-
-### NVIDIA Configuration (if needed)
-
-NVIDIA setup is handled during installation. Re-run the installer if you need to add GPU support.
-
-### Other Stow Packages
-
-Create any dotfile package in `config/`:
-
-```bash
-mkdir -p config/myapp
-# Add files mirroring home directory structure
-# Deploy with: fedpunk-stow-profile myapp
-```
-
-## Using This as a Template
-
-### Option 1: Copy to Your Own Profile
-
-```bash
-# Create your personal profile
-cp -r profiles/dev profiles/yourname
-
-# Update .active-config symlink
-ln -sf profiles/yourname .active-config
-
-# Customize your profile
-nvim profiles/yourname/config.fish
-```
-
-### Option 2: Start Fresh
-
-```bash
-# Create new profile
-mkdir -p profiles/yourname
-
-# Copy what you want from dev and example
-cp profiles/example/*.example profiles/yourname/
-cp profiles/dev/monitors.conf profiles/yourname/
-
-# Link it
-ln -sf profiles/yourname .active-config
-```
+- [ ] Copy profile template: `cp -r profiles/example profiles/myprofile`
+- [ ] Activate profile: `ln -sf profiles/myprofile ~/.local/share/fedpunk/.active-config`
+- [ ] Edit `config.fish` with your preferences
+- [ ] Add custom keybindings to `keybinds.conf` (if using desktop)
+- [ ] Add utility scripts to `scripts/` directory
+- [ ] Reload config: `source ~/.config/fish/config.fish`
 
 ## Profile Management
 
-The `.active-config` symlink determines which profile is active.
+### Activating a Profile
 
-Switch profiles:
 ```bash
-ln -sf profiles/work .active-config
-# Reload shell or restart Hyprland
+ln -sf profiles/myprofile ~/.local/share/fedpunk/.active-config
+source ~/.config/fish/config.fish
+```
+
+### Switching Profiles
+
+```bash
+# Switch to work profile
+ln -sf profiles/work ~/.local/share/fedpunk/.active-config
+
+# Reload
+source ~/.config/fish/config.fish
+
+# Restart Hyprland to apply keybindings (if desktop mode)
+```
+
+### Multiple Profiles
+
+Create different profiles for different contexts:
+
+```bash
+# Work setup
+profiles/work/
+
+# Personal projects
+profiles/personal/
+
+# Gaming configuration
+profiles/gaming/
+
+# Presentation mode
+profiles/presentation/
 ```
 
 ## See Also
 
-- [Profile Examples](../example/README.md) - Templates and examples
-- [Customization Guide](../../docs/guides/customization.md) - Full guide
-- [Configuration Reference](../../docs/reference/configuration.md) - All config files
+- [Dev Profile](../dev/README.md) - Full featured example
+- [Dev-Terminal Profile](../dev-terminal/README.md) - Terminal-only example
+- [Customization Guide](../../docs/guides/customization.md) - Full customization guide

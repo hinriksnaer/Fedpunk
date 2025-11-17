@@ -73,55 +73,16 @@ bind = Super, M, exec, spotify
 bind = Super, Return, exec, kitty --class floating
 ```
 
-### `profiles/dev/config/`
-**chezmoi-based custom dotfiles** - manage any dotfile using chezmoi.
-
-This is the most flexible option for managing dotfiles for apps not covered above or extending existing configs.
-
-**Structure:**
-```
-profiles/dev/config/
-├── nvim-profiles/dev/          # Package name
-│   └── .config/          # Mirrors home directory
-│       └── nvim/
-│           └── lua/
-│               └── profiles/dev/
-│                   └── init.lua
-├── git/
-│   ├── .gitconfig
-│   └── .gitignore_global
-└── alacritty/
-    └── .config/
-        └── alacritty/
-            └── alacritty.toml
-```
-
-**Usage:**
-```bash
-# Stow a package (creates symlinks from ~/ to profiles/dev/config/)
-fedpunk-stow-profile nvim-custom
-
-# List all packages
-fedpunk-stow-profile --list
-
-# Unstow (remove symlinks)
-fedpunk-stow-profile --delete nvim-custom
-
-# Stow all packages
-fedpunk-stow-profile --all
-```
-
-**See [`profiles/dev/config/README.md`](config/README.md) for detailed documentation.**
-
 ## How It Works
 
-The installation and theme scripts check `profiles/dev/` first, then fall back to defaults:
+Profiles provide runtime overlays that customize the base Fedpunk configuration:
 
 1. **Themes**: `profiles/dev/themes/` is searched before `themes/`
-2. **Scripts**: `profiles/dev/scripts/` added to Fish function path
-3. **Config**: `profiles/dev/config.fish` sourced if it exists
-4. **Keybinds**: `profiles/dev/keybinds.conf` included in Hyprland config
-5. **Dotfiles**: `profiles/dev/config/` packages stowed via `fedpunk-stow-profile`
+2. **Scripts**: `profiles/dev/scripts/` automatically added to PATH
+3. **Config**: `profiles/dev/config.fish` sourced by main Fish config
+4. **Keybinds**: `profiles/dev/keybinds.conf` included by Hyprland config
+
+All profile files are loaded dynamically at runtime - no deployment command needed!
 
 ## Getting Started
 
