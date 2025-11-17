@@ -233,40 +233,16 @@ if not test -d "$config_dir"
     exit 0
 end
 
-# Get all config packages in the profile
-set packages (find "$config_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+# TODO: Profile config deployment with chezmoi
+# Profile configs need to be integrated with chezmoi templates/data system
+# For now, base configs are deployed via chezmoi, profile-specific overrides TBD
 
-if test (count $packages) -eq 0
-    warning "No config packages found in profile"
-else
-    set stowed_count 0
-    set skipped_count 0
-
-    for pkg in $packages
-        set pkg_type (categorize_package $pkg)
-
-        # Skip desktop packages if not in desktop environment
-        if test "$pkg_type" = "desktop" -a "$env_type" = "terminal"
-            echo "  Skipping: $pkg (desktop package, terminal-only environment)"
-            set skipped_count (math $skipped_count + 1)
-            continue
-        end
-
-        # Stow the package
-        echo "  Deploying: $pkg"
-        if stow --restow -d "$config_dir" -t "$HOME" "$pkg" 2>/dev/null
-            success "  Stowed: $pkg"
-            set stowed_count (math $stowed_count + 1)
-        else
-            warning "  Failed to stow: $pkg"
-        end
-    end
-
-    echo ""
-    if test $skipped_count -gt 0
-        info "Summary: $stowed_count deployed, $skipped_count skipped (not applicable to $env_type environment)"
-    else
-        success "Summary: $stowed_count packages deployed"
+if test -d "$config_dir"
+    set packages (find "$config_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+    if test (count $packages) -gt 0
+        info "Profile has "(count $packages)" config package(s): $packages"
+        warning "Profile config deployment not yet integrated with chezmoi"
+        echo "  Base configs are deployed. Profile-specific overrides coming soon."
     end
 end
 
