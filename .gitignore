@@ -22,7 +22,7 @@ local/
 
 # User profiles (personal customizations, won't cause merge conflicts)
 profile/*/
-!profile/.examples/
+!profile/example/
 
 # Devcontainer (for testing only)
 .devcontainer/
