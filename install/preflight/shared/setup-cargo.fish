@@ -29,13 +29,13 @@ if not command -v rustc >/dev/null 2>&1
     if test -f "$installer_config"
         # Update existing file - add Rust if not present
         if not grep -q "Rust/Cargo" "$installer_config" 2>/dev/null
-            printf "\n# Rust/Cargo\nset -gx PATH \$HOME/.cargo/bin \$PATH\n" >> "$installer_config"
+            printf "\n# Rust/Cargo\nfish_add_path -g \$HOME/.cargo/bin\n" >> "$installer_config"
         end
     else
         # Create new file
         printf "# Auto-managed by Fedpunk installer - DO NOT EDIT\n" > "$installer_config"
         printf "# This file is regenerated on installation\n\n" >> "$installer_config"
-        printf "# Rust/Cargo\nset -gx PATH \$HOME/.cargo/bin \$PATH\n" >> "$installer_config"
+        printf "# Rust/Cargo\nfish_add_path -g \$HOME/.cargo/bin\n" >> "$installer_config"
     end
 
     success "Rust toolchain installed"

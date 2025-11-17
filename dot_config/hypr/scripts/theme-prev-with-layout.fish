@@ -5,4 +5,4 @@
 fish $HOME/.config/hypr/scripts/restore-layout.fish
 
 # Switch to previous theme (will reload with correct layout)
-$HOME/.local/share/fedpunk/bin/fedpunk-theme-prev
+$HOME/.local/bin/fedpunk-theme-prev

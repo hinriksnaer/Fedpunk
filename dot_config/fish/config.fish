@@ -1,12 +1,11 @@
 # Environment variables
-set -gx PATH $HOME/.local/bin $PATH
-set -gx PATH $HOME/.local/share/fedpunk/bin $PATH
+fish_add_path -g $HOME/.local/bin
 # Note: Rust/Cargo PATH is managed in conf.d/installer-managed.fish
 
 # Add active config scripts to PATH if directory exists
 set -l active_config "$HOME/.local/share/fedpunk/.active-config"
 if test -L "$active_config"; and test -d "$active_config/scripts"
-    set -gx PATH "$active_config/scripts" $PATH
+    fish_add_path -g "$active_config/scripts"
 end
 
 # History

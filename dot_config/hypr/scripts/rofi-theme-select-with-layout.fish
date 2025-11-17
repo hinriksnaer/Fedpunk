@@ -6,4 +6,4 @@ fish $HOME/.config/hypr/scripts/restore-layout.fish
 
 # Open rofi theme selector (blocks until selection made)
 # Will reload with correct layout already in config
-$HOME/.local/share/fedpunk/bin/rofi-theme-select
+$HOME/.local/bin/rofi-theme-select
