@@ -16,6 +16,7 @@ setup = [
     "scripts/install-nvim-mcp.fish",
     "scripts/setup-podman.fish",
     "scripts/setup-devcontainer.fish",
+    "scripts/setup-protonpass.fish",
 ]
 
 # To use this profile:

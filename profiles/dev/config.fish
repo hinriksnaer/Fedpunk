@@ -51,6 +51,9 @@ alias grs='git reset --soft HEAD~1'
 # Development Shortcuts
 # ================================
 
+# Password manager
+alias pass='proton-pass'
+
 # Container management
 alias dc='docker'
 alias dcp='docker ps'
