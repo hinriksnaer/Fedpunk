@@ -7,7 +7,7 @@
 #   2. Reads profile's fedpunk.toml
 #   3. Installs extra packages
 #   4. Runs setup scripts
-#   5. Deploys configs using stow (auto-detects desktop vs terminal)
+#   5. Deploys configs using chezmoi (auto-detects desktop vs terminal)
 
 set FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 set PROFILES_DIR "$FEDPUNK_PATH/profiles"
