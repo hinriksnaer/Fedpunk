@@ -1,3 +1,14 @@
+{{- if eq (env "FEDPUNK_TERMINAL_ONLY") "true" }}
+# Desktop configs (ignored in terminal-only mode)
+.config/hypr/**
+.config/kitty/**
+.config/mako/**
+.config/rofi/**
+.config/waybar/**
+.config/swaylock/**
+.config/wlogout/**
+{{- end }}
+
 # Theme symlinks (managed by fedpunk theme system)
 .config/btop/themes/active.theme
 .config/btop/themes/current.theme
