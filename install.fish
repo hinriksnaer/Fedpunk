@@ -1,4 +1,14 @@
 #!/usr/bin/env fish
+# Fedpunk Installation Script
+#
+# Usage: ./install.fish [OPTIONS]
+#
+# OPTIONS:
+#   --terminal-only    Install only terminal components (skip desktop environment)
+#   --non-interactive  Run without user prompts (for automated installations)
+#   --verbose          Show real-time output from all installation steps
+#
+# For debugging installation issues, use: ./install.fish --verbose
 
 # Exit immediately if a command exits with a non-zero status
 set -e
@@ -6,6 +16,7 @@ set -e
 # Parse command-line flags
 set terminal_only false
 set non_interactive false
+set verbose false
 
 for arg in $argv
     switch $arg
@@ -13,6 +24,8 @@ for arg in $argv
             set terminal_only true
         case --non-interactive
             set non_interactive true
+        case --verbose
+            set verbose true
     end
 end
 
@@ -32,6 +45,10 @@ end
 
 if test "$non_interactive" = true
     set -x FEDPUNK_NON_INTERACTIVE true
+end
+
+if test "$verbose" = true
+    set -x FEDPUNK_VERBOSE true
 end
 
 # If FEDPUNK_TERMINAL_ONLY is already set via environment, ensure FEDPUNK_SKIP_DESKTOP is also set
@@ -94,7 +111,10 @@ function run_fish_script
     echo "" >> "$FEDPUNK_LOG_FILE"
 
     info "Step $STEP_COUNT: $description"
-
+    
+    # Show which script is running for transparency
+    echo -e "$C_BLUE  → Running: $script_name$C_RESET"
+    
     # Ensure cargo is in PATH before each step (may have been installed in earlier steps)
     # Always try to add cargo to PATH if it's not already there, regardless of directory existence
     # This handles cases where cargo gets installed during the process
@@ -102,7 +122,17 @@ function run_fish_script
         set -gx PATH "$HOME/.cargo/bin" $PATH
     end
 
-    if source "$script_name"
+    # Add verbose mode check - if FEDPUNK_VERBOSE is set, show real-time output
+    if set -q FEDPUNK_VERBOSE
+        echo "  Running with verbose output enabled..."
+        source "$script_name" 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
+        set script_result $pipestatus[1]
+    else
+        source "$script_name"
+        set script_result $status
+    end
+    
+    if test $script_result -eq 0
         set -g INSTALL_STEPS $INSTALL_STEPS "✓ $description"
         success "Completed: $description"
         echo "" >> "$FEDPUNK_LOG_FILE"
@@ -172,11 +202,14 @@ if not command -v chezmoi >/dev/null 2>&1
     end
 end
 
-# Run chezmoi apply with verbose output and timeout to prevent hanging
-if timeout 300 chezmoi apply --verbose >> "$FEDPUNK_LOG_FILE" 2>&1
+# Run chezmoi apply with real-time output and timeout to prevent hanging
+info "Running: chezmoi apply --verbose (timeout: 5 minutes)"
+echo "Real-time output:"
+if timeout 300 chezmoi apply --verbose 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
     success "All configurations deployed successfully"
 else
-    error "Failed to deploy configurations with chezmoi (may have timed out)"
+    error "Failed to deploy configurations with chezmoi (exit code: $status)"
+    error "Check the output above and log file: $FEDPUNK_LOG_FILE"
     exit 1
 end
 
