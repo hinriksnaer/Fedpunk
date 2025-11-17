@@ -40,7 +40,7 @@ function M.open(config)
   local original_win = vim.api.nvim_get_current_win()
 
   -- Calculate size
-  local size = config.window.position == "right" or config.window.position == "left"
+  local size = (config.window.position == "right" or config.window.position == "left")
     and config.window.width
     or config.window.height
 
