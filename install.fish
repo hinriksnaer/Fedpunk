@@ -16,9 +16,11 @@ for arg in $argv
     end
 end
 
-# Define Fedpunk locations - always derive from script location
-set script_dir (dirname (status -f))
-set -x FEDPUNK_PATH (realpath "$script_dir")
+# Define Fedpunk locations - prefer environment variable, fallback to script location
+if not set -q FEDPUNK_PATH
+    set script_dir (dirname (status -f))
+    set -x FEDPUNK_PATH (realpath "$script_dir")
+end
 set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 set -x PATH "$FEDPUNK_PATH/bin" $PATH
 

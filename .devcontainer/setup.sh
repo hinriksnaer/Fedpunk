@@ -28,7 +28,9 @@ mkdir -p ~/.local/share
 ln -sf /workspaces/fedpunk ~/.local/share/fedpunk
 
 echo "→ Starting Fedpunk terminal-only installation..."
-cd ~/.local/share/fedpunk
+# Export FEDPUNK_PATH to ensure it points to the correct location
+export FEDPUNK_PATH=/workspaces/fedpunk
+cd /workspaces/fedpunk
 fish install.fish --terminal-only --non-interactive
 
 echo ""
