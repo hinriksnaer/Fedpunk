@@ -142,18 +142,8 @@ end
 
 # Terminal components (always installed)
 run_fish_script "$FEDPUNK_INSTALL/terminal/packaging/all.fish" "Terminal Package Installation"
-run_fish_script "$FEDPUNK_INSTALL/terminal/config/all.fish" "Terminal Configuration Deployment"
 
-# Desktop components (conditional)
-if not set -q FEDPUNK_SKIP_DESKTOP
-    run_fish_script "$FEDPUNK_INSTALL/desktop/packaging/all.fish" "Desktop Package Installation"
-    run_fish_script "$FEDPUNK_INSTALL/desktop/config/all.fish" "Desktop Configuration Deployment"
-else
-    info "Skipping desktop components (terminal-only mode)"
-    echo "[SKIPPED] Desktop installation (terminal-only mode)" >> "$FEDPUNK_LOG_FILE"
-end
-
-# Deploy all configurations with chezmoi
+# Deploy all configurations with chezmoi BEFORE running config scripts that depend on them
 echo ""
 info "Deploying all configurations with chezmoi"
 cd "$FEDPUNK_PATH"
@@ -163,6 +153,18 @@ if $HOME/.local/bin/chezmoi apply >> "$FEDPUNK_LOG_FILE" 2>&1
 else
     error "Failed to deploy configurations with chezmoi"
     exit 1
+end
+
+# Now run terminal config scripts that may depend on deployed configs
+run_fish_script "$FEDPUNK_INSTALL/terminal/config/all.fish" "Terminal Configuration Deployment"
+
+# Desktop components (conditional)
+if not set -q FEDPUNK_SKIP_DESKTOP
+    run_fish_script "$FEDPUNK_INSTALL/desktop/packaging/all.fish" "Desktop Package Installation"
+    run_fish_script "$FEDPUNK_INSTALL/desktop/config/all.fish" "Desktop Configuration Deployment"
+else
+    info "Skipping desktop components (terminal-only mode)"
+    echo "[SKIPPED] Desktop installation (terminal-only mode)" >> "$FEDPUNK_LOG_FILE"
 end
 
 run_fish_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
