@@ -56,7 +56,7 @@ function show_usage
     echo ""
     echo "Examples:"
     echo "  fedpunk-activate-profile dev              # Activate dev profile"
-    echo "  fedpunk-activate-profile dev-terminal     # Activate terminal-only profile"
+    echo "  fedpunk-activate-profile example          # Activate example profile (template)"
 end
 
 function detect_environment

@@ -247,7 +247,7 @@ switch $command
                 end
 
                 # Ask which template to use
-                set template (gum choose --header "Select template to copy from:" "example" "dev" "dev-terminal")
+                set template (gum choose --header "Select template to copy from:" "example" "dev")
 
                 if test -z "$template"
                     echo "No template selected"

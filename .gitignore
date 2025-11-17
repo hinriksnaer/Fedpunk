@@ -24,7 +24,6 @@ local/
 profiles/*/
 !profiles/example/
 !profiles/dev/
-!profiles/dev-terminal/
 
 # Development tools
 .devcontainer/
