@@ -51,15 +51,11 @@ alias grs='git reset --soft HEAD~1'
 # Development Shortcuts
 # ================================
 
-# Password manager - Bitwarden CLI
+# Password manager - Bitwarden via fedpunk vault
 if command -v bw >/dev/null
-    alias bwu='bwunlock'
+    alias vault='fedpunk vault'
     alias bwl='bw list items'
-    alias bwg='bw-get'
     alias bwgen='bw generate'
-    alias bws='bw sync'
-    alias bwssh='bw-ssh-load'
-    alias bwsshadd='fish ~/.local/share/fedpunk/profiles/dev/scripts/bw-ssh-add.fish'
 end
 
 # Container management
@@ -172,29 +168,18 @@ end
 # Bitwarden Integration
 # ================================
 
-# Auto-unlock Bitwarden on shell start (only for interactive shells)
+# Check Bitwarden status in background (non-blocking, elegant approach)
 if status is-interactive; and command -v bw >/dev/null 2>&1
-    set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-
-    if test "$bw_status" = "locked"
-        # Vault is locked, prompt to unlock
-        if command -v gum >/dev/null 2>&1
-            if gum confirm "🔒 Bitwarden vault is locked. Unlock now?" --default=false
-                bwunlock
-            end
-        else
-            echo "🔒 Bitwarden vault is locked. Run 'bwunlock' to unlock."
+    # Run check in background to avoid blocking shell startup
+    fish -c '
+        set bw_status (bw status 2>/dev/null | grep -o "\"status\":\"[^\"]*\"" | cut -d"\"" -f4)
+        if test "$bw_status" = "locked"
+            echo "🔒 Bitwarden vault is locked. Run '\''fedpunk vault unlock'\'' to unlock." >&2
+        else if test "$bw_status" = "unauthenticated"
+            echo "🔒 Bitwarden not logged in. Run '\''fedpunk vault login'\'' to login." >&2
         end
-    else if test "$bw_status" = "unauthenticated"
-        # Not logged in
-        if command -v gum >/dev/null 2>&1
-            if gum confirm "🔒 Bitwarden not logged in. Login now?" --default=false
-                bwlogin
-            end
-        else
-            echo "🔒 Bitwarden not logged in. Run 'bwlogin' to login."
-        end
-    end
+    ' &
+    disown
 end
 
 # SSH Agent persistence
