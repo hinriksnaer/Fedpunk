@@ -1,6 +1,10 @@
 # Environment variables
 fish_add_path -g $HOME/.local/bin
 # Note: Rust/Cargo PATH is managed in conf.d/installer-managed.fish
+# Note: Rust/Cargo PATH is managed in conf.d/installer-managed.fish
+set -gx CLAUDE_CODE_USE_VERTEX 1
+set -gx CLOUD_ML_REGION us-east5
+set -gx ANTHROPIC_VERTEX_PROJECT_ID itpc-gcp-ai-eng-claude
 
 # Add active config scripts to PATH if directory exists
 set -l active_config "$HOME/.local/share/fedpunk/.active-config"
