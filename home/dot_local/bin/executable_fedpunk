@@ -40,6 +40,7 @@ function show_help
     echo "  vault ssh-restore      Restore SSH keys from vault"
     echo ""
     echo "Configuration Management:"
+    echo "  apply                  Apply current configuration (no git pull)"
     echo "  sync                   Pull latest changes and apply configs"
     echo ""
     echo "Other Commands:"
@@ -52,6 +53,7 @@ function show_help
     echo "  fedpunk profile select          # Select profile (TUI)"
     echo "  fedpunk theme set nord          # Set theme (CLI)"
     echo "  fedpunk vault ssh-backup        # Backup SSH keys"
+    echo "  fedpunk apply                   # Apply local config changes"
     echo "  fedpunk sync                    # Sync config across machines"
     echo ""
     echo "Get more info:"
@@ -488,7 +490,7 @@ switch $command
                 rm -f "$backup_file"
 
                 # Setup metadata
-                set hostname (hostname)
+                set backup_hostname (hostname)
                 set timestamp (date -u +"%Y-%m-%dT%H:%M:%SZ")
 
                 # Check if item exists
@@ -501,7 +503,7 @@ switch $command
 
                     # Create updated note content
                     set note_content "SSH Configuration Backup
-Hostname: $hostname
+Hostname: $backup_hostname
 Timestamp: $timestamp
 Format: tar.gz (base64 encoded)
 
@@ -516,7 +518,7 @@ $encoded_backup
                     echo "→ Creating new backup item..."
 
                     set note_content "SSH Configuration Backup
-Hostname: $hostname
+Hostname: $backup_hostname
 Timestamp: $timestamp
 Format: tar.gz (base64 encoded)
 
@@ -544,7 +546,7 @@ $encoded_backup
                     echo ""
                     echo "✓ SSH configuration backed up successfully"
                     echo "  Item: $item_name"
-                    echo "  Hostname: $hostname"
+                    echo "  Hostname: $backup_hostname"
                     echo "  Timestamp: $timestamp"
                     echo ""
                     echo "💡 Run 'fedpunk vault sync' to sync with server"
@@ -689,6 +691,32 @@ $encoded_backup
                 echo "Run 'fedpunk vault' for help"
                 exit 1
         end
+
+    case apply
+        # Apply current configuration without git pull
+        echo "Applying Fedpunk configuration..."
+        echo ""
+
+        # Apply chezmoi changes
+        echo "→ Applying configuration changes..."
+        if command -v chezmoi >/dev/null 2>&1
+            if chezmoi apply
+                echo "✓ Configuration applied"
+            else
+                echo "✗ Chezmoi apply failed"
+                exit 1
+            end
+        else
+            echo "✗ Chezmoi not installed"
+            echo "  Install with: sudo dnf install chezmoi"
+            exit 1
+        end
+
+        echo ""
+        echo "✓ Apply complete!"
+        echo ""
+        echo "Note: This only applies local changes."
+        echo "Run 'fedpunk sync' to pull from git first."
 
     case sync
         # Sync dotfiles from git and apply changes
