@@ -64,11 +64,14 @@ else
     echo ""
     INSTALL_MODE=$(gum choose \
         "Desktop (Full: Hyprland + Terminal)" \
-        "Terminal-only (Servers/Containers)")
+        "Terminal-only (Servers/Containers)") || true
 
     echo ""
 
-    if [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
+    if [[ -z "$INSTALL_MODE" ]]; then
+        echo "❌ No installation mode selected. Exiting."
+        exit 1
+    elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
         echo "📟 Installing: Terminal-only mode"
         export FEDPUNK_TERMINAL_ONLY=true
     else
@@ -86,11 +89,14 @@ echo ""
 PROFILE=$(gum choose \
     "dev (Development tools + Bitwarden)" \
     "example (Minimal template)" \
-    "none (Skip profile activation)")
+    "none (Skip profile activation)") || true
 
 echo ""
 
-if [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
+if [[ -z "$PROFILE" ]]; then
+    echo "❌ No profile selected. Exiting."
+    exit 1
+elif [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
     echo "📦 Profile: dev"
     export FEDPUNK_PROFILE="dev"
 elif [[ "$PROFILE" == "example (Minimal template)" ]]; then
