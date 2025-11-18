@@ -1,33 +1,53 @@
 #!/usr/bin/env fish
 # Setup Podman for development and devcontainers
 
-echo "🐳 Setting up Podman for development..."
+# Source helper functions (handle both standalone and profile activation modes)
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+else if test -f "$HOME/.local/share/fedpunk/install/helpers/all.fish"
+    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
 
-# Install podman and related tools
-echo "→ Installing Podman..."
-sudo dnf install -y podman podman-compose podman-docker
+section "Podman Setup"
+
+subsection "Installing Podman"
+
+install_packages podman podman-compose podman-docker
+
+subsection "Configuring Podman"
 
 # Enable and start podman socket for Docker API compatibility
-echo "→ Enabling Podman socket..."
-systemctl --user enable --now podman.socket
+step "Enabling Podman socket" "systemctl --user enable --now podman.socket"
 
 # Add Docker socket alias for compatibility
-echo "→ Setting up Docker compatibility..."
 if not test -S /var/run/docker.sock
-    sudo ln -sf /run/user/(id -u)/podman/podman.sock /var/run/docker.sock 2>/dev/null || true
+    step "Setting up Docker compatibility symlink" "sudo ln -sf /run/user/(id -u)/podman/podman.sock /var/run/docker.sock"
 end
 
 # Configure for rootless operation
-echo "→ Configuring rootless podman..."
-sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 (whoami)
+step "Configuring rootless podman" "sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 (whoami)"
 
 # Set Docker host environment variable
 if not grep -q "DOCKER_HOST" ~/.config/fish/config.fish
-    echo "→ Adding DOCKER_HOST to fish config..."
+    info "Adding DOCKER_HOST to fish config..."
     echo "\n# Podman Docker compatibility" >> ~/.config/fish/config.fish
     echo "set -gx DOCKER_HOST unix:///run/user/(id -u)/podman/podman.sock" >> ~/.config/fish/config.fish
+    success "DOCKER_HOST configured"
+else
+    success "DOCKER_HOST already configured"
 end
 
-echo "✓ Podman setup complete!"
 echo ""
-echo "Note: You may need to log out and back in for subuid/subgid changes to take effect"
+box "Podman Setup Complete!
+
+✓ Podman installed
+✓ Docker compatibility enabled
+✓ Rootless configuration complete
+
+⚠️  Note: You may need to log out and back in for
+   subuid/subgid changes to take effect
+
+💡 Use podman commands just like docker:
+  podman run, podman build, podman-compose, etc." $GUM_SUCCESS
+echo ""

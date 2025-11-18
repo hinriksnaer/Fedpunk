@@ -4,7 +4,13 @@
 #
 # Usage: setup-bitwarden.fish [--force|--reinstall]
 
-set -l script_name (status basename)
+# Source helper functions (handle both standalone and profile activation modes)
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+else if test -f "$HOME/.local/share/fedpunk/install/helpers/all.fish"
+    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
 
 # Parse arguments
 set -l force_reinstall false
@@ -15,42 +21,16 @@ for arg in $argv
     end
 end
 
-# Colors for output
-set -l green (tput setaf 2)
-set -l yellow (tput setaf 3)
-set -l red (tput setaf 1)
-set -l reset (tput sgr0)
-
-function info
-    echo "$green✓$reset $argv"
-end
-
-function warn
-    echo "$yellow⚠$reset $argv"
-end
-
-function error
-    echo "$red✗$reset $argv"
-end
-
-echo ""
-echo "Setting up Bitwarden password manager..."
-echo ""
+section "Bitwarden Setup"
 
 # Uninstall if force reinstall is requested
 if test "$force_reinstall" = true
-    warn "Force reinstall requested - uninstalling existing installations..."
+    warning "Force reinstall requested - uninstalling existing installations..."
     echo ""
 
     # Uninstall Flatpak GUI
     if flatpak list --app 2>/dev/null | grep -q "com.bitwarden.desktop"
-        info "Uninstalling Bitwarden desktop app (Flatpak)..."
-        flatpak uninstall -y com.bitwarden.desktop 2>/dev/null
-        if test $status -eq 0
-            info "Bitwarden desktop app uninstalled"
-        else
-            warn "Failed to uninstall Bitwarden desktop app"
-        end
+        step "Uninstalling Bitwarden desktop app" "flatpak uninstall -y com.bitwarden.desktop"
     end
 
     # Uninstall CLI
@@ -68,9 +48,9 @@ if test "$force_reinstall" = true
         rm -f ~/.local/bin/bw
 
         if not command -v bw >/dev/null 2>&1
-            info "Bitwarden CLI uninstalled"
+            success "Bitwarden CLI uninstalled"
         else
-            warn "Some CLI remnants may remain"
+            warning "Some CLI remnants may remain"
         end
     end
 
@@ -80,15 +60,14 @@ end
 # Check if CLI already installed
 set cli_installed false
 if command -v bw >/dev/null 2>&1
-    info "Bitwarden CLI already installed"
-    bw --version
+    success "Bitwarden CLI already installed: "(bw --version)
     set cli_installed true
 end
 
 # Check if GUI already installed
 set gui_installed false
 if flatpak list --app 2>/dev/null | grep -q "com.bitwarden.desktop"
-    info "Bitwarden desktop app already installed (Flatpak)"
+    success "Bitwarden desktop app already installed (Flatpak)"
     set gui_installed true
 end
 
@@ -97,38 +76,28 @@ if test "$cli_installed" = true -a "$gui_installed" = true
     exit 0
 end
 
+subsection "Installing dependencies"
+
 # Install Flatpak if not available
 if not command -v flatpak >/dev/null 2>&1
-    info "Installing Flatpak..."
-    sudo dnf install -qy flatpak
-    if test $status -ne 0
-        error "Failed to install Flatpak"
-        exit 1
-    end
-    info "Flatpak installed successfully"
+    install_package flatpak
 end
 
 # Add Flathub repository if not already added
 if not flatpak remotes 2>/dev/null | grep -q flathub
-    info "Adding Flathub repository..."
-    sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    if test $status -ne 0
-        error "Failed to add Flathub repository"
-        exit 1
-    end
-    info "Flathub repository added"
+    step "Adding Flathub repository" "sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo"
 else
-    info "Flathub repository already configured"
+    success "Flathub repository already configured"
 end
 
 # Install Bitwarden desktop app from Flathub
 if test "$gui_installed" = false
-    info "Installing Bitwarden desktop app from Flathub..."
-    echo ""
+    subsection "Installing Bitwarden desktop app"
+
     flatpak install -y flathub com.bitwarden.desktop
 
     if test $status -eq 0
-        info "Bitwarden desktop app installed successfully!"
+        success "Bitwarden desktop app installed successfully!"
         set gui_installed true
     else
         error "Failed to install Bitwarden desktop app"
@@ -137,25 +106,22 @@ end
 
 # Install Bitwarden CLI
 if test "$cli_installed" = false
-    echo ""
-    info "Installing Bitwarden CLI..."
+    subsection "Installing Bitwarden CLI"
 
     # Install via npm (most reliable method)
     if command -v npm >/dev/null 2>&1
-        sudo npm install -g @bitwarden/cli
+        step "Installing Bitwarden CLI via npm" "sudo npm install -g @bitwarden/cli"
         if test $status -eq 0
-            info "Bitwarden CLI installed successfully!"
             set cli_installed true
         else
-            warn "Failed to install via npm, trying alternative method..."
+            warning "Failed to install via npm, trying alternative method..."
         end
     else
         info "npm not found, installing Node.js first..."
-        sudo dnf install -qy nodejs npm
+        install_packages nodejs npm
         if test $status -eq 0
-            sudo npm install -g @bitwarden/cli
+            step "Installing Bitwarden CLI via npm" "sudo npm install -g @bitwarden/cli"
             if test $status -eq 0
-                info "Bitwarden CLI installed successfully!"
                 set cli_installed true
             end
         end
@@ -186,7 +152,7 @@ if test "$cli_installed" = false
                     rm -rf "$temp_dir"
 
                     if command -v bw >/dev/null 2>&1
-                        info "Bitwarden CLI installed successfully!"
+                        success "Bitwarden CLI installed successfully!"
                         set cli_installed true
                     end
                 else
@@ -207,16 +173,11 @@ end
 function save_session_key
     set session_key $argv[1]
     echo ""
-    echo "  set -Ux BW_SESSION \"$session_key\""
-    echo ""
-
-    # Ask to save session
-    echo ""
     gum style --foreground 212 "  set -Ux BW_SESSION \"$session_key\""
     echo ""
     if gum confirm "Save BW_SESSION for this user?" </dev/tty
         set -Ux BW_SESSION "$session_key"
-        info "BW_SESSION saved! CLI is ready to use."
+        success "BW_SESSION saved! CLI is ready to use."
         return 0
     end
     return 1
@@ -231,7 +192,7 @@ function do_bw_login
     info "Logging in as $email..."
     bw login "$email"; or return 1
 
-    info "Login successful! Unlocking vault..."
+    success "Login successful! Unlocking vault..."
     set session_key (bw unlock --raw)
     test -n "$session_key"; and save_session_key "$session_key"
 end
@@ -245,28 +206,51 @@ end
 
 echo ""
 if test "$gui_installed" = false -o "$cli_installed" = false
-    warn "Bitwarden installation incomplete"
+    warning "Bitwarden installation incomplete"
     test "$gui_installed" = false; and echo "  • Desktop app: Not installed"
     test "$cli_installed" = false; and echo "  • CLI: Not installed"
     exit 1
 end
 
-info "Bitwarden setup complete!"
-echo ""
-echo "GUI App: Search for 'Bitwarden' in app menu"
-echo ""
-
 # Interactive CLI setup (skip in non-interactive mode)
 if set -q FEDPUNK_NON_INTERACTIVE
     info "Run 'bw login' to set up CLI in interactive mode"
+    box "Bitwarden Installed!
+
+✓ Desktop app installed (search for 'Bitwarden' in app menu)
+✓ CLI installed
+
+Next steps:
+  • Run 'bw login' to authenticate CLI
+
+💡 Quick reference:
+  bwg <name>  - Get password
+  bwl         - List items
+  bwgen       - Generate password
+  bws         - Sync vault" $GUM_SUCCESS
     exit 0
 end
 
 # Ask if user wants to set up CLI
-gum confirm "Set up Bitwarden CLI now?" </dev/tty; or exit 0
-
 echo ""
-info "Setting up Bitwarden CLI..."
+if not gum confirm "Set up Bitwarden CLI now?" </dev/tty
+    box "Bitwarden Installed!
+
+✓ Desktop app installed (search for 'Bitwarden' in app menu)
+✓ CLI installed
+
+Next steps:
+  • Run 'bw login' to authenticate CLI
+
+💡 Quick reference:
+  bwg <name>  - Get password
+  bwl         - List items
+  bwgen       - Generate password
+  bws         - Sync vault" $GUM_SUCCESS
+    exit 0
+end
+
+subsection "Setting up Bitwarden CLI"
 
 # Get current status
 set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
@@ -278,9 +262,9 @@ switch $bw_status
     case "locked"
         do_bw_unlock
     case "unlocked"
-        info "CLI is already unlocked and ready!"
+        success "CLI is already unlocked and ready!"
     case "*"
-        warn "Unknown status. Run: bw login"
+        warning "Unknown status. Run: bw login"
 end
 
 # Offer to add SSH keys to Bitwarden
@@ -296,16 +280,13 @@ if test "$bw_status" = "unlocked"
 
     if test (count $ssh_keys) -gt 0
         echo ""
-
-        # Ask about adding SSH keys
-        echo ""
         if gum confirm "Add SSH keys to Bitwarden?" </dev/tty
             set script_dir (dirname (status -f))
             for key in $ssh_keys
                 info "Adding $key to Bitwarden..."
                 fish "$script_dir/bw-ssh-add.fish" "$key"
                 if test $status -ne 0
-                    warn "Failed to add $key"
+                    warning "Failed to add $key"
                 end
                 echo ""
             end
@@ -314,8 +295,16 @@ if test "$bw_status" = "unlocked"
 end
 
 echo ""
-info "CLI Quick Reference:"
-echo "  bwg <name>  - Get password"
-echo "  bwl         - List items"
-echo "  bwgen       - Generate password"
-echo "  bws         - Sync vault"
+box "Bitwarden Setup Complete!
+
+✓ Desktop app installed
+✓ CLI installed and configured
+
+Quick reference:
+  bwg <name>  - Get password
+  bwl         - List items
+  bwgen       - Generate password
+  bws         - Sync vault
+
+💡 Access desktop app from application menu" $GUM_SUCCESS
+echo ""
