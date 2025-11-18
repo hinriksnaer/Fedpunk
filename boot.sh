@@ -80,6 +80,31 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
+# Profile selection
+echo "Choose a profile to activate:"
+echo ""
+PROFILE=$(gum choose \
+    "dev (Development tools + Bitwarden)" \
+    "example (Minimal template)" \
+    "none (Skip profile activation)")
+
+echo ""
+
+if [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
+    echo "📦 Profile: dev"
+    export FEDPUNK_PROFILE="dev"
+elif [[ "$PROFILE" == "example (Minimal template)" ]]; then
+    echo "📦 Profile: example"
+    export FEDPUNK_PROFILE="example"
+else
+    echo "⏭️  Skipping profile activation"
+    export FEDPUNK_PROFILE="none"
+fi
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
 # Use custom repo if specified, otherwise default to your repo
 FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
 

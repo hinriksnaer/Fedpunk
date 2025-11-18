@@ -229,6 +229,24 @@ end
 
 run_fish_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
 
+# Activate profile if selected
+if set -q FEDPUNK_PROFILE; and test "$FEDPUNK_PROFILE" != "none"
+    echo ""
+    info "Activating profile: $FEDPUNK_PROFILE"
+    if test -f "$HOME/.local/bin/fedpunk-activate-profile"
+        if fish "$HOME/.local/bin/fedpunk-activate-profile" "$FEDPUNK_PROFILE"
+            success "Profile '$FEDPUNK_PROFILE' activated successfully"
+        else
+            warning "Profile activation had some issues (check output above)"
+        end
+    else
+        warning "fedpunk-activate-profile not found, skipping profile activation"
+        echo "  You can activate it later with: fedpunk-activate-profile $FEDPUNK_PROFILE"
+    end
+else
+    info "No profile selected, skipping profile activation"
+end
+
 echo ""
 echo "========================================" >> "$FEDPUNK_LOG_FILE"
 echo "INSTALLATION SUMMARY" >> "$FEDPUNK_LOG_FILE"
