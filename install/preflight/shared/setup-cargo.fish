@@ -22,22 +22,7 @@ if not command -v rustc >/dev/null 2>&1
     # Use -gx to ensure it's exported globally and persists across script boundaries
     set -gx PATH $HOME/.cargo/bin $PATH
 
-    # Add to installer-managed config (never committed to git)
-    set installer_config "$HOME/.config/fish/conf.d/installer-managed.fish"
-    mkdir -p (dirname "$installer_config")
-
-    # Create/update the installer-managed config with Rust PATH
-    if test -f "$installer_config"
-        # Update existing file - add Rust if not present
-        if not grep -q "Rust/Cargo" "$installer_config" 2>/dev/null
-            printf "\n# Rust/Cargo\nfish_add_path -g \$HOME/.cargo/bin\n" >> "$installer_config"
-        end
-    else
-        # Create new file
-        printf "# Auto-managed by Fedpunk installer - DO NOT EDIT\n" > "$installer_config"
-        printf "# This file is regenerated on installation\n\n" >> "$installer_config"
-        printf "# Rust/Cargo\nfish_add_path -g \$HOME/.cargo/bin\n" >> "$installer_config"
-    end
+    # Note: Rust PATH is now managed by chezmoi template (installer-managed.fish.tmpl)
 
     success "Rust toolchain installed"
 else

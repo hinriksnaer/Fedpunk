@@ -22,6 +22,7 @@ Fedpunk transforms Fedora into a productivity-focused workspace featuring tiling
 
 **Complete documentation available in [`docs/`](docs/)**
 
+- **[Architecture Guide](ARCHITECTURE.md)** - System design and philosophy ⭐ **Start Here**
 - **[Installation Guide](docs/guides/installation.md)** - Detailed setup instructions
 - **[Customization Guide](docs/guides/customization.md)** - Make it your own
 - **[Themes Guide](docs/guides/themes.md)** - Theme system and creation
