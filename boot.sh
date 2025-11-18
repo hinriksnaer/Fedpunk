@@ -72,10 +72,11 @@ else
         echo "📟 Installing: Terminal-only mode"
     else
         # Temporarily disable exit-on-error for interactive prompt
+        # Note: Don't redirect stderr (2>&1) as gum needs it for TUI
         set +eEuo pipefail
         INSTALL_MODE=$(gum choose \
             "Desktop (Full: Hyprland + Terminal)" \
-            "Terminal-only (Servers/Containers)" 2>&1)
+            "Terminal-only (Servers/Containers)")
         GUM_EXIT_CODE=$?
         set -eEo pipefail
 
@@ -117,11 +118,12 @@ if [[ ! -t 0 ]] || [[ ! -t 1 ]]; then
     echo "📦 Profile: $FEDPUNK_PROFILE"
 else
     # Temporarily disable ALL error handling for interactive prompt
+    # Note: Don't redirect stderr (2>&1) as gum needs it for TUI
     set +eEuo pipefail
     PROFILE=$(gum choose \
         "dev (Development tools + Bitwarden)" \
         "example (Minimal template)" \
-        "none (Skip profile activation)" 2>&1)
+        "none (Skip profile activation)")
     GUM_EXIT_CODE=$?
     set -eEo pipefail
 
