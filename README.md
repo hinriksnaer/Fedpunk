@@ -35,26 +35,24 @@ Fedpunk transforms Fedora into a productivity-focused workspace featuring tiling
 
 ## Quick Start
 
-### Full Desktop Install (Hyprland + Terminal)
+### Interactive Install (Recommended)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
 ```
 
-**Installs:**
+**You'll be prompted to choose:**
+- **Desktop (Full)** - Hyprland compositor + Terminal tools
+- **Terminal-only** - For servers/containers (no GUI)
+
+**Desktop mode installs:**
 - Hyprland compositor with optimized window management
 - Kitty terminal with GPU acceleration
 - Neovim, tmux, lazygit, btop
 - 11 beautiful themes with instant switching
 - NVIDIA drivers (optional, interactive prompt)
 
-### Terminal-Only Install (Servers/Containers)
-
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
-```
-
-**Installs:**
+**Terminal-only mode installs:**
 - Fish shell with modern tooling
 - Neovim with LSP and plugins
 - tmux, lazygit, btop

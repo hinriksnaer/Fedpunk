@@ -46,9 +46,39 @@ fi
 clear
 echo -e "\n$ansi_art\n"
 echo "✅ Preflight checks passed"
+echo ""
 
 echo "→ Installing git, fish, and gum..."
 sudo dnf install -y git fish gum
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Installation mode selection (skip if headless detected)
+if [[ -n "$FEDPUNK_HEADLESS" ]]; then
+    echo "🖥️  Headless server detected - defaulting to Terminal-only mode"
+    export FEDPUNK_TERMINAL_ONLY=true
+else
+    echo "Choose your installation mode:"
+    echo ""
+    INSTALL_MODE=$(gum choose \
+        "Desktop (Full: Hyprland + Terminal)" \
+        "Terminal-only (Servers/Containers)")
+
+    echo ""
+
+    if [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
+        echo "📟 Installing: Terminal-only mode"
+        export FEDPUNK_TERMINAL_ONLY=true
+    else
+        echo "🖥️  Installing: Full desktop environment"
+    fi
+fi
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 
 # Use custom repo if specified, otherwise default to your repo
 FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
@@ -80,5 +110,10 @@ if [[ $FEDPUNK_REF != "main" ]]; then
 fi
 
 echo -e "\nInstallation starting..."
-# Desktop installation - interactive, includes all components
-fish "$FEDPUNK_PATH/install.fish"
+
+# Pass terminal-only flag if set
+if [[ -n "$FEDPUNK_TERMINAL_ONLY" ]]; then
+    fish "$FEDPUNK_PATH/install.fish" --terminal-only
+else
+    fish "$FEDPUNK_PATH/install.fish"
+fi
