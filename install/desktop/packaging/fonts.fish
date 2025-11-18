@@ -7,7 +7,8 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 section "Font Installation"
 
-# Base fonts from dnf
+subsection "Installing base fonts"
+
 set packages \
     adobe-source-code-pro-fonts \
     fira-code-fonts \
@@ -20,12 +21,9 @@ set packages \
 
 install_packages $packages
 
-# Create fonts directory
-step "Creating fonts directory" "mkdir -p ~/.local/share/fonts"
+subsection "Installing Nerd Fonts"
 
-# Download and install Nerd Fonts
-echo ""
-info "Installing Nerd Fonts"
+step "Creating fonts directory" "mkdir -p ~/.local/share/fonts"
 
 download_and_extract \
     "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz" \

@@ -34,9 +34,8 @@ set -gx PATH $HOME/.cargo/bin $PATH
 
 # Modern CLI tools (via DNF or cargo fallback)
 # Note: Starship, Fisher, and fzf.fish are now installed in setup-fish.fish
-echo ""
-if confirm "Install modern CLI utilities (lsd, ripgrep, bat, fd-find)?" "yes"
-    info "Installing modern CLI utilities"
+if opt_in "Install modern CLI utilities (lsd, ripgrep, bat, fd-find)?" "yes"
+    subsection "Installing modern CLI utilities"
 
     # lsd (modern ls)
     if not command -v lsd >/dev/null 2>&1
@@ -85,15 +84,11 @@ if confirm "Install modern CLI utilities (lsd, ripgrep, bat, fd-find)?" "yes"
             success "$tool already installed"
         end
     end
-else
-    info "Skipping modern CLI utilities"
-    echo "[SKIPPED] Modern CLI utilities installation declined by user" >> $FEDPUNK_LOG_FILE
 end
 
 # Other programming languages and runtimes
-echo ""
-if confirm "Install programming languages (Python, Node.js, Go)?" "yes"
-    info "Installing Python, Node.js, and Go"
+if opt_in "Install programming languages (Python, Node.js, Go)?" "yes"
+    subsection "Installing programming languages"
 
     # Python, Node.js, Go
     set language_tools \
@@ -108,9 +103,6 @@ if confirm "Install programming languages (Python, Node.js, Go)?" "yes"
     gum spin --spinner line --title "Downloading and installing Python, Node.js, and Go..." -- fish -c '
         sudo dnf install -qy --skip-broken '$language_tools' >>'"$FEDPUNK_LOG_FILE"' 2>&1
     ' && success "Programming language runtimes installed successfully" || warning "Some language runtimes may already be installed"
-else
-    info "Skipping programming language runtimes"
-    echo "[SKIPPED] Programming language runtimes installation declined by user" >> $FEDPUNK_LOG_FILE
 end
 
 echo ""

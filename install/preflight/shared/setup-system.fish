@@ -36,7 +36,7 @@ gum spin --spinner dot --title "Updating git submodules..." -- fish -c '
     git submodule update --init --recursive >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && gum style --foreground $GUM_SUCCESS "✓ Updating git submodules" || gum style --foreground $GUM_ERROR "✗ Updating git submodules failed"
 
-# Core system utilities
+subsection "Core system utilities"
 echo ""
 info "Installing core system utilities"
 set system_utils \

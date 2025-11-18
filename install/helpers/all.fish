@@ -236,6 +236,36 @@ function progress
     gum style --foreground $GUM_INFO "[$current/$total] $description"
 end
 
+# Subsection header (smaller than section)
+function subsection
+    set title $argv[1]
+    echo ""
+    info "$title"
+end
+
+# Optional component wrapper
+# Returns 0 (true) if user opts in, 1 (false) if user opts out
+# Handles logging of skipped components automatically
+# Usage: if opt_in "Install X?" "default"; then ... end
+function opt_in
+    set description $argv[1]
+    set default $argv[2]
+
+    # Default to "no" if not specified
+    if test -z "$default"
+        set default "no"
+    end
+
+    echo ""
+    if confirm "$description" "$default"
+        return 0
+    else
+        info "Skipping: "(string replace -r '\?' '' "$description")
+        echo "[SKIPPED] $description - declined by user" >> $FEDPUNK_LOG_FILE
+        return 1
+    end
+end
+
 # Run a fish script with logging and step tracking
 # Usage: run_script script_path description
 function run_script
@@ -313,6 +343,13 @@ end
 function install_packages
     set packages $argv
     step "Installing packages: "(string join ", " $packages) "sudo dnf install -qy $packages"
+end
+
+# Enable a COPR repository
+# Usage: install_copr repo_name
+function install_copr
+    set repo_name $argv[1]
+    step "Enabling COPR repository: $repo_name" "sudo dnf copr enable -qy $repo_name"
 end
 
 # Download and extract archive

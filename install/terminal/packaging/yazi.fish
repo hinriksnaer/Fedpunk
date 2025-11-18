@@ -8,7 +8,7 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 section "Yazi File Manager"
 
 # Enable Yazi Copr repository
-step "Enabling Yazi Copr repository" "sudo dnf copr enable -qy lihaohong/yazi"
+install_copr "lihaohong/yazi"
 
 # Install Yazi and all dependencies at once
 set yazi_packages \

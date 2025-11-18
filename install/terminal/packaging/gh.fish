@@ -7,6 +7,8 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 section "GitHub CLI"
 
+subsection "Installing GitHub CLI"
+
 # Check if gh is already installed
 if command -v gh >/dev/null 2>&1
     success "GitHub CLI already installed: "(gh --version | head -n1)
@@ -22,9 +24,7 @@ else
     end
 end
 
-# Check authentication status
-echo ""
-info "Checking GitHub CLI authentication status"
+subsection "Checking authentication status"
 if gh auth status >/dev/null 2>&1
     success "GitHub CLI is authenticated"
     gh auth status
