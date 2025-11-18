@@ -373,19 +373,24 @@ switch $command
             echo "Usage: fedpunk vault <subcommand> [args...]"
             echo ""
             echo "Subcommands:"
-            echo "  status         Show vault status"
-            echo "  login          Login to Bitwarden"
-            echo "  unlock         Unlock the vault"
-            echo "  lock           Lock the vault"
-            echo "  sync           Sync vault with server"
-            echo "  get <name>     Get password for item"
-            echo "  ssh-load       Load SSH keys from vault"
-            echo "  env <name>     Load environment variables from item"
+            echo "  status           Show vault status"
+            echo "  login            Login to Bitwarden"
+            echo "  unlock           Unlock the vault"
+            echo "  lock             Lock the vault"
+            echo "  sync             Sync vault with server"
+            echo "  get <name>       Get password for item"
+            echo "  ssh-load           Load SSH keys into agent"
+            echo "  ssh-backup [name]  Backup ~/.ssh directory to vault"
+            echo "  ssh-restore [name] Restore ~/.ssh directory from vault"
+            echo "  env <name>         Load environment variables from item"
             echo ""
             echo "Examples:"
             echo "  fedpunk vault unlock"
             echo "  fedpunk vault get github"
-            echo "  fedpunk vault ssh-load"
+            echo "  fedpunk vault ssh-backup                    # Default backup"
+            echo "  fedpunk vault ssh-backup work-laptop        # Named backup"
+            echo "  fedpunk vault ssh-restore                   # Restore default"
+            echo "  fedpunk vault ssh-restore work-laptop       # Restore named"
             exit 1
         end
 
@@ -422,6 +427,240 @@ switch $command
 
             case ssh-load
                 bw-ssh-load
+
+            case ssh-backup
+                # Backup ~/.ssh directory to Bitwarden
+                echo "🔒 Backing up SSH configuration to Bitwarden..."
+                echo ""
+
+                # Check if SSH directory exists
+                if not test -d "$HOME/.ssh"
+                    echo "✗ No ~/.ssh directory found"
+                    exit 1
+                end
+
+                # Check if vault is unlocked
+                set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+                if test "$bw_status" != "unlocked"
+                    echo "✗ Bitwarden vault is locked"
+                    echo "  Run: fedpunk vault unlock"
+                    exit 1
+                end
+
+                # Get backup name (optional)
+                if test (count $vault_args) -gt 0
+                    set backup_name $vault_args[1]
+                    set item_name "SSH Config - $backup_name"
+                else
+                    set item_name "SSH Configuration Backup"
+                end
+
+                echo "Backup name: $item_name"
+                echo ""
+
+                # Create a tarball of .ssh directory (excluding known_hosts)
+                set backup_file (mktemp --suffix=.tar.gz)
+                echo "→ Creating encrypted backup..."
+                echo "  (excluding known_hosts - will be rebuilt automatically)"
+                tar -czf "$backup_file" -C "$HOME" --exclude='.ssh/known_hosts' --exclude='.ssh/known_hosts.old' .ssh 2>/dev/null
+
+                if not test -f "$backup_file"
+                    echo "✗ Failed to create backup"
+                    exit 1
+                end
+
+                # Base64 encode the tarball
+                set encoded_backup (base64 -w 0 "$backup_file")
+                rm -f "$backup_file"
+
+                # Setup metadata
+                set hostname (hostname)
+                set timestamp (date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+                # Check if item exists
+                set existing_item (bw get item "$item_name" 2>/dev/null)
+
+                if test -n "$existing_item"
+                    # Update existing item
+                    echo "→ Updating existing backup..."
+                    set item_id (echo "$existing_item" | jq -r '.id')
+
+                    # Create updated note content
+                    set note_content "SSH Configuration Backup
+Hostname: $hostname
+Timestamp: $timestamp
+Format: tar.gz (base64 encoded)
+
+--- BEGIN SSH BACKUP ---
+$encoded_backup
+--- END SSH BACKUP ---"
+
+                    # Update item
+                    echo "$existing_item" | jq ".notes = \"$note_content\"" | bw encode | bw edit item "$item_id" >/dev/null 2>&1
+                else
+                    # Create new item
+                    echo "→ Creating new backup item..."
+
+                    set note_content "SSH Configuration Backup
+Hostname: $hostname
+Timestamp: $timestamp
+Format: tar.gz (base64 encoded)
+
+--- BEGIN SSH BACKUP ---
+$encoded_backup
+--- END SSH BACKUP ---"
+
+                    # Create secure note template
+                    set template "{
+  \"organizationId\": null,
+  \"folderId\": null,
+  \"type\": 2,
+  \"name\": \"$item_name\",
+  \"notes\": \"$note_content\",
+  \"favorite\": false,
+  \"secureNote\": {
+    \"type\": 0
+  }
+}"
+
+                    echo "$template" | bw encode | bw create item >/dev/null 2>&1
+                end
+
+                if test $status -eq 0
+                    echo ""
+                    echo "✓ SSH configuration backed up successfully"
+                    echo "  Item: $item_name"
+                    echo "  Hostname: $hostname"
+                    echo "  Timestamp: $timestamp"
+                    echo ""
+                    echo "💡 Run 'fedpunk vault sync' to sync with server"
+                else
+                    echo "✗ Failed to create/update backup in Bitwarden"
+                    exit 1
+                end
+
+            case ssh-restore
+                # Restore ~/.ssh directory from Bitwarden
+                echo "🔓 Restoring SSH configuration from Bitwarden..."
+                echo ""
+
+                # Check if vault is unlocked
+                set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+                if test "$bw_status" != "unlocked"
+                    echo "✗ Bitwarden vault is locked"
+                    echo "  Run: fedpunk vault unlock"
+                    exit 1
+                end
+
+                # Get backup name (optional)
+                if test (count $vault_args) -gt 0
+                    set backup_name $vault_args[1]
+                    set item_name "SSH Config - $backup_name"
+                else
+                    # No name specified - list available backups
+                    set available_backups (bw list items --search "SSH Config" 2>/dev/null | jq -r '.[] | select(.type == 2) | .name')
+
+                    if test -z "$available_backups"
+                        echo "✗ No SSH backups found in Bitwarden"
+                        echo "  Run 'fedpunk vault ssh-backup' to create a backup first"
+                        exit 1
+                    end
+
+                    # If only one backup, use it
+                    set backup_count (echo "$available_backups" | wc -l)
+                    if test $backup_count -eq 1
+                        set item_name (echo "$available_backups" | head -1)
+                        echo "Found backup: $item_name"
+                    else
+                        # Multiple backups - let user choose
+                        echo "Available SSH backups:"
+                        echo ""
+                        if command -v gum >/dev/null 2>&1
+                            set item_name (echo "$available_backups" | gum choose --header "Select backup to restore:")
+                        else
+                            echo "$available_backups" | nl
+                            echo ""
+                            read -P "Enter number: " choice
+                            set item_name (echo "$available_backups" | sed -n "$choice"p)
+                        end
+
+                        if test -z "$item_name"
+                            echo "✗ No backup selected"
+                            exit 0
+                        end
+                    end
+                end
+
+                echo "Restoring: $item_name"
+                echo ""
+
+                # Check if .ssh already exists
+                if test -d "$HOME/.ssh"
+                    echo "⚠️  Warning: ~/.ssh directory already exists"
+                    echo ""
+                    ls -la "$HOME/.ssh"
+                    echo ""
+                    read -P "Overwrite existing SSH configuration? [y/N] " -n 1 confirm
+                    echo ""
+
+                    if test "$confirm" != "y" -a "$confirm" != "Y"
+                        echo "✗ Restore cancelled"
+                        exit 0
+                    end
+
+                    # Backup existing .ssh before overwriting
+                    set backup_dir "$HOME/.ssh.backup."(date +%Y%m%d-%H%M%S)
+                    echo "→ Backing up existing .ssh to $backup_dir"
+                    mv "$HOME/.ssh" "$backup_dir"
+                end
+
+                # Get backup from Bitwarden
+                set item (bw get item "$item_name" 2>/dev/null)
+
+                if test -z "$item"
+                    echo "✗ Could not retrieve backup: $item_name"
+                    exit 1
+                end
+
+                # Extract notes
+                set notes (echo "$item" | jq -r '.notes')
+
+                # Extract base64 encoded backup
+                set encoded_backup (echo "$notes" | sed -n '/--- BEGIN SSH BACKUP ---/,/--- END SSH BACKUP ---/p' | sed '1d;$d' | string trim)
+
+                if test -z "$encoded_backup"
+                    echo "✗ Could not extract backup data from item"
+                    exit 1
+                end
+
+                # Decode and extract
+                echo "→ Restoring SSH configuration..."
+                set backup_file (mktemp --suffix=.tar.gz)
+                echo "$encoded_backup" | base64 -d > "$backup_file"
+
+                # Extract tarball
+                tar -xzf "$backup_file" -C "$HOME" 2>/dev/null
+                set extract_status $status
+                rm -f "$backup_file"
+
+                if test $extract_status -eq 0
+                    # Set correct permissions
+                    chmod 700 "$HOME/.ssh"
+                    chmod 600 "$HOME/.ssh/"* 2>/dev/null
+                    chmod 644 "$HOME/.ssh/"*.pub 2>/dev/null
+                    chmod 644 "$HOME/.ssh/config" 2>/dev/null
+
+                    echo ""
+                    echo "✓ SSH configuration restored successfully"
+                    echo ""
+                    echo "Note: known_hosts excluded - SSH will rebuild it automatically"
+                    echo ""
+                    echo "Restored files:"
+                    ls -la "$HOME/.ssh"
+                else
+                    echo "✗ Failed to extract backup"
+                    exit 1
+                end
 
             case env
                 if test (count $vault_args) -eq 0
