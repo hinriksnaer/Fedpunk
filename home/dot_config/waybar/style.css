@@ -4,8 +4,9 @@
 * {
   border: none;
   border-radius: 0;
-  font-family: "JetBrainsMono Nerd Font", monospace;
-  font-size: 13px;
+  font-family: "FiraMono Nerd Font", monospace;
+  font-size: 11px;
+  font-weight: bold;
   min-height: 0;
 }
 
@@ -57,7 +58,7 @@ window#waybar {
 }
 
 #custom-fedpunk {
-  font-size: 16px;
+  font-size: 14px;
   padding: 0 10px;
   margin-left: 8px;
 }
@@ -115,7 +116,7 @@ window#waybar {
 }
 
 #custom-expand-icon {
-  font-size: 10px;
+  font-size: 9px;
   padding: 0 6px;
 }
 
