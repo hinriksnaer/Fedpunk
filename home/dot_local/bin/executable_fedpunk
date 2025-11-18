@@ -34,6 +34,12 @@ if test (count $argv) -eq 0
     echo "  wallpaper set <theme>  Set wallpaper from theme"
     echo "  wallpaper next         Switch to next wallpaper"
     echo ""
+    echo "Vault Management (Bitwarden):"
+    echo "  vault status           Show vault status"
+    echo "  vault unlock           Unlock Bitwarden vault"
+    echo "  vault ssh-load         Load SSH keys from vault"
+    echo "  vault get <name>       Get password for item"
+    echo ""
     echo "Other Commands:"
     echo "  bluetooth              Bluetooth manager (bluetui)"
     echo "  help                   Show this help message"
@@ -349,6 +355,82 @@ switch $command
             case '*'
                 echo "Unknown wallpaper subcommand: $wallpaper_cmd"
                 echo "Run 'fedpunk wallpaper' for help"
+                exit 1
+        end
+
+    case vault
+        # Bitwarden vault management
+        if not command -v bw >/dev/null 2>&1
+            echo "Error: Bitwarden CLI not installed"
+            echo "Install with: sudo dnf install bw"
+            exit 1
+        end
+
+        if test (count $args) -eq 0
+            echo "Usage: fedpunk vault <subcommand> [args...]"
+            echo ""
+            echo "Subcommands:"
+            echo "  status         Show vault status"
+            echo "  login          Login to Bitwarden"
+            echo "  unlock         Unlock the vault"
+            echo "  lock           Lock the vault"
+            echo "  sync           Sync vault with server"
+            echo "  get <name>     Get password for item"
+            echo "  ssh-load       Load SSH keys from vault"
+            echo "  env <name>     Load environment variables from item"
+            echo ""
+            echo "Examples:"
+            echo "  fedpunk vault unlock"
+            echo "  fedpunk vault get github"
+            echo "  fedpunk vault ssh-load"
+            exit 1
+        end
+
+        set vault_cmd $args[1]
+        set vault_args $args[2..-1]
+
+        switch $vault_cmd
+            case status
+                bw status | fish -c 'read -z input; echo $input | jq .'
+
+            case login
+                bwlogin
+
+            case unlock
+                bwunlock
+
+            case lock
+                bw lock
+
+            case sync
+                if not bw sync
+                    echo "Error: Failed to sync vault"
+                    exit 1
+                end
+                echo "✓ Vault synced successfully"
+
+            case get
+                if test (count $vault_args) -eq 0
+                    echo "Error: Item name required"
+                    echo "Usage: fedpunk vault get <name>"
+                    exit 1
+                end
+                bw-get $vault_args
+
+            case ssh-load
+                bw-ssh-load
+
+            case env
+                if test (count $vault_args) -eq 0
+                    echo "Error: Item name required"
+                    echo "Usage: fedpunk vault env <name>"
+                    exit 1
+                end
+                bw-env $vault_args
+
+            case '*'
+                echo "Unknown vault subcommand: $vault_cmd"
+                echo "Run 'fedpunk vault' for help"
                 exit 1
         end
 
