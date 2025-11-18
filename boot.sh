@@ -39,7 +39,7 @@ fi
 echo "→ Checking display server compatibility..."
 if [[ -z "$DISPLAY" && -z "$WAYLAND_DISPLAY" && -z "$XDG_SESSION_TYPE" ]]; then
     echo "⚠️  Warning: No display server detected. This appears to be a headless server."
-    echo "   Hyprland installation will be skipped automatically."
+    echo "   Note: Hyprland requires a display server to function."
     export FEDPUNK_HEADLESS=true
 fi
 
@@ -55,54 +55,56 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Installation mode selection (skip if headless detected)
-if [[ -n "$FEDPUNK_HEADLESS" ]]; then
-    echo "🖥️  Headless server detected - defaulting to Terminal-only mode"
+# Installation mode selection
+echo "Choose your installation mode:"
+echo ""
+
+# Check if we have a proper TTY for interactive prompts
+# When script is piped (curl | bash), stdin is the pipe, so check stderr instead
+if [[ ! -t 2 ]]; then
+    echo "⚠️  Warning: No interactive TTY detected"
+    echo "   Defaulting to Terminal-only mode"
+    echo "   To force desktop mode, set FEDPUNK_TERMINAL_ONLY=false before running"
     export FEDPUNK_TERMINAL_ONLY=true
+    echo "📟 Installing: Terminal-only mode"
 else
-    echo "Choose your installation mode:"
+    # Add warning if headless but still allowing choice
+    if [[ -n "$FEDPUNK_HEADLESS" ]]; then
+        echo "⚠️  Note: No display server detected (headless environment)"
+        echo "   Desktop mode can still be installed for later use"
+        echo ""
+    fi
+
+    # Try gum first with a timeout, fall back to bash select if it fails
+    set +eEuo pipefail
+    INSTALL_MODE=$(timeout 3 gum choose \
+        "Desktop (Full: Hyprland + Terminal)" \
+        "Terminal-only (Servers/Containers)" </dev/tty 2>/dev/null)
+    GUM_EXIT_CODE=$?
+    set -eEo pipefail
+
+    # If gum failed/timed out (exit 124), use bash select as fallback
+    if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$INSTALL_MODE" ]]; then
+        echo "Using text menu (select mode):"
+        PS3="Enter number (1-2): "
+        select INSTALL_MODE in "Desktop (Full: Hyprland + Terminal)" "Terminal-only (Servers/Containers)"; do
+            if [[ -n "$INSTALL_MODE" ]]; then
+                break
+            fi
+        done </dev/tty
+    fi
+
     echo ""
 
-    # Check if we have a proper TTY for interactive prompts
-    # When script is piped (curl | bash), stdin is the pipe, so check stderr instead
-    if [[ ! -t 2 ]]; then
-        echo "⚠️  Warning: No interactive TTY detected"
-        echo "   Defaulting to Terminal-only mode"
-        echo "   To force desktop mode, set FEDPUNK_TERMINAL_ONLY=false before running"
-        export FEDPUNK_TERMINAL_ONLY=true
+    # Validate selection
+    if [[ -z "$INSTALL_MODE" ]]; then
+        echo "❌ No installation mode selected. Exiting."
+        exit 1
+    elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
         echo "📟 Installing: Terminal-only mode"
+        export FEDPUNK_TERMINAL_ONLY=true
     else
-        # Try gum first with a timeout, fall back to bash select if it fails
-        set +eEuo pipefail
-        INSTALL_MODE=$(timeout 3 gum choose \
-            "Desktop (Full: Hyprland + Terminal)" \
-            "Terminal-only (Servers/Containers)" </dev/tty 2>/dev/null)
-        GUM_EXIT_CODE=$?
-        set -eEo pipefail
-
-        # If gum failed/timed out (exit 124), use bash select as fallback
-        if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$INSTALL_MODE" ]]; then
-            echo "Using text menu (select mode):"
-            PS3="Enter number (1-2): "
-            select INSTALL_MODE in "Desktop (Full: Hyprland + Terminal)" "Terminal-only (Servers/Containers)"; do
-                if [[ -n "$INSTALL_MODE" ]]; then
-                    break
-                fi
-            done </dev/tty
-        fi
-
-        echo ""
-
-        # Validate selection
-        if [[ -z "$INSTALL_MODE" ]]; then
-            echo "❌ No installation mode selected. Exiting."
-            exit 1
-        elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
-            echo "📟 Installing: Terminal-only mode"
-            export FEDPUNK_TERMINAL_ONLY=true
-        else
-            echo "🖥️  Installing: Full desktop environment"
-        fi
+        echo "🖥️  Installing: Full desktop environment"
     fi
 fi
 
