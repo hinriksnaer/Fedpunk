@@ -59,53 +59,52 @@ echo ""
 echo "Choose your installation mode:"
 echo ""
 
-# Check if we have a proper TTY for interactive prompts
+# Require TTY for interactive installation
 # When script is piped (curl | bash), stdin is the pipe, so check stderr instead
 if [[ ! -t 2 ]]; then
-    echo "⚠️  Warning: No interactive TTY detected"
-    echo "   Defaulting to Terminal-only mode"
-    echo "   To force desktop mode, set FEDPUNK_TERMINAL_ONLY=false before running"
-    export FEDPUNK_TERMINAL_ONLY=true
-    echo "📟 Installing: Terminal-only mode"
-else
-    # Add warning if headless but still allowing choice
-    if [[ -n "$FEDPUNK_HEADLESS" ]]; then
-        echo "⚠️  Note: No display server detected (headless environment)"
-        echo "   Desktop mode can still be installed for later use"
-        echo ""
-    fi
+    echo "❌ Error: No interactive TTY detected"
+    echo "   This installer requires an interactive terminal."
+    echo "   Run this script directly, not piped through stdin."
+    exit 1
+fi
 
-    # Try gum first with a timeout, fall back to bash select if it fails
-    set +eEuo pipefail
-    INSTALL_MODE=$(timeout 3 gum choose \
-        "Desktop (Full: Hyprland + Terminal)" \
-        "Terminal-only (Servers/Containers)" </dev/tty 2>/dev/null)
-    GUM_EXIT_CODE=$?
-    set -eEo pipefail
-
-    # If gum failed/timed out (exit 124), use bash select as fallback
-    if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$INSTALL_MODE" ]]; then
-        echo "Using text menu (select mode):"
-        PS3="Enter number (1-2): "
-        select INSTALL_MODE in "Desktop (Full: Hyprland + Terminal)" "Terminal-only (Servers/Containers)"; do
-            if [[ -n "$INSTALL_MODE" ]]; then
-                break
-            fi
-        done </dev/tty
-    fi
-
+# Add warning if headless but still allowing choice
+if [[ -n "$FEDPUNK_HEADLESS" ]]; then
+    echo "⚠️  Note: No display server detected (headless environment)"
+    echo "   Desktop mode can still be installed for later use"
     echo ""
+fi
 
-    # Validate selection
-    if [[ -z "$INSTALL_MODE" ]]; then
-        echo "❌ No installation mode selected. Exiting."
-        exit 1
-    elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
-        echo "📟 Installing: Terminal-only mode"
-        export FEDPUNK_TERMINAL_ONLY=true
-    else
-        echo "🖥️  Installing: Full desktop environment"
-    fi
+# Try gum first with a timeout, fall back to bash select if it fails
+set +eEuo pipefail
+INSTALL_MODE=$(timeout 3 gum choose \
+    "Desktop (Full: Hyprland + Terminal)" \
+    "Terminal-only (Servers/Containers)" </dev/tty 2>/dev/null)
+GUM_EXIT_CODE=$?
+set -eEo pipefail
+
+# If gum failed/timed out (exit 124), use bash select as fallback
+if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$INSTALL_MODE" ]]; then
+    echo "Using text menu (select mode):"
+    PS3="Enter number (1-2): "
+    select INSTALL_MODE in "Desktop (Full: Hyprland + Terminal)" "Terminal-only (Servers/Containers)"; do
+        if [[ -n "$INSTALL_MODE" ]]; then
+            break
+        fi
+    done </dev/tty
+fi
+
+echo ""
+
+# Validate selection
+if [[ -z "$INSTALL_MODE" ]]; then
+    echo "❌ No installation mode selected. Exiting."
+    exit 1
+elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
+    echo "📟 Installing: Terminal-only mode"
+    export FEDPUNK_TERMINAL_ONLY=true
+else
+    echo "🖥️  Installing: Full desktop environment"
 fi
 
 echo ""
@@ -116,51 +115,47 @@ echo ""
 echo "Choose a profile to activate:"
 echo ""
 
-# Check if we have a proper TTY for interactive prompts
-# When script is piped (curl | bash), stdin is the pipe, so check stderr instead
+# Require TTY for interactive installation (already checked above, but being explicit)
 if [[ ! -t 2 ]]; then
-    echo "⚠️  Warning: No interactive TTY detected"
-    echo "   Defaulting to 'dev' profile"
-    echo "   To skip profile activation, set FEDPUNK_PROFILE=none before running"
-    export FEDPUNK_PROFILE="${FEDPUNK_PROFILE:-dev}"
-    echo "📦 Profile: $FEDPUNK_PROFILE"
+    echo "❌ Error: No interactive TTY detected"
+    exit 1
+fi
+
+# Try gum first with a timeout, fall back to bash select if it fails
+set +eEuo pipefail
+PROFILE=$(timeout 3 gum choose \
+    "dev (Development tools + Bitwarden)" \
+    "example (Minimal template)" \
+    "none (Skip profile activation)" </dev/tty 2>/dev/null)
+GUM_EXIT_CODE=$?
+set -eEo pipefail
+
+# If gum failed/timed out (exit 124), use bash select as fallback
+if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$PROFILE" ]]; then
+    echo "Using text menu (select mode):"
+    PS3="Enter number (1-3): "
+    select PROFILE in "dev (Development tools + Bitwarden)" "example (Minimal template)" "none (Skip profile activation)"; do
+        if [[ -n "$PROFILE" ]]; then
+            break
+        fi
+    done </dev/tty
+fi
+
+echo ""
+
+# Validate selection
+if [[ -z "$PROFILE" ]]; then
+    echo "❌ No profile selected. Exiting."
+    exit 1
+elif [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
+    echo "📦 Profile: dev"
+    export FEDPUNK_PROFILE="dev"
+elif [[ "$PROFILE" == "example (Minimal template)" ]]; then
+    echo "📦 Profile: example"
+    export FEDPUNK_PROFILE="example"
 else
-    # Try gum first with a timeout, fall back to bash select if it fails
-    set +eEuo pipefail
-    PROFILE=$(timeout 3 gum choose \
-        "dev (Development tools + Bitwarden)" \
-        "example (Minimal template)" \
-        "none (Skip profile activation)" </dev/tty 2>/dev/null)
-    GUM_EXIT_CODE=$?
-    set -eEo pipefail
-
-    # If gum failed/timed out (exit 124), use bash select as fallback
-    if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$PROFILE" ]]; then
-        echo "Using text menu (select mode):"
-        PS3="Enter number (1-3): "
-        select PROFILE in "dev (Development tools + Bitwarden)" "example (Minimal template)" "none (Skip profile activation)"; do
-            if [[ -n "$PROFILE" ]]; then
-                break
-            fi
-        done </dev/tty
-    fi
-
-    echo ""
-
-    # Validate selection
-    if [[ -z "$PROFILE" ]]; then
-        echo "❌ No profile selected. Exiting."
-        exit 1
-    elif [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
-        echo "📦 Profile: dev"
-        export FEDPUNK_PROFILE="dev"
-    elif [[ "$PROFILE" == "example (Minimal template)" ]]; then
-        echo "📦 Profile: example"
-        export FEDPUNK_PROFILE="example"
-    else
-        echo "⏭️  Skipping profile activation"
-        export FEDPUNK_PROFILE="none"
-    fi
+    echo "⏭️  Skipping profile activation"
+    export FEDPUNK_PROFILE="none"
 fi
 
 echo ""
