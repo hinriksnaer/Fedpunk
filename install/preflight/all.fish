@@ -16,11 +16,8 @@ source "$FEDPUNK_INSTALL/preflight/shared/setup-cargo.fish"
 # Setup Fish shell early (needed for Fish-based installation scripts)
 source "$FEDPUNK_INSTALL/preflight/shared/setup-fish.fish"
 
-# Shared system setup (git submodules, system upgrade, core utilities, SELinux)
+# Shared system setup (git submodules, core utilities, SELinux)
 source "$FEDPUNK_INSTALL/preflight/shared/setup-system.fish"
-
-# Update system firmware (after system setup)
-source "$FEDPUNK_INSTALL/preflight/shared/update-firmware.fish"
 
 # Install essential development tools and languages
 source "$FEDPUNK_INSTALL/preflight/shared/install-essentials.fish"

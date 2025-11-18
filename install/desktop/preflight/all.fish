@@ -5,6 +5,12 @@
 # Source helper functions
 source "$FEDPUNK_INSTALL/helpers/all.fish"
 
+# System upgrade (desktop-only, opt-in)
+source "$FEDPUNK_INSTALL/desktop/preflight/system-upgrade.fish"
+
+# Update system firmware (desktop-only, opt-in)
+source "$FEDPUNK_INSTALL/desktop/preflight/update-firmware.fish"
+
 # Desktop system setup (RPM Fusion, XDG user directories)
 source "$FEDPUNK_INSTALL/desktop/preflight/setup-desktop-system.fish"
 
