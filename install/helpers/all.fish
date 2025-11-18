@@ -199,7 +199,8 @@ function confirm
     end
 
     # Interactive mode: prompt user
-    if gum confirm "$prompt"
+    # Redirect from /dev/tty for piped execution (curl | bash)
+    if gum confirm "$prompt" </dev/tty
         echo "[RESPONSE] "(date +%H:%M:%S)" Yes" >> $FEDPUNK_LOG_FILE
         return 0
     else
