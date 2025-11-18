@@ -63,31 +63,40 @@ else
     echo "Choose your installation mode:"
     echo ""
 
-    # Temporarily disable exit-on-error for interactive prompt
-    set +e
-    INSTALL_MODE=$(gum choose \
-        "Desktop (Full: Hyprland + Terminal)" \
-        "Terminal-only (Servers/Containers)" 2>&1)
-    GUM_EXIT_CODE=$?
-    set -e
-
-    echo ""
-
-    # Check if gum failed
-    if [[ $GUM_EXIT_CODE -ne 0 ]]; then
-        echo "❌ No installation mode selected. Exiting."
-        exit 1
-    fi
-
-    # Validate selection
-    if [[ -z "$INSTALL_MODE" ]]; then
-        echo "❌ Empty installation mode. Exiting."
-        exit 1
-    elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
-        echo "📟 Installing: Terminal-only mode"
+    # Check if we have a proper TTY for interactive prompts
+    if [[ ! -t 0 ]] || [[ ! -t 1 ]]; then
+        echo "⚠️  Warning: No interactive TTY detected"
+        echo "   Defaulting to Terminal-only mode"
+        echo "   To force desktop mode, set FEDPUNK_TERMINAL_ONLY=false before running"
         export FEDPUNK_TERMINAL_ONLY=true
+        echo "📟 Installing: Terminal-only mode"
     else
-        echo "🖥️  Installing: Full desktop environment"
+        # Temporarily disable exit-on-error for interactive prompt
+        set +eEuo pipefail
+        INSTALL_MODE=$(gum choose \
+            "Desktop (Full: Hyprland + Terminal)" \
+            "Terminal-only (Servers/Containers)" 2>&1)
+        GUM_EXIT_CODE=$?
+        set -eEo pipefail
+
+        echo ""
+
+        # Check if gum failed
+        if [[ $GUM_EXIT_CODE -ne 0 ]]; then
+            echo "❌ No installation mode selected. Exiting."
+            exit 1
+        fi
+
+        # Validate selection
+        if [[ -z "$INSTALL_MODE" ]]; then
+            echo "❌ Empty installation mode. Exiting."
+            exit 1
+        elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
+            echo "📟 Installing: Terminal-only mode"
+            export FEDPUNK_TERMINAL_ONLY=true
+        else
+            echo "🖥️  Installing: Full desktop environment"
+        fi
     fi
 fi
 
@@ -99,44 +108,46 @@ echo ""
 echo "Choose a profile to activate:"
 echo ""
 
-echo "[DEBUG] About to run gum choose for profile selection" >&2
-
-# Temporarily disable ALL error handling for interactive prompt
-set +eEuo pipefail
-PROFILE=$(gum choose \
-    "dev (Development tools + Bitwarden)" \
-    "example (Minimal template)" \
-    "none (Skip profile activation)" 2>&1)
-GUM_EXIT_CODE=$?
-set -eEo pipefail
-
-echo "[DEBUG] gum choose returned exit code: $GUM_EXIT_CODE" >&2
-echo "[DEBUG] PROFILE value: '$PROFILE'" >&2
-
-echo ""
-
-# Check if gum failed
-if [[ $GUM_EXIT_CODE -ne 0 ]]; then
-    echo "❌ No profile selected (gum exit code: $GUM_EXIT_CODE). Exiting."
-    exit 1
-fi
-
-# Validate selection
-if [[ -z "$PROFILE" ]]; then
-    echo "❌ Empty profile selection. Exiting."
-    exit 1
-elif [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
-    echo "📦 Profile: dev"
-    export FEDPUNK_PROFILE="dev"
-elif [[ "$PROFILE" == "example (Minimal template)" ]]; then
-    echo "📦 Profile: example"
-    export FEDPUNK_PROFILE="example"
+# Check if we have a proper TTY for interactive prompts
+if [[ ! -t 0 ]] || [[ ! -t 1 ]]; then
+    echo "⚠️  Warning: No interactive TTY detected"
+    echo "   Defaulting to 'dev' profile"
+    echo "   To skip profile activation, set FEDPUNK_PROFILE=none before running"
+    export FEDPUNK_PROFILE="${FEDPUNK_PROFILE:-dev}"
+    echo "📦 Profile: $FEDPUNK_PROFILE"
 else
-    echo "⏭️  Skipping profile activation"
-    export FEDPUNK_PROFILE="none"
-fi
+    # Temporarily disable ALL error handling for interactive prompt
+    set +eEuo pipefail
+    PROFILE=$(gum choose \
+        "dev (Development tools + Bitwarden)" \
+        "example (Minimal template)" \
+        "none (Skip profile activation)" 2>&1)
+    GUM_EXIT_CODE=$?
+    set -eEo pipefail
 
-echo "[DEBUG] Successfully set FEDPUNK_PROFILE to: $FEDPUNK_PROFILE" >&2
+    echo ""
+
+    # Check if gum failed
+    if [[ $GUM_EXIT_CODE -ne 0 ]]; then
+        echo "❌ No profile selected (gum exit code: $GUM_EXIT_CODE). Exiting."
+        exit 1
+    fi
+
+    # Validate selection
+    if [[ -z "$PROFILE" ]]; then
+        echo "❌ Empty profile selection. Exiting."
+        exit 1
+    elif [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
+        echo "📦 Profile: dev"
+        export FEDPUNK_PROFILE="dev"
+    elif [[ "$PROFILE" == "example (Minimal template)" ]]; then
+        echo "📦 Profile: example"
+        export FEDPUNK_PROFILE="example"
+    else
+        echo "⏭️  Skipping profile activation"
+        export FEDPUNK_PROFILE="none"
+    fi
+fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
