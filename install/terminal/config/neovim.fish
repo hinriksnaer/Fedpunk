@@ -43,15 +43,27 @@ end
 
 step "Creating directories" "mkdir -p $TARGET_HOME/.local $TARGET_HOME/.local/bin"
 
-gum spin --spinner line --title "Downloading Neovim..." -- fish -c '
+if gum spin --spinner line --title "Downloading Neovim..." -- fish -c '
     curl -fL --retry 3 -o "'$TMPDIR'/nvim.tar.gz" \
         "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz" >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "Neovim downloaded" || error "Failed to download Neovim"
+'
+    success "Neovim downloaded"
+else
+    error "Failed to download Neovim"
+    error "Check your internet connection or GitHub availability"
+    exit 1
+end
 
-gum spin --spinner dot --title "Installing Neovim..." -- fish -c '
+if gum spin --spinner dot --title "Installing Neovim..." -- fish -c '
     tar -xzf "'$TMPDIR'/nvim.tar.gz" -C "'$TARGET_HOME'/.local" >>'"$FEDPUNK_LOG_FILE"' 2>&1
     ln -sfn "'$TARGET_HOME'/.local/nvim-linux-x86_64/bin/nvim" "'$TARGET_HOME'/.local/bin/nvim" >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "Neovim installed" || error "Failed to install Neovim"
+'
+    success "Neovim installed"
+else
+    error "Failed to extract or link Neovim"
+    error "Archive may be corrupted. Check log: $FEDPUNK_LOG_FILE"
+    exit 1
+end
 
 # Ensure ownership if script was run with sudo
 if test (id -u) -eq 0; and test "$TARGET_USER" != "root"

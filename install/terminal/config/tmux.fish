@@ -26,15 +26,21 @@ else
     success "Tmux plugin manager already installed"
 end
 
-# Install tmux plugins
-set token tpm_done
-gum spin --spinner dot --title "Installing tmux plugins..." -- fish -c '
-    tmux start-server \; \
-      set -g exit-empty off \; \
-      source-file '$HOME'/.config/tmux/tmux.conf \; \
-      run-shell "'$HOME'/.tmux/plugins/tpm/scripts/install_plugins.sh && tmux wait-for -S '$token'" \; \
-      wait-for "'$token'" \; \
-      set -g exit-empty on >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "Tmux plugins installed" || warning "Tmux plugins installation may have issues"
+# Install tmux plugins (only if config exists - should be deployed by chezmoi)
+if not test -f "$HOME/.config/tmux/tmux.conf"
+    warning "tmux config not found at ~/.config/tmux/tmux.conf"
+    warning "This should have been deployed by chezmoi. Skipping plugin installation."
+    warning "Run 'chezmoi apply' then manually install plugins with: ~/.tmux/plugins/tpm/scripts/install_plugins.sh"
+else
+    set token tpm_done
+    gum spin --spinner dot --title "Installing tmux plugins..." -- fish -c '
+        tmux start-server \; \
+          set -g exit-empty off \; \
+          source-file '$HOME'/.config/tmux/tmux.conf \; \
+          run-shell "'$HOME'/.tmux/plugins/tpm/scripts/install_plugins.sh && tmux wait-for -S '$token'" \; \
+          wait-for "'$token'" \; \
+          set -g exit-empty on >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "Tmux plugins installed" || warning "Tmux plugins installation may have issues"
+end
 
 success "tmux setup complete"

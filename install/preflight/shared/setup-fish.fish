@@ -17,7 +17,11 @@ mkdir -p $HOME/.local/bin
 if gum spin --spinner dot --title "Installing chezmoi (configuration management)..." -- fish -c '
     curl -sL https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-linux-amd64 -o $HOME/.local/bin/chezmoi >>'"$FEDPUNK_LOG_FILE"' 2>&1 && chmod +x $HOME/.local/bin/chezmoi
 '
-    success "chezmoi installed"
+    # Add ~/.local/bin to PATH immediately for current session and all subsequent scripts
+    if not contains "$HOME/.local/bin" $PATH
+        set -gx PATH "$HOME/.local/bin" $PATH
+    end
+    success "chezmoi installed and added to PATH"
 else
     error "Failed to install chezmoi"
     exit 1
@@ -72,12 +76,24 @@ end
 echo ""
 info "Installing Fisher plugin manager"
 if not test -f ~/.config/fish/functions/fisher.fish
-    if gum spin --spinner dot --title "Installing Fisher plugin manager..." -- fish -c '
-        curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    # Download Fisher script to a temporary file first to verify download succeeds
+    set fisher_tmp (mktemp)
+    if gum spin --spinner dot --title "Downloading Fisher..." -- fish -c '
+        curl -fsSL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish -o "'$fisher_tmp'" >>'"$FEDPUNK_LOG_FILE"' 2>&1
     '
-        success "Fisher plugin manager installed"
+        # Download succeeded, now source and install
+        if fish -c "source '$fisher_tmp' && fisher install jorgebucaran/fisher >>$FEDPUNK_LOG_FILE 2>&1"
+            success "Fisher plugin manager installed"
+            rm -f "$fisher_tmp"
+        else
+            error "Failed to install Fisher (sourcing/installation failed)"
+            rm -f "$fisher_tmp"
+            exit 1
+        end
     else
-        warning "Fisher installation failed"
+        error "Failed to download Fisher from GitHub"
+        rm -f "$fisher_tmp"
+        exit 1
     end
 else
     success "Fisher already installed"

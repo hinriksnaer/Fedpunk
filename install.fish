@@ -192,14 +192,16 @@ echo ""
 info "Deploying all configurations with chezmoi"
 cd "$FEDPUNK_PATH"
 
-# Ensure chezmoi is available and add to PATH if needed
+# Ensure chezmoi is available - add ~/.local/bin to PATH first
+if not contains "$HOME/.local/bin" $PATH
+    set -gx PATH "$HOME/.local/bin" $PATH
+end
+
+# Now verify chezmoi is available
 if not command -v chezmoi >/dev/null 2>&1
-    if test -f "$HOME/.local/bin/chezmoi"
-        set -gx PATH "$HOME/.local/bin" $PATH
-    else
-        error "chezmoi not found at $HOME/.local/bin/chezmoi"
-        exit 1
-    end
+    error "chezmoi not found. Expected at: $HOME/.local/bin/chezmoi"
+    error "This should have been installed in the Fish setup phase."
+    exit 1
 end
 
 # Run chezmoi apply with real-time output and timeout to prevent hanging
