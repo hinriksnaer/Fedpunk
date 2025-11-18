@@ -72,27 +72,30 @@ else
         export FEDPUNK_TERMINAL_ONLY=true
         echo "📟 Installing: Terminal-only mode"
     else
-        # Temporarily disable exit-on-error for interactive prompt
-        # Note: Don't redirect stderr (2>&1) as gum needs it for TUI
-        # Redirect input from /dev/tty for piped execution (curl | bash)
+        # Try gum first with a timeout, fall back to bash select if it fails
         set +eEuo pipefail
-        INSTALL_MODE=$(gum choose \
+        INSTALL_MODE=$(timeout 3 gum choose \
             "Desktop (Full: Hyprland + Terminal)" \
-            "Terminal-only (Servers/Containers)" </dev/tty)
+            "Terminal-only (Servers/Containers)" </dev/tty 2>/dev/null)
         GUM_EXIT_CODE=$?
         set -eEo pipefail
 
-        echo ""
-
-        # Check if gum failed
-        if [[ $GUM_EXIT_CODE -ne 0 ]]; then
-            echo "❌ No installation mode selected. Exiting."
-            exit 1
+        # If gum failed/timed out (exit 124), use bash select as fallback
+        if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$INSTALL_MODE" ]]; then
+            echo "Using text menu (select mode):"
+            PS3="Enter number (1-2): "
+            select INSTALL_MODE in "Desktop (Full: Hyprland + Terminal)" "Terminal-only (Servers/Containers)"; do
+                if [[ -n "$INSTALL_MODE" ]]; then
+                    break
+                fi
+            done </dev/tty
         fi
+
+        echo ""
 
         # Validate selection
         if [[ -z "$INSTALL_MODE" ]]; then
-            echo "❌ Empty installation mode. Exiting."
+            echo "❌ No installation mode selected. Exiting."
             exit 1
         elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
             echo "📟 Installing: Terminal-only mode"
@@ -120,28 +123,31 @@ if [[ ! -t 2 ]]; then
     export FEDPUNK_PROFILE="${FEDPUNK_PROFILE:-dev}"
     echo "📦 Profile: $FEDPUNK_PROFILE"
 else
-    # Temporarily disable ALL error handling for interactive prompt
-    # Note: Don't redirect stderr (2>&1) as gum needs it for TUI
-    # Redirect input from /dev/tty for piped execution (curl | bash)
+    # Try gum first with a timeout, fall back to bash select if it fails
     set +eEuo pipefail
-    PROFILE=$(gum choose \
+    PROFILE=$(timeout 3 gum choose \
         "dev (Development tools + Bitwarden)" \
         "example (Minimal template)" \
-        "none (Skip profile activation)" </dev/tty)
+        "none (Skip profile activation)" </dev/tty 2>/dev/null)
     GUM_EXIT_CODE=$?
     set -eEo pipefail
 
-    echo ""
-
-    # Check if gum failed
-    if [[ $GUM_EXIT_CODE -ne 0 ]]; then
-        echo "❌ No profile selected (gum exit code: $GUM_EXIT_CODE). Exiting."
-        exit 1
+    # If gum failed/timed out (exit 124), use bash select as fallback
+    if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$PROFILE" ]]; then
+        echo "Using text menu (select mode):"
+        PS3="Enter number (1-3): "
+        select PROFILE in "dev (Development tools + Bitwarden)" "example (Minimal template)" "none (Skip profile activation)"; do
+            if [[ -n "$PROFILE" ]]; then
+                break
+            fi
+        done </dev/tty
     fi
+
+    echo ""
 
     # Validate selection
     if [[ -z "$PROFILE" ]]; then
-        echo "❌ Empty profile selection. Exiting."
+        echo "❌ No profile selected. Exiting."
         exit 1
     elif [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
         echo "📦 Profile: dev"
