@@ -22,3 +22,12 @@ else
     info "Skipping Claude CLI installation"
     echo "[SKIPPED] Claude CLI installation declined by user" >> $FEDPUNK_LOG_FILE
 end
+
+# GitHub CLI installation (prompt user)
+echo ""
+if confirm "Install GitHub CLI (gh)?" "yes"
+    source "$FEDPUNK_INSTALL/terminal/packaging/gh.fish"
+else
+    info "Skipping GitHub CLI installation"
+    echo "[SKIPPED] GitHub CLI installation declined by user" >> $FEDPUNK_LOG_FILE
+end
