@@ -13,6 +13,10 @@ set -gx VISUAL nvim
 # Browser
 set -gx BROWSER firefox
 
+# Claude Code - Google Vertex AI Authentication (optional)
+# Uncomment the line below to use Google Vertex AI instead of standard API key auth
+# source (dirname (status --current-filename))/claude-vertex.fish
+
 # ================================
 # Git Aliases
 # ================================
