@@ -40,6 +40,8 @@ Add your custom:
 ### Scripts
 
 - **scripts/setup-bitwarden.fish** - Install Bitwarden (GUI + CLI)
+  - Supports `--reinstall` flag to force reinstall
+- **scripts/bw-ssh-add.fish** - Add SSH keys to Bitwarden vault
 - **scripts/install-nvim-mcp.fish** - Neovim MCP integration
 - **scripts/setup-podman.fish** - Setup Podman for containers
 - **scripts/setup-devcontainer.fish** - Setup Devcontainer CLI
@@ -98,12 +100,27 @@ bw generate --length 20
 bw sync
 ```
 
-**Included Aliases:**
-- `bwu` - Unlock vault
+**Included Commands & Aliases:**
+
+*Authentication:*
+- `bwlogin` - Login and auto-save session key
+- `bwunlock` / `bwu` - Unlock vault and auto-save session key
+
+*Credential Management:*
+- `bw-get <name>` / `bwg` - Interactive search and get password (auto-copy to clipboard)
 - `bwl` - List items
-- `bwg` - Get password
 - `bwgen` - Generate password
 - `bws` - Sync vault
+
+*SSH Integration:*
+- `bw-ssh-add [key-path]` / `bwsshadd` - Store SSH key in Bitwarden
+- `bw-ssh-load [key-name]` / `bwssh` - Load SSH key from Bitwarden into SSH agent
+
+*Environment Variables:*
+- `bw-env [item-name]` - Load environment variables from Bitwarden secure note
+
+**Auto-unlock on Shell Start:**
+When you open a new Fish shell, it will automatically prompt to unlock your Bitwarden vault if it's locked.
 
 ### Using Included Aliases
 
@@ -119,10 +136,21 @@ gcp "message"  # Quick commit + push
 
 **Bitwarden CLI:**
 ```bash
-bwu           # Unlock vault
-bwg gmail     # Get gmail password
-bwgen         # Generate strong password
-bws           # Sync vault
+# First time setup
+bwlogin              # Login and save session
+
+# Daily usage (auto-prompts on shell start)
+bwu                  # Unlock vault
+bwg github           # Search & get password (copies to clipboard)
+bwgen                # Generate strong password
+bws                  # Sync vault
+
+# SSH key management
+bwsshadd             # Add your SSH key to Bitwarden
+bwssh                # Load SSH key from Bitwarden to agent
+
+# Environment variables
+bw-env production    # Load production env vars from Bitwarden
 ```
 
 **Development tools:**

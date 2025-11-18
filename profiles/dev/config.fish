@@ -53,11 +53,13 @@ alias grs='git reset --soft HEAD~1'
 
 # Password manager - Bitwarden CLI
 if command -v bw >/dev/null
-    alias bwu='bw unlock'
+    alias bwu='bwunlock'
     alias bwl='bw list items'
-    alias bwg='bw get password'
+    alias bwg='bw-get'
     alias bwgen='bw generate'
     alias bws='bw sync'
+    alias bwssh='bw-ssh-load'
+    alias bwsshadd='fish ~/.local/share/fedpunk/profiles/dev/scripts/bw-ssh-add.fish'
 end
 
 # Container management
@@ -163,6 +165,55 @@ function devcon
     else
         echo "No .devcontainer/devcontainer.json found"
         return 1
+    end
+end
+
+# ================================
+# Bitwarden Integration
+# ================================
+
+# Auto-unlock Bitwarden on shell start (only for interactive shells)
+if status is-interactive; and command -v bw >/dev/null 2>&1
+    set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+
+    if test "$bw_status" = "locked"
+        # Vault is locked, prompt to unlock
+        if command -v gum >/dev/null 2>&1
+            if gum confirm "🔒 Bitwarden vault is locked. Unlock now?" --default=false
+                bwunlock
+            end
+        else
+            echo "🔒 Bitwarden vault is locked. Run 'bwunlock' to unlock."
+        end
+    else if test "$bw_status" = "unauthenticated"
+        # Not logged in
+        if command -v gum >/dev/null 2>&1
+            if gum confirm "🔒 Bitwarden not logged in. Login now?" --default=false
+                bwlogin
+            end
+        else
+            echo "🔒 Bitwarden not logged in. Run 'bwlogin' to login."
+        end
+    end
+end
+
+# SSH Agent persistence
+if status is-interactive
+    # Check if SSH agent is running
+    if not set -q SSH_AGENT_PID; or not ps -p $SSH_AGENT_PID >/dev/null 2>&1
+        # Start new agent
+        set -l ssh_env ~/.ssh/agent.env
+
+        if test -f $ssh_env
+            source $ssh_env >/dev/null
+        end
+
+        # Verify agent is actually running
+        if not ps -p $SSH_AGENT_PID >/dev/null 2>&1
+            eval (ssh-agent -c) >/dev/null
+            echo "set -gx SSH_AUTH_SOCK $SSH_AUTH_SOCK;" > $ssh_env
+            echo "set -gx SSH_AGENT_PID $SSH_AGENT_PID;" >> $ssh_env
+        end
     end
 end
 
