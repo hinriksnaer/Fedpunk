@@ -52,21 +52,16 @@ FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
 
 echo -e "\nCloning Fedpunk from: https://github.com/${FEDPUNK_REPO}.git"
 
-# Check if existing installation exists and ask for confirmation
-if [[ -d ~/.local/share/fedpunk ]]; then
-    echo "⚠️  Existing Fedpunk installation found at ~/.local/share/fedpunk"
-    read -p "Do you want to remove it and continue? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "❌ Installation cancelled by user."
-        exit 1
-    fi
-    echo "→ Removing existing installation..."
-    rm -rf ~/.local/share/fedpunk/
-fi
-
+# Clone to temporary location if directory exists
 FEDPUNK_PATH="$HOME/.local/share/fedpunk"
-git clone "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
+if [[ -d "$FEDPUNK_PATH" ]]; then
+    echo "⚠️  Existing installation found, cloning to temporary location..."
+    TEMP_PATH="/tmp/fedpunk-install-$$"
+    git clone "https://github.com/${FEDPUNK_REPO}.git" "$TEMP_PATH"
+    FEDPUNK_PATH="$TEMP_PATH"
+else
+    git clone "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
+fi
 
 # Use custom branch if instructed, otherwise default to main
 FEDPUNK_REF="${FEDPUNK_REF:-main}"

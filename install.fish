@@ -164,6 +164,50 @@ info "Installation path: $FEDPUNK_PATH"
 info "Log file: $FEDPUNK_LOG_FILE"
 echo ""
 
+# Check for existing installation and handle it
+set final_path "$HOME/.local/share/fedpunk"
+if test -d "$final_path" -a "$FEDPUNK_PATH" != "$final_path"
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    warning "Existing Fedpunk installation found at $final_path"
+    echo ""
+
+    # Try gum with timeout, fallback to bash select
+    set replace_choice ""
+    gum choose --timeout=5s "Replace existing installation" "Cancel installation" --header "What would you like to do?" </dev/tty 2>/dev/null | read replace_choice
+
+    if test -z "$replace_choice"
+        # Fallback to bash select
+        echo "What would you like to do?"
+        bash -c 'PS3="Enter number (1-2): "; select opt in "Replace existing installation" "Cancel installation"; do echo $opt; break; done </dev/tty' | read replace_choice
+    end
+
+    if test "$replace_choice" = "Cancel installation"
+        echo ""
+        error "Installation cancelled by user."
+        # Clean up temp directory if we cloned there
+        if test "$FEDPUNK_PATH" != "$final_path"
+            rm -rf "$FEDPUNK_PATH"
+        end
+        exit 1
+    end
+
+    # Remove existing installation
+    info "Removing existing installation..."
+    rm -rf "$final_path"
+
+    # Move from temp location if needed
+    if test "$FEDPUNK_PATH" != "$final_path"
+        mv "$FEDPUNK_PATH" "$final_path"
+        set -gx FEDPUNK_PATH "$final_path"
+    end
+
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+end
+
 # Interactive prompts (if not already set via environment)
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
