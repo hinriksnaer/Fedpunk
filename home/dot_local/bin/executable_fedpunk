@@ -559,6 +559,13 @@ $encoded_backup
                     exit 1
                 end
 
+                # Sync vault to ensure latest items
+                echo "→ Syncing vault..."
+                if not bw sync >/dev/null 2>&1
+                    echo "⚠️  Warning: Failed to sync vault, using cached data"
+                end
+                echo ""
+
                 # Get backup name (optional)
                 if test (count $vault_args) -gt 0
                     set backup_name $vault_args[1]
