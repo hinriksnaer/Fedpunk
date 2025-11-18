@@ -28,6 +28,20 @@ end
 echo "Current status: Claude Vertex AI is $current_status"
 echo ""
 
+# Ask if user wants to configure
+echo "Do you want to configure Claude Code authentication?"
+echo ""
+set configure (gum choose "Yes" "No")
+
+if test "$configure" = "No"
+    echo ""
+    echo "⏭️  Skipping Claude authentication setup"
+    echo ""
+    exit 0
+end
+
+echo ""
+
 # Prompt for authentication method
 echo "Choose Claude Code authentication method:"
 echo ""

@@ -17,6 +17,7 @@ setup = [
     "scripts/setup-podman.fish",
     "scripts/setup-devcontainer.fish",
     "scripts/setup-bitwarden.fish",
+    "scripts/setup-claude.fish",
 ]
 
 # To use this profile:
