@@ -75,16 +75,16 @@ if [[ -n "$FEDPUNK_HEADLESS" ]]; then
     echo ""
 fi
 
-# Try gum first with a timeout, fall back to bash select if it fails
+# Try gum first with built-in timeout, fall back to bash select if it fails
 set +eEuo pipefail
-INSTALL_MODE=$(timeout 3 gum choose \
+INSTALL_MODE=$(gum choose --timeout=5s \
     "Desktop (Full: Hyprland + Terminal)" \
     "Terminal-only (Servers/Containers)" </dev/tty 2>/dev/null)
 GUM_EXIT_CODE=$?
 set -eEo pipefail
 
-# If gum failed/timed out (exit 124), use bash select as fallback
-if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$INSTALL_MODE" ]]; then
+# If gum failed/timed out, use bash select as fallback
+if [[ $GUM_EXIT_CODE -ne 0 ]] || [[ -z "$INSTALL_MODE" ]]; then
     echo "Using text menu (select mode):"
     PS3="Enter number (1-2): "
     select INSTALL_MODE in "Desktop (Full: Hyprland + Terminal)" "Terminal-only (Servers/Containers)"; do
@@ -121,17 +121,17 @@ if [[ ! -t 2 ]]; then
     exit 1
 fi
 
-# Try gum first with a timeout, fall back to bash select if it fails
+# Try gum first with built-in timeout, fall back to bash select if it fails
 set +eEuo pipefail
-PROFILE=$(timeout 3 gum choose \
+PROFILE=$(gum choose --timeout=5s \
     "dev (Development tools + Bitwarden)" \
     "example (Minimal template)" \
     "none (Skip profile activation)" </dev/tty 2>/dev/null)
 GUM_EXIT_CODE=$?
 set -eEo pipefail
 
-# If gum failed/timed out (exit 124), use bash select as fallback
-if [[ $GUM_EXIT_CODE -eq 124 ]] || [[ $GUM_EXIT_CODE -ne 0 && -z "$PROFILE" ]]; then
+# If gum failed/timed out, use bash select as fallback
+if [[ $GUM_EXIT_CODE -ne 0 ]] || [[ -z "$PROFILE" ]]; then
     echo "Using text menu (select mode):"
     PS3="Enter number (1-3): "
     select PROFILE in "dev (Development tools + Bitwarden)" "example (Minimal template)" "none (Skip profile activation)"; do

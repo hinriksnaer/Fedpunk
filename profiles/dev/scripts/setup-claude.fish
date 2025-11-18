@@ -32,9 +32,9 @@ echo ""
 echo "Do you want to configure Claude Code authentication?"
 echo ""
 
-# Try gum with timeout, fallback to bash select
+# Try gum with built-in timeout, fallback to bash select
 set configure ""
-timeout 3 gum choose "Yes" "No" </dev/tty 2>/dev/null | read configure
+gum choose --timeout=5s "Yes" "No" </dev/tty 2>/dev/null | read configure
 
 if test -z "$configure"
     # Fallback to bash select
@@ -56,9 +56,9 @@ echo ""
 echo "Choose Claude Code authentication method:"
 echo ""
 
-# Try gum with timeout, fallback to bash select
+# Try gum with built-in timeout, fallback to bash select
 set auth_method ""
-timeout 3 gum choose "Standard API Key" "Google Vertex AI" </dev/tty 2>/dev/null | read auth_method
+gum choose --timeout=5s "Standard API Key" "Google Vertex AI" </dev/tty 2>/dev/null | read auth_method
 
 if test -z "$auth_method"
     # Fallback to bash select
