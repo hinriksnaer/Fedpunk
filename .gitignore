@@ -17,6 +17,27 @@ install/Install-Logs/
 *.swo
 *~
 
+# Sensitive files - SSH keys, credentials, secrets
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+id_ecdsa
+id_ecdsa.pub
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+secrets.json
+credentials.json
+*_credentials.json
+.bitwarden/
+bw_session
+
 # Local user config overrides (not tracked)
 local/
 
