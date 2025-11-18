@@ -103,7 +103,7 @@ set json_data (jq -n \
     '{
         type: 2,
         name: $name,
-        notes: "SSH Private Key:\n\n" + $private_key + "\n\nSSH Public Key:\n\n" + $public_key,
+        notes: ("SSH Private Key:\n\n\($private_key)\n\nSSH Public Key:\n\n\($public_key)"),
         secureNote: {
             type: 0
         }

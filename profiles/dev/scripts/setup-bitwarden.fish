@@ -164,22 +164,41 @@ if test "$cli_installed" = false
     # Fallback: download binary directly
     if test "$cli_installed" = false
         info "Installing Bitwarden CLI from binary..."
-        set BW_VERSION (curl -s https://api.github.com/repos/bitwarden/cli/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
-        set BW_URL "https://github.com/bitwarden/clients/releases/download/cli-v$BW_VERSION/bw-linux-$BW_VERSION.zip"
 
-        mkdir -p ~/.local/bin
-        cd /tmp
-        curl -fL "$BW_URL" -o bw.zip
-        unzip -o bw.zip
-        chmod +x bw
-        mv bw ~/.local/bin/
-        rm bw.zip
+        # Get latest version using GitHub API
+        set BW_VERSION (curl -s https://api.github.com/repos/bitwarden/clients/releases/latest | grep -o '"tag_name": *"[^"]*"' | grep -o 'cli-v[0-9.]*' | sed 's/cli-v//')
 
-        if command -v bw >/dev/null 2>&1
-            info "Bitwarden CLI installed successfully!"
-            set cli_installed true
+        if test -z "$BW_VERSION"
+            error "Failed to detect latest Bitwarden CLI version"
         else
-            error "Failed to install Bitwarden CLI"
+            info "Downloading version $BW_VERSION..."
+            set BW_URL "https://github.com/bitwarden/clients/releases/download/cli-v$BW_VERSION/bw-linux-$BW_VERSION.zip"
+
+            mkdir -p ~/.local/bin
+            set temp_dir (mktemp -d)
+            cd "$temp_dir"
+
+            if curl -fL "$BW_URL" -o bw.zip 2>/dev/null
+                if unzip -o bw.zip 2>/dev/null
+                    chmod +x bw
+                    mv bw ~/.local/bin/
+                    cd - >/dev/null
+                    rm -rf "$temp_dir"
+
+                    if command -v bw >/dev/null 2>&1
+                        info "Bitwarden CLI installed successfully!"
+                        set cli_installed true
+                    end
+                else
+                    error "Failed to extract Bitwarden CLI"
+                    cd - >/dev/null
+                    rm -rf "$temp_dir"
+                end
+            else
+                error "Failed to download Bitwarden CLI from $BW_URL"
+                cd - >/dev/null
+                rm -rf "$temp_dir"
+            end
         end
     end
 end
@@ -256,6 +275,33 @@ switch $bw_status
         info "CLI is already unlocked and ready!"
     case "*"
         warn "Unknown status. Run: bw login"
+end
+
+# Offer to add SSH keys to Bitwarden
+set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+if test "$bw_status" = "unlocked"
+    # Check for SSH keys
+    set ssh_keys
+    for key_file in ~/.ssh/id_ed25519 ~/.ssh/id_rsa ~/.ssh/id_ecdsa
+        if test -f "$key_file"
+            set -a ssh_keys "$key_file"
+        end
+    end
+
+    if test (count $ssh_keys) -gt 0
+        echo ""
+        if gum confirm "Add SSH keys to Bitwarden?"
+            set script_dir (dirname (status -f))
+            for key in $ssh_keys
+                info "Adding $key to Bitwarden..."
+                fish "$script_dir/bw-ssh-add.fish" "$key"
+                if test $status -ne 0
+                    warn "Failed to add $key"
+                end
+                echo ""
+            end
+        end
+    end
 end
 
 echo ""
