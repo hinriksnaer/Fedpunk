@@ -64,7 +64,8 @@ else
     echo ""
 
     # Check if we have a proper TTY for interactive prompts
-    if [[ ! -t 0 ]] || [[ ! -t 1 ]]; then
+    # When script is piped (curl | bash), stdin is the pipe, so check stderr instead
+    if [[ ! -t 2 ]]; then
         echo "⚠️  Warning: No interactive TTY detected"
         echo "   Defaulting to Terminal-only mode"
         echo "   To force desktop mode, set FEDPUNK_TERMINAL_ONLY=false before running"
@@ -73,10 +74,11 @@ else
     else
         # Temporarily disable exit-on-error for interactive prompt
         # Note: Don't redirect stderr (2>&1) as gum needs it for TUI
+        # Redirect input from /dev/tty for piped execution (curl | bash)
         set +eEuo pipefail
         INSTALL_MODE=$(gum choose \
             "Desktop (Full: Hyprland + Terminal)" \
-            "Terminal-only (Servers/Containers)")
+            "Terminal-only (Servers/Containers)" </dev/tty)
         GUM_EXIT_CODE=$?
         set -eEo pipefail
 
@@ -110,7 +112,8 @@ echo "Choose a profile to activate:"
 echo ""
 
 # Check if we have a proper TTY for interactive prompts
-if [[ ! -t 0 ]] || [[ ! -t 1 ]]; then
+# When script is piped (curl | bash), stdin is the pipe, so check stderr instead
+if [[ ! -t 2 ]]; then
     echo "⚠️  Warning: No interactive TTY detected"
     echo "   Defaulting to 'dev' profile"
     echo "   To skip profile activation, set FEDPUNK_PROFILE=none before running"
@@ -119,11 +122,12 @@ if [[ ! -t 0 ]] || [[ ! -t 1 ]]; then
 else
     # Temporarily disable ALL error handling for interactive prompt
     # Note: Don't redirect stderr (2>&1) as gum needs it for TUI
+    # Redirect input from /dev/tty for piped execution (curl | bash)
     set +eEuo pipefail
     PROFILE=$(gum choose \
         "dev (Development tools + Bitwarden)" \
         "example (Minimal template)" \
-        "none (Skip profile activation)")
+        "none (Skip profile activation)" </dev/tty)
     GUM_EXIT_CODE=$?
     set -eEo pipefail
 
