@@ -6,6 +6,16 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 section "Firmware Updates"
 
+# Skip if user doesn't want firmware updates
+echo ""
+if not confirm "Check for firmware updates?" "no"
+    info "Skipping firmware updates"
+    echo "[SKIPPED] Firmware updates declined by user" >> $FEDPUNK_LOG_FILE
+    echo ""
+    box "Firmware Updates Skipped" $GUM_WARNING
+    exit 0
+end
+
 # Check if fwupdmgr is available
 if not command -v fwupdmgr >/dev/null 2>&1
     info "fwupd not available, installing..."

@@ -221,24 +221,14 @@ if not set -q FEDPUNK_TERMINAL_ONLY
     end
 
     echo ""
-    set install_mode (gum choose \
-        --header "Choose your installation mode:" \
-        --cursor.foreground="212" \
-        "Desktop (Hyprland + Terminal)" \
-        "Terminal-only (Servers/Containers)" \
-        </dev/tty)
-
-    if test -z "$install_mode"
-        error "No installation mode selected. Exiting."
-        exit 1
-    else if test "$install_mode" = "Terminal-only (Servers/Containers)"
+    if gum confirm "Install full desktop environment (Hyprland)?" </dev/tty
+        echo ""
+        info "Installing: Full desktop environment"
+    else
         echo ""
         info "Installing: Terminal-only mode"
         set -gx FEDPUNK_TERMINAL_ONLY true
         set -gx FEDPUNK_SKIP_DESKTOP true
-    else
-        echo ""
-        info "Installing: Full desktop environment"
     end
 
     echo ""
