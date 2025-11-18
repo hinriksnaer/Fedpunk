@@ -1,8 +1,19 @@
 #!/usr/bin/env fish
 # Setup Bitwarden password manager (GUI + CLI)
 # Installs both the desktop app via Flatpak and the CLI tool
+#
+# Usage: setup-bitwarden.fish [--force|--reinstall]
 
 set -l script_name (status basename)
+
+# Parse arguments
+set -l force_reinstall false
+for arg in $argv
+    switch $arg
+        case '--force' '--reinstall'
+            set force_reinstall true
+    end
+end
 
 # Colors for output
 set -l green (tput setaf 2)
@@ -25,6 +36,46 @@ end
 echo ""
 echo "Setting up Bitwarden password manager..."
 echo ""
+
+# Uninstall if force reinstall is requested
+if test "$force_reinstall" = true
+    warn "Force reinstall requested - uninstalling existing installations..."
+    echo ""
+
+    # Uninstall Flatpak GUI
+    if flatpak list --app 2>/dev/null | grep -q "com.bitwarden.desktop"
+        info "Uninstalling Bitwarden desktop app (Flatpak)..."
+        flatpak uninstall -y com.bitwarden.desktop 2>/dev/null
+        if test $status -eq 0
+            info "Bitwarden desktop app uninstalled"
+        else
+            warn "Failed to uninstall Bitwarden desktop app"
+        end
+    end
+
+    # Uninstall CLI
+    if command -v bw >/dev/null 2>&1
+        info "Uninstalling Bitwarden CLI..."
+
+        # Try npm uninstall first
+        if command -v npm >/dev/null 2>&1
+            sudo npm uninstall -g @bitwarden/cli 2>/dev/null
+        end
+
+        # Remove binary installations
+        sudo rm -f /usr/local/bin/bw
+        sudo rm -f /usr/bin/bw
+        rm -f ~/.local/bin/bw
+
+        if not command -v bw >/dev/null 2>&1
+            info "Bitwarden CLI uninstalled"
+        else
+            warn "Some CLI remnants may remain"
+        end
+    end
+
+    echo ""
+end
 
 # Check if CLI already installed
 set cli_installed false
