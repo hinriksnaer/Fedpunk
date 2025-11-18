@@ -5,6 +5,27 @@ All notable changes to Fedpunk will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-11-17
+
+### Fixed
+
+- **Installation Reliability**: Fixed critical issues causing installation to require multiple runs
+  - Fixed chezmoi PATH race condition: now adds ~/.local/bin to PATH before verifying command
+  - Export chezmoi to PATH immediately after installation in setup-fish.fish
+  - Made Neovim download/extraction failures fatal with clear error messages
+  - Added Fisher download validation before sourcing (prevents silent failures)
+  - Verify tmux config exists before attempting to source it
+  - Ensured PATH updates persist across script boundaries
+- **Duplicate Keybindings**: Fixed duplicate terminal windows when pressing Super+Return
+  - Commented out duplicate source of .active-config/keybinds.conf (symlink to main keybinds.conf)
+  - All keybindings now register only once
+
+### Changed
+
+- Installation now completes successfully in a single run on fresh systems
+- Improved error messages throughout installation with actionable guidance
+- Better PATH management ensures tools are immediately available after installation
+
 ## [0.1.0] - 2025-11-17
 
 ### Added
@@ -125,4 +146,5 @@ If you were using `fedpunk-stow-profile`:
    - `profiles/myprofile/scripts/` - Utility scripts (added to PATH)
 3. No deployment command needed - profile files are sourced automatically
 
-[0.1.0]: https://github.com/softmax0112/fedpunk/releases/tag/v0.1.0
+[0.2.0]: https://github.com/hinriksnaer/Fedpunk/releases/tag/v0.2.0
+[0.1.0]: https://github.com/hinriksnaer/Fedpunk/releases/tag/v0.1.0
