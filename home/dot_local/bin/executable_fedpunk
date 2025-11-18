@@ -40,6 +40,9 @@ if test (count $argv) -eq 0
     echo "  vault ssh-load         Load SSH keys from vault"
     echo "  vault get <name>       Get password for item"
     echo ""
+    echo "Configuration Management:"
+    echo "  sync                   Pull latest changes and apply configs"
+    echo ""
     echo "Other Commands:"
     echo "  bluetooth              Bluetooth manager (bluetui)"
     echo "  help                   Show this help message"
@@ -433,6 +436,63 @@ switch $command
                 echo "Run 'fedpunk vault' for help"
                 exit 1
         end
+
+    case sync
+        # Sync dotfiles from git and apply changes
+        echo "Syncing Fedpunk configuration..."
+        echo ""
+
+        # Check if we're in a git repo
+        if not test -d "$FEDPUNK_PATH/.git"
+            echo "Error: Not a git repository"
+            exit 1
+        end
+
+        cd "$FEDPUNK_PATH"
+
+        # Check for uncommitted changes
+        if not git diff-index --quiet HEAD -- 2>/dev/null
+            echo "⚠️  Warning: You have uncommitted local changes"
+            echo ""
+            git status --short
+            echo ""
+            read -P "Continue with sync anyway? [y/N] " -n 1 confirm
+            echo ""
+            if test "$confirm" != "y" -a "$confirm" != "Y"
+                echo "Sync cancelled"
+                exit 0
+            end
+        end
+
+        # Pull latest changes
+        echo "→ Pulling latest changes from origin..."
+        if git pull
+            echo "✓ Git pull successful"
+        else
+            echo "✗ Git pull failed"
+            exit 1
+        end
+
+        echo ""
+
+        # Apply chezmoi changes
+        echo "→ Applying configuration changes..."
+        if command -v chezmoi >/dev/null 2>&1
+            if chezmoi apply
+                echo "✓ Configuration applied"
+            else
+                echo "✗ Chezmoi apply failed"
+                exit 1
+            end
+        else
+            echo "⚠️  Chezmoi not installed, skipping config apply"
+        end
+
+        echo ""
+        echo "✓ Sync complete!"
+        echo ""
+        echo "Note: Profile and theme changes are already active."
+        echo "Run 'exec fish' to reload your shell if needed."
 
     case bluetooth
         # Bluetooth manager
