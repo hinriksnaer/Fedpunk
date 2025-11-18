@@ -173,15 +173,11 @@ if test -d "$final_path" -a "$FEDPUNK_PATH" != "$final_path"
     warning "Existing Fedpunk installation found at $final_path"
     echo ""
 
-    # Try gum with timeout, fallback to bash select
-    set replace_choice ""
-    gum choose --timeout=5s "Replace existing installation" "Cancel installation" --header "What would you like to do?" </dev/tty 2>/dev/null | read replace_choice
-
-    if test -z "$replace_choice"
-        # Fallback to bash select
-        echo "What would you like to do?"
-        bash -c 'PS3="Enter number (1-2): "; select opt in "Replace existing installation" "Cancel installation"; do echo $opt; break; done </dev/tty' | read replace_choice
-    end
+    # Use gum directly
+    set replace_choice (gum choose \
+        "Replace existing installation" \
+        "Cancel installation" \
+        --header "What would you like to do?")
 
     if test "$replace_choice" = "Cancel installation"
         echo ""
@@ -225,17 +221,10 @@ if not set -q FEDPUNK_TERMINAL_ONLY
         echo ""
     end
 
-    # Try gum with timeout, fallback to bash select
-    set install_mode ""
-    gum choose --timeout=5s \
+    # Use gum directly
+    set install_mode (gum choose \
         "Desktop (Full: Hyprland + Terminal)" \
-        "Terminal-only (Servers/Containers)" </dev/tty 2>/dev/null | read install_mode
-
-    if test -z "$install_mode"
-        # Fallback to bash select
-        echo "Using text menu (select mode):"
-        bash -c 'PS3="Enter number (1-2): "; select opt in "Desktop (Full: Hyprland + Terminal)" "Terminal-only (Servers/Containers)"; do echo $opt; break; done </dev/tty' | read install_mode
-    end
+        "Terminal-only (Servers/Containers)")
 
     if test -z "$install_mode"
         error "No installation mode selected. Exiting."
@@ -258,18 +247,11 @@ if not set -q FEDPUNK_PROFILE
     echo "Choose a profile to activate:"
     echo ""
 
-    # Try gum with timeout, fallback to bash select
-    set profile_choice ""
-    gum choose --timeout=5s \
+    # Use gum directly
+    set profile_choice (gum choose \
         "dev (Development tools + Bitwarden)" \
         "example (Minimal template)" \
-        "none (Skip profile activation)" </dev/tty 2>/dev/null | read profile_choice
-
-    if test -z "$profile_choice"
-        # Fallback to bash select
-        echo "Using text menu (select mode):"
-        bash -c 'PS3="Enter number (1-3): "; select opt in "dev (Development tools + Bitwarden)" "example (Minimal template)" "none (Skip profile activation)"; do echo $opt; break; done </dev/tty' | read profile_choice
-    end
+        "none (Skip profile activation)")
 
     if test -z "$profile_choice"
         error "No profile selected. Exiting."
