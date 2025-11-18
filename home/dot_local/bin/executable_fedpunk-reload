@@ -15,10 +15,36 @@ if test -n "$(git status --porcelain)"
     echo ""
 end
 
+# Check for merge conflicts
+set conflicts (chezmoi status | grep "^MM")
+if test -n "$conflicts"
+    echo "⚠️  Warning: Merge conflicts detected in the following files:"
+    for conflict in $conflicts
+        if test "$conflict" != "MM"
+            echo "  - $conflict"
+        end
+    end
+    echo ""
+    echo "These files have been modified both locally and in the repository."
+    echo "They will NOT be applied automatically to preserve your changes."
+    echo ""
+    echo "To resolve:"
+    echo "  - Keep your changes: chezmoi merge <file>"
+    echo "  - Use repository version: chezmoi apply --force <file>"
+    echo "  - See differences: chezmoi diff <file>"
+    echo ""
+end
+
 # Apply chezmoi changes
 echo "📦 Applying chezmoi..."
 if chezmoi apply --source $fedpunk_dir
-    echo "✓ Chezmoi applied successfully"
+    # Check if any files were actually skipped
+    set skipped (chezmoi status | grep "^ M")
+    if test -n "$skipped"
+        echo "⚠️  Some files were not applied (see conflicts above)"
+    else
+        echo "✓ Chezmoi applied successfully"
+    end
 else
     echo "✗ Chezmoi apply failed"
     exit 1
