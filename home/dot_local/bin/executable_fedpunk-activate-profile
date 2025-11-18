@@ -107,7 +107,7 @@ function parse_toml_scripts
     set scripts (awk '/setup = \[/,/\]/' "$toml_file" | grep -o '"[^"]*"' | tr -d '"')
 
     if test -n "$scripts"
-        echo $scripts
+        printf '%s\n' $scripts
     end
 end
 
