@@ -62,14 +62,26 @@ if [[ -n "$FEDPUNK_HEADLESS" ]]; then
 else
     echo "Choose your installation mode:"
     echo ""
+
+    # Temporarily disable exit-on-error for interactive prompt
+    set +e
     INSTALL_MODE=$(gum choose \
         "Desktop (Full: Hyprland + Terminal)" \
-        "Terminal-only (Servers/Containers)") || true
+        "Terminal-only (Servers/Containers)" 2>&1)
+    GUM_EXIT_CODE=$?
+    set -e
 
     echo ""
 
-    if [[ -z "$INSTALL_MODE" ]]; then
+    # Check if gum failed
+    if [[ $GUM_EXIT_CODE -ne 0 ]]; then
         echo "❌ No installation mode selected. Exiting."
+        exit 1
+    fi
+
+    # Validate selection
+    if [[ -z "$INSTALL_MODE" ]]; then
+        echo "❌ Empty installation mode. Exiting."
         exit 1
     elif [[ "$INSTALL_MODE" == "Terminal-only (Servers/Containers)" ]]; then
         echo "📟 Installing: Terminal-only mode"
@@ -86,15 +98,27 @@ echo ""
 # Profile selection
 echo "Choose a profile to activate:"
 echo ""
+
+# Temporarily disable exit-on-error for interactive prompt
+set +e
 PROFILE=$(gum choose \
     "dev (Development tools + Bitwarden)" \
     "example (Minimal template)" \
-    "none (Skip profile activation)") || true
+    "none (Skip profile activation)" 2>&1)
+GUM_EXIT_CODE=$?
+set -e
 
 echo ""
 
-if [[ -z "$PROFILE" ]]; then
+# Check if gum failed
+if [[ $GUM_EXIT_CODE -ne 0 ]]; then
     echo "❌ No profile selected. Exiting."
+    exit 1
+fi
+
+# Validate selection
+if [[ -z "$PROFILE" ]]; then
+    echo "❌ Empty profile selection. Exiting."
     exit 1
 elif [[ "$PROFILE" == "dev (Development tools + Bitwarden)" ]]; then
     echo "📦 Profile: dev"
