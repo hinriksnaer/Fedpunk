@@ -99,20 +99,25 @@ echo ""
 echo "Choose a profile to activate:"
 echo ""
 
-# Temporarily disable exit-on-error for interactive prompt
-set +e
+echo "[DEBUG] About to run gum choose for profile selection" >&2
+
+# Temporarily disable ALL error handling for interactive prompt
+set +eEuo pipefail
 PROFILE=$(gum choose \
     "dev (Development tools + Bitwarden)" \
     "example (Minimal template)" \
     "none (Skip profile activation)" 2>&1)
 GUM_EXIT_CODE=$?
-set -e
+set -eEo pipefail
+
+echo "[DEBUG] gum choose returned exit code: $GUM_EXIT_CODE" >&2
+echo "[DEBUG] PROFILE value: '$PROFILE'" >&2
 
 echo ""
 
 # Check if gum failed
 if [[ $GUM_EXIT_CODE -ne 0 ]]; then
-    echo "❌ No profile selected. Exiting."
+    echo "❌ No profile selected (gum exit code: $GUM_EXIT_CODE). Exiting."
     exit 1
 fi
 
@@ -130,6 +135,8 @@ else
     echo "⏭️  Skipping profile activation"
     export FEDPUNK_PROFILE="none"
 fi
+
+echo "[DEBUG] Successfully set FEDPUNK_PROFILE to: $FEDPUNK_PROFILE" >&2
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
