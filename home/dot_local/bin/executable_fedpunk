@@ -4,8 +4,8 @@
 
 set script_dir (dirname (status -f))
 
-# Show help if no arguments
-if test (count $argv) -eq 0
+# Help function
+function show_help
     echo "Fedpunk CLI - Modern Fedora development environment"
     echo ""
     echo "Usage: fedpunk <command> [args...]"
@@ -19,7 +19,6 @@ if test (count $argv) -eq 0
     echo "  profile activate <name> Activate a profile (CLI)"
     echo "  profile current        Show active profile (CLI)"
     echo "  profile create [name]  Create new profile (TUI)"
-    echo ""
     echo ""
     echo "Theme Management:"
     echo "  theme set <name>       Switch to a theme"
@@ -37,8 +36,8 @@ if test (count $argv) -eq 0
     echo "Vault Management (Bitwarden):"
     echo "  vault status           Show vault status"
     echo "  vault unlock           Unlock Bitwarden vault"
-    echo "  vault ssh-load         Load SSH keys from vault"
-    echo "  vault get <name>       Get password for item"
+    echo "  vault ssh-backup       Backup SSH keys to vault"
+    echo "  vault ssh-restore      Restore SSH keys from vault"
     echo ""
     echo "Configuration Management:"
     echo "  sync                   Pull latest changes and apply configs"
@@ -51,8 +50,23 @@ if test (count $argv) -eq 0
     echo "Examples:"
     echo "  fedpunk init                    # Interactive setup (TUI)"
     echo "  fedpunk profile select          # Select profile (TUI)"
-    echo "  fedpunk profile activate dev    # Activate profile (CLI)"
     echo "  fedpunk theme set nord          # Set theme (CLI)"
+    echo "  fedpunk vault ssh-backup        # Backup SSH keys"
+    echo "  fedpunk sync                    # Sync config across machines"
+    echo ""
+    echo "Get more info:"
+    echo "  fedpunk <command> --help        # Show detailed help for a command"
+end
+
+# Show help if no arguments
+if test (count $argv) -eq 0
+    show_help
+    exit 0
+end
+
+# Check for --help or -h flag
+if contains -- --help $argv; or contains -- -h $argv
+    show_help
     exit 0
 end
 
@@ -742,7 +756,8 @@ $encoded_backup
         end
 
     case help
-        exec $script_dir/fedpunk help
+        show_help
+        exit 0
 
     case version
         echo "Fedpunk CLI v1.0.0"
