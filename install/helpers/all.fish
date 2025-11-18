@@ -235,3 +235,155 @@ function progress
 
     gum style --foreground $GUM_INFO "[$current/$total] $description"
 end
+
+# Run a fish script with logging and step tracking
+# Usage: run_script script_path description
+function run_script
+    set script_name $argv[1]
+    set description $argv[2]
+
+    # Track step count (global variable set by install.fish)
+    if set -q STEP_COUNT
+        set -g STEP_COUNT (math $STEP_COUNT + 1)
+    else
+        set -g STEP_COUNT 1
+    end
+
+    echo "" >> "$FEDPUNK_LOG_FILE"
+    echo "========================================" >> "$FEDPUNK_LOG_FILE"
+    echo "STEP $STEP_COUNT: $description" >> "$FEDPUNK_LOG_FILE"
+    echo "Script: $script_name" >> "$FEDPUNK_LOG_FILE"
+    echo "Time: "(date) >> "$FEDPUNK_LOG_FILE"
+    echo "========================================" >> "$FEDPUNK_LOG_FILE"
+    echo "" >> "$FEDPUNK_LOG_FILE"
+
+    info "Step $STEP_COUNT: $description"
+    gum style --foreground $FEDPUNK_COLOR_GRAY "  → Running: $script_name"
+
+    # Ensure cargo and local bin are in PATH
+    if not contains "$HOME/.cargo/bin" $PATH
+        set -gx PATH "$HOME/.cargo/bin" $PATH
+    end
+    if not contains "$HOME/.local/bin" $PATH
+        set -gx PATH "$HOME/.local/bin" $PATH
+    end
+
+    # Run script with verbose mode check
+    if set -q FEDPUNK_VERBOSE
+        echo "  Running with verbose output enabled..."
+        source "$script_name" 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
+        set script_result $pipestatus[1]
+    else
+        source "$script_name"
+        set script_result $status
+    end
+
+    if test $script_result -eq 0
+        # Track in global INSTALL_STEPS if it exists
+        if set -q INSTALL_STEPS
+            set -g INSTALL_STEPS $INSTALL_STEPS "✓ $description"
+        end
+        success "Completed: $description"
+        echo "" >> "$FEDPUNK_LOG_FILE"
+        echo "[STEP $STEP_COUNT COMPLETED]" >> "$FEDPUNK_LOG_FILE"
+        echo "" >> "$FEDPUNK_LOG_FILE"
+        return 0
+    else
+        set exit_code $script_result
+        if set -q INSTALL_STEPS
+            set -g INSTALL_STEPS $INSTALL_STEPS "✗ $description (exit code: $exit_code)"
+        end
+        error "Failed: $description (exit code: $exit_code)"
+        echo "" >> "$FEDPUNK_LOG_FILE"
+        echo "[STEP $STEP_COUNT FAILED - EXIT CODE: $exit_code]" >> "$FEDPUNK_LOG_FILE"
+        echo "" >> "$FEDPUNK_LOG_FILE"
+        return $exit_code
+    end
+end
+
+# Install a single package with standard pattern
+# Usage: install_package package_name
+function install_package
+    set package_name $argv[1]
+    step "Installing $package_name" "sudo dnf install -qy $package_name"
+end
+
+# Install multiple packages at once
+# Usage: install_packages pkg1 pkg2 pkg3 ...
+function install_packages
+    set packages $argv
+    step "Installing packages: "(string join ", " $packages) "sudo dnf install -qy $packages"
+end
+
+# Download and extract archive
+# Usage: download_and_extract URL dest_dir [archive_type]
+# archive_type: auto (default), tar, tar.gz, tar.xz, zip
+function download_and_extract
+    set url $argv[1]
+    set dest_dir $argv[2]
+    set archive_type $argv[3]
+
+    # Auto-detect archive type if not specified
+    if test -z "$archive_type"
+        if string match -q "*.tar.xz" "$url"
+            set archive_type "tar.xz"
+        else if string match -q "*.tar.gz" "$url"
+            set archive_type "tar.gz"
+        else if string match -q "*.zip" "$url"
+            set archive_type "zip"
+        else if string match -q "*.tar" "$url"
+            set archive_type "tar"
+        else
+            set archive_type "auto"
+        end
+    end
+
+    set temp_file (mktemp)
+
+    # Download
+    gum spin --spinner line --title "Downloading "(basename $url)"..." -- fish -c '
+        curl -fL --retry 2 -o "'$temp_file'" "'$url'" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    '
+
+    if test $status -ne 0
+        error "Failed to download "(basename $url)
+        rm -f $temp_file
+        return 1
+    end
+
+    # Extract based on type
+    mkdir -p "$dest_dir"
+    switch $archive_type
+        case "tar.xz"
+            gum spin --spinner dot --title "Extracting archive..." -- fish -c '
+                tar -xJf "'$temp_file'" -C "'$dest_dir'" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+            '
+        case "tar.gz"
+            gum spin --spinner dot --title "Extracting archive..." -- fish -c '
+                tar -xzf "'$temp_file'" -C "'$dest_dir'" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+            '
+        case "tar"
+            gum spin --spinner dot --title "Extracting archive..." -- fish -c '
+                tar -xf "'$temp_file'" -C "'$dest_dir'" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+            '
+        case "zip"
+            gum spin --spinner dot --title "Extracting archive..." -- fish -c '
+                unzip -o -q "'$temp_file'" -d "'$dest_dir'" >>'"$FEDPUNK_LOG_FILE"' 2>&1
+            '
+        case "*"
+            error "Unknown archive type: $archive_type"
+            rm -f $temp_file
+            return 1
+    end
+
+    set extract_result $status
+    rm -f $temp_file
+
+    if test $extract_result -eq 0
+        success "Extracted to $dest_dir"
+        return 0
+    else
+        error "Failed to extract archive"
+        return 1
+    end
+end

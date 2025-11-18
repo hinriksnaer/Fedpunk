@@ -74,81 +74,8 @@ echo "" >> "$FEDPUNK_LOG_FILE"
 set -g INSTALL_STEPS
 set -g STEP_COUNT 0
 
-# Helper functions
-function info
-    echo -e "$C_BLUE→$C_RESET $argv"
-    echo "[INFO] "(date '+%H:%M:%S')" $argv" >> "$FEDPUNK_LOG_FILE"
-end
-
-function success
-    echo -e "$C_GREEN✓$C_RESET $argv"
-    echo "[SUCCESS] "(date '+%H:%M:%S')" $argv" >> "$FEDPUNK_LOG_FILE"
-end
-
-function warning
-    echo -e "$C_YELLOW⚠$C_RESET $argv"
-    echo "[WARNING] "(date '+%H:%M:%S')" $argv" >> "$FEDPUNK_LOG_FILE"
-end
-
-function error
-    echo -e "$C_RED✗$C_RESET $argv"
-    echo "[ERROR] "(date '+%H:%M:%S')" $argv" >> "$FEDPUNK_LOG_FILE"
-end
-
-# Run a fish script with logging
-function run_fish_script
-    set script_name $argv[1]
-    set description $argv[2]
-
-    set -g STEP_COUNT (math $STEP_COUNT + 1)
-
-    echo "" >> "$FEDPUNK_LOG_FILE"
-    echo "========================================" >> "$FEDPUNK_LOG_FILE"
-    echo "STEP $STEP_COUNT: $description" >> "$FEDPUNK_LOG_FILE"
-    echo "Script: $script_name" >> "$FEDPUNK_LOG_FILE"
-    echo "Time: "(date) >> "$FEDPUNK_LOG_FILE"
-    echo "========================================" >> "$FEDPUNK_LOG_FILE"
-    echo "" >> "$FEDPUNK_LOG_FILE"
-
-    info "Step $STEP_COUNT: $description"
-    
-    # Show which script is running for transparency
-    echo -e "$C_BLUE  → Running: $script_name$C_RESET"
-    
-    # Ensure cargo is in PATH before each step (may have been installed in earlier steps)
-    # Always try to add cargo to PATH if it's not already there, regardless of directory existence
-    # This handles cases where cargo gets installed during the process
-    if not contains "$HOME/.cargo/bin" $PATH
-        set -gx PATH "$HOME/.cargo/bin" $PATH
-    end
-
-    # Add verbose mode check - if FEDPUNK_VERBOSE is set, show real-time output
-    if set -q FEDPUNK_VERBOSE
-        echo "  Running with verbose output enabled..."
-        source "$script_name" 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
-        set script_result $pipestatus[1]
-    else
-        source "$script_name"
-        set script_result $status
-    end
-    
-    if test $script_result -eq 0
-        set -g INSTALL_STEPS $INSTALL_STEPS "✓ $description"
-        success "Completed: $description"
-        echo "" >> "$FEDPUNK_LOG_FILE"
-        echo "[STEP $STEP_COUNT COMPLETED]" >> "$FEDPUNK_LOG_FILE"
-        echo "" >> "$FEDPUNK_LOG_FILE"
-        return 0
-    else
-        set exit_code $status
-        set -g INSTALL_STEPS $INSTALL_STEPS "✗ $description (exit code: $exit_code)"
-        error "Failed: $description (exit code: $exit_code)"
-        echo "" >> "$FEDPUNK_LOG_FILE"
-        echo "[STEP $STEP_COUNT FAILED - EXIT CODE: $exit_code]" >> "$FEDPUNK_LOG_FILE"
-        echo "" >> "$FEDPUNK_LOG_FILE"
-        return $exit_code
-    end
-end
+# Source helper functions (now that log file is set up)
+source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 # Clear screen and show banner
 clear
@@ -282,15 +209,15 @@ gum style --foreground 35 "✓ Sudo credentials verified"
 echo ""
 
 # Run each installation phase with proper logging
-run_fish_script "$FEDPUNK_INSTALL/preflight/all.fish" "Shared System Setup & Preflight"
+run_script "$FEDPUNK_INSTALL/preflight/all.fish" "Shared System Setup & Preflight"
 
 # Desktop-specific preflight (conditional)
 if not set -q FEDPUNK_SKIP_DESKTOP
-    run_fish_script "$FEDPUNK_INSTALL/desktop/preflight/all.fish" "Desktop System Setup"
+    run_script "$FEDPUNK_INSTALL/desktop/preflight/all.fish" "Desktop System Setup"
 end
 
 # Terminal components (always installed)
-run_fish_script "$FEDPUNK_INSTALL/terminal/packaging/all.fish" "Terminal Package Installation"
+run_script "$FEDPUNK_INSTALL/terminal/packaging/all.fish" "Terminal Package Installation"
 
 # Deploy all configurations with chezmoi BEFORE running config scripts that depend on them
 echo ""
@@ -321,18 +248,18 @@ else
 end
 
 # Now run terminal config scripts that may depend on deployed configs
-run_fish_script "$FEDPUNK_INSTALL/terminal/config/all.fish" "Terminal Configuration Deployment"
+run_script "$FEDPUNK_INSTALL/terminal/config/all.fish" "Terminal Configuration Deployment"
 
 # Desktop components (conditional)
 if not set -q FEDPUNK_SKIP_DESKTOP
-    run_fish_script "$FEDPUNK_INSTALL/desktop/packaging/all.fish" "Desktop Package Installation"
-    run_fish_script "$FEDPUNK_INSTALL/desktop/config/all.fish" "Desktop Configuration Deployment"
+    run_script "$FEDPUNK_INSTALL/desktop/packaging/all.fish" "Desktop Package Installation"
+    run_script "$FEDPUNK_INSTALL/desktop/config/all.fish" "Desktop Configuration Deployment"
 else
     info "Skipping desktop components (terminal-only mode)"
     echo "[SKIPPED] Desktop installation (terminal-only mode)" >> "$FEDPUNK_LOG_FILE"
 end
 
-run_fish_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
+run_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
 
 # Activate profile if selected
 if set -q FEDPUNK_PROFILE; and test "$FEDPUNK_PROFILE" != "none"

@@ -2,21 +2,16 @@
 # GitHub CLI (gh) - Official GitHub CLI tool
 # Pure package installation (configs managed by chezmoi)
 
-# FEDPUNK_PATH and FEDPUNK_INSTALL should be set by parent install.fish
 # Source helper functions
-if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
-    source "$FEDPUNK_INSTALL/helpers/all.fish"
-end
+source "$FEDPUNK_INSTALL/helpers/all.fish"
 
-echo ""
-info "Installing GitHub CLI (gh)"
+section "GitHub CLI"
 
 # Check if gh is already installed
 if command -v gh >/dev/null 2>&1
     success "GitHub CLI already installed: "(gh --version | head -n1)
 else
-    # Install gh via DNF
-    step "Installing GitHub CLI via DNF" "sudo dnf install -qy gh"
+    install_package gh
 
     # Verify installation
     if command -v gh >/dev/null 2>&1
@@ -60,4 +55,15 @@ else
     end
 end
 
-success "GitHub CLI setup complete"
+echo ""
+box "GitHub CLI Ready!
+
+✓ gh command available
+
+Next steps:
+  • Authenticate: gh auth login
+  • Clone repos: gh repo clone owner/repo
+  • Manage PRs: gh pr list
+
+💡 Run 'gh --help' for more commands" $GUM_SUCCESS
+echo ""

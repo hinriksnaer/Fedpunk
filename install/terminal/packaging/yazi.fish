@@ -2,34 +2,27 @@
 # Yazi - Blazing fast terminal file manager
 # Pure package installation and configuration
 
-# FEDPUNK_PATH and FEDPUNK_INSTALL should be set by parent install.fish
 # Source helper functions
-if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
-    source "$FEDPUNK_INSTALL/helpers/all.fish"
-end
+source "$FEDPUNK_INSTALL/helpers/all.fish"
 
-echo ""
-info "Installing Yazi file manager"
+section "Yazi File Manager"
 
 # Enable Yazi Copr repository
 step "Enabling Yazi Copr repository" "sudo dnf copr enable -qy lihaohong/yazi"
 
-# Install Yazi
-step "Installing Yazi" "sudo dnf install -qy yazi"
+# Install Yazi and all dependencies at once
+set yazi_packages \
+    yazi \
+    file \
+    ffmpegthumbnailer \
+    poppler-utils \
+    fd-find \
+    ripgrep \
+    fzf \
+    zoxide \
+    ImageMagick
 
-# Install required dependencies for yazi
-echo ""
-info "Installing Yazi dependencies"
-
-# File and ffmpeg for file previews
-step "Installing file command" "sudo dnf install -qy file"
-step "Installing ffmpegthumbnailer" "sudo dnf install -qy ffmpegthumbnailer"
-step "Installing poppler-utils" "sudo dnf install -qy poppler-utils"
-step "Installing fd-find" "sudo dnf install -qy fd-find"
-step "Installing ripgrep" "sudo dnf install -qy ripgrep"
-step "Installing fzf" "sudo dnf install -qy fzf"
-step "Installing zoxide" "sudo dnf install -qy zoxide"
-step "Installing imagemagick" "sudo dnf install -qy ImageMagick"
+install_packages $yazi_packages
 
 # Verify installation
 if command -v yazi >/dev/null 2>&1
@@ -70,7 +63,7 @@ gum spin --spinner dot --title "Creating Fish abbreviations..." -- fish -c '
         "abbr -a yy \"yy\"  # cd on quit" > ~/.config/fish/conf.d/yazi_abbr.fish >>'"$FEDPUNK_LOG_FILE"' 2>&1
 ' && success "Fish abbreviations created"
 
-# Create zoxide integration note
+# Create setup note
 gum spin --spinner dot --title "Creating setup files..." -- fish -c '
     printf "%s\n" \
         "# Yazi setup - integrated with Fish shell" \
