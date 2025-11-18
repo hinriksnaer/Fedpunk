@@ -496,53 +496,44 @@ switch $command
                 # Check if item exists
                 set existing_item (bw get item "$item_name" 2>/dev/null)
 
+                # Prepare note content
+                set note_content "SSH Configuration Backup
+Hostname: $backup_hostname
+Timestamp: $timestamp
+Format: tar.gz (base64 encoded)
+
+--- BEGIN SSH BACKUP ---
+$encoded_backup
+--- END SSH BACKUP ---"
+
                 if test -n "$existing_item"
                     # Update existing item
                     echo "→ Updating existing backup..."
                     set item_id (echo "$existing_item" | jq -r '.id')
 
-                    # Create updated note content
-                    set note_content "SSH Configuration Backup
-Hostname: $backup_hostname
-Timestamp: $timestamp
-Format: tar.gz (base64 encoded)
-
---- BEGIN SSH BACKUP ---
-$encoded_backup
---- END SSH BACKUP ---"
-
                     # Update item
-                    echo "$existing_item" | jq ".notes = \"$note_content\"" | bw encode | bw edit item "$item_id" >/dev/null 2>&1
+                    echo "$existing_item" | jq --arg notes "$note_content" '.notes = $notes' | bw encode | bw edit item "$item_id" >/dev/null 2>&1
+                    set bw_status $status
                 else
                     # Create new item
                     echo "→ Creating new backup item..."
 
-                    set note_content "SSH Configuration Backup
-Hostname: $backup_hostname
-Timestamp: $timestamp
-Format: tar.gz (base64 encoded)
-
---- BEGIN SSH BACKUP ---
-$encoded_backup
---- END SSH BACKUP ---"
-
-                    # Create secure note template
-                    set template "{
-  \"organizationId\": null,
-  \"folderId\": null,
-  \"type\": 2,
-  \"name\": \"$item_name\",
-  \"notes\": \"$note_content\",
-  \"favorite\": false,
-  \"secureNote\": {
-    \"type\": 0
+                    # Create secure note using jq for proper JSON encoding
+                    jq -n --arg name "$item_name" --arg notes "$note_content" '{
+  organizationId: null,
+  folderId: null,
+  type: 2,
+  name: $name,
+  notes: $notes,
+  favorite: false,
+  secureNote: {
+    type: 0
   }
-}"
-
-                    echo "$template" | bw encode | bw create item >/dev/null 2>&1
+}' | bw encode | bw create item >/dev/null 2>&1
+                    set bw_status $status
                 end
 
-                if test $status -eq 0
+                if test $bw_status -eq 0
                     echo ""
                     echo "✓ SSH configuration backed up successfully"
                     echo "  Item: $item_name"
@@ -638,11 +629,8 @@ $encoded_backup
                     exit 1
                 end
 
-                # Extract notes
-                set notes (echo "$item" | jq -r '.notes')
-
-                # Extract base64 encoded backup
-                set encoded_backup (echo "$notes" | sed -n '/--- BEGIN SSH BACKUP ---/,/--- END SSH BACKUP ---/p' | sed '1d;$d' | string trim)
+                # Extract base64 encoded backup directly from item
+                set encoded_backup (echo "$item" | jq -r '.notes' | sed -n '/--- BEGIN SSH BACKUP ---/,/--- END SSH BACKUP ---/p' | sed '1d;$d' | tr -d '\n')
 
                 if test -z "$encoded_backup"
                     echo "✗ Could not extract backup data from item"
