@@ -164,6 +164,88 @@ info "Installation path: $FEDPUNK_PATH"
 info "Log file: $FEDPUNK_LOG_FILE"
 echo ""
 
+# Interactive prompts (if not already set via environment)
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Installation mode selection
+if not set -q FEDPUNK_TERMINAL_ONLY
+    echo "Choose your installation mode:"
+    echo ""
+
+    # Check if headless
+    if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
+        echo "⚠️  Note: No display server detected (headless environment)"
+        echo "   Desktop mode can still be installed for later use"
+        echo ""
+    end
+
+    # Try gum with timeout, fallback to bash select
+    set install_mode ""
+    gum choose --timeout=5s \
+        "Desktop (Full: Hyprland + Terminal)" \
+        "Terminal-only (Servers/Containers)" </dev/tty 2>/dev/null | read install_mode
+
+    if test -z "$install_mode"
+        # Fallback to bash select
+        echo "Using text menu (select mode):"
+        bash -c 'PS3="Enter number (1-2): "; select opt in "Desktop (Full: Hyprland + Terminal)" "Terminal-only (Servers/Containers)"; do echo $opt; break; done </dev/tty' | read install_mode
+    end
+
+    if test -z "$install_mode"
+        error "No installation mode selected. Exiting."
+        exit 1
+    else if test "$install_mode" = "Terminal-only (Servers/Containers)"
+        echo "📟 Installing: Terminal-only mode"
+        set -gx FEDPUNK_TERMINAL_ONLY true
+        set -gx FEDPUNK_SKIP_DESKTOP true
+    else
+        echo "🖥️  Installing: Full desktop environment"
+    end
+
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+end
+
+# Profile selection
+if not set -q FEDPUNK_PROFILE
+    echo "Choose a profile to activate:"
+    echo ""
+
+    # Try gum with timeout, fallback to bash select
+    set profile_choice ""
+    gum choose --timeout=5s \
+        "dev (Development tools + Bitwarden)" \
+        "example (Minimal template)" \
+        "none (Skip profile activation)" </dev/tty 2>/dev/null | read profile_choice
+
+    if test -z "$profile_choice"
+        # Fallback to bash select
+        echo "Using text menu (select mode):"
+        bash -c 'PS3="Enter number (1-3): "; select opt in "dev (Development tools + Bitwarden)" "example (Minimal template)" "none (Skip profile activation)"; do echo $opt; break; done </dev/tty' | read profile_choice
+    end
+
+    if test -z "$profile_choice"
+        error "No profile selected. Exiting."
+        exit 1
+    else if test "$profile_choice" = "dev (Development tools + Bitwarden)"
+        echo "📦 Profile: dev"
+        set -gx FEDPUNK_PROFILE "dev"
+    else if test "$profile_choice" = "example (Minimal template)"
+        echo "📦 Profile: example"
+        set -gx FEDPUNK_PROFILE "example"
+    else
+        echo "⏭️  Skipping profile activation"
+        set -gx FEDPUNK_PROFILE "none"
+    end
+
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+end
+
 # Verify sudo credentials early (so we don't get interrupted later)
 gum style --foreground 33 "→ Verifying sudo credentials..."
 if not sudo -n true 2>/dev/null
