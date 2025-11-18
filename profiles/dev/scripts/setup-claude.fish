@@ -31,7 +31,17 @@ echo ""
 # Ask if user wants to configure
 echo "Do you want to configure Claude Code authentication?"
 echo ""
-set configure (gum choose "Yes" "No")
+
+# Try gum with timeout, fallback to bash select
+set configure ""
+timeout 3 gum choose "Yes" "No" </dev/tty 2>/dev/null | read configure
+
+if test -z "$configure"
+    # Fallback to bash select
+    echo "1) Yes"
+    echo "2) No"
+    bash -c 'PS3="Enter number (1-2): "; select opt in "Yes" "No"; do echo $opt; break; done </dev/tty' | read configure
+end
 
 if test "$configure" = "No"
     echo ""
@@ -45,9 +55,17 @@ echo ""
 # Prompt for authentication method
 echo "Choose Claude Code authentication method:"
 echo ""
-set auth_method (gum choose \
-    "Standard API Key" \
-    "Google Vertex AI")
+
+# Try gum with timeout, fallback to bash select
+set auth_method ""
+timeout 3 gum choose "Standard API Key" "Google Vertex AI" </dev/tty 2>/dev/null | read auth_method
+
+if test -z "$auth_method"
+    # Fallback to bash select
+    echo "1) Standard API Key"
+    echo "2) Google Vertex AI"
+    bash -c 'PS3="Enter number (1-2): "; select opt in "Standard API Key" "Google Vertex AI"; do echo $opt; break; done </dev/tty' | read auth_method
+end
 
 echo ""
 

@@ -207,9 +207,23 @@ end
 function save_session_key
     set session_key $argv[1]
     echo ""
-    gum style --foreground 212 "  set -Ux BW_SESSION \"$session_key\""
+    echo "  set -Ux BW_SESSION \"$session_key\""
     echo ""
-    if gum confirm "Save BW_SESSION for this user?"
+
+    # Ask to save session
+    set save_session ""
+    timeout 3 bash -c 'gum confirm "Save BW_SESSION for this user?" </dev/tty && echo "yes"' 2>/dev/null | read save_session
+
+    if test -z "$save_session"
+        # Fallback to bash select
+        echo "Save BW_SESSION for this user?"
+        echo "1) Yes"
+        echo "2) No"
+        bash -c 'PS3="Enter number (1-2): "; select opt in "Yes" "No"; do echo $opt; break; done </dev/tty' | read save_session
+        set save_session (test "$save_session" = "Yes"; and echo "yes")
+    end
+
+    if test "$save_session" = "yes"
         set -Ux BW_SESSION "$session_key"
         info "BW_SESSION saved! CLI is ready to use."
         return 0
@@ -219,7 +233,16 @@ end
 
 # Helper function to perform login
 function do_bw_login
-    set email (gum input --placeholder "Enter your Bitwarden email")
+    # Try gum input with timeout
+    set email ""
+    timeout 3 gum input --placeholder "Enter your Bitwarden email" </dev/tty 2>/dev/null | read email
+
+    if test -z "$email"
+        # Fallback to bash read
+        echo -n "Enter your Bitwarden email: "
+        bash -c 'read -r email </dev/tty && echo $email' | read email
+    end
+
     test -z "$email"; and return 1
 
     echo ""
@@ -257,7 +280,20 @@ if set -q FEDPUNK_NON_INTERACTIVE
     exit 0
 end
 
-gum confirm "Set up Bitwarden CLI now?"; or exit 0
+# Ask if user wants to set up CLI
+set setup_cli ""
+timeout 3 bash -c 'gum confirm "Set up Bitwarden CLI now?" </dev/tty && echo "yes"' 2>/dev/null | read setup_cli
+
+if test -z "$setup_cli"
+    # Fallback to bash select
+    echo "Set up Bitwarden CLI now?"
+    echo "1) Yes"
+    echo "2) No"
+    bash -c 'PS3="Enter number (1-2): "; select opt in "Yes" "No"; do echo $opt; break; done </dev/tty' | read setup_cli
+    test "$setup_cli" = "Yes"; or exit 0
+else
+    test "$setup_cli" = "yes"; or exit 0
+end
 
 echo ""
 info "Setting up Bitwarden CLI..."
@@ -290,7 +326,21 @@ if test "$bw_status" = "unlocked"
 
     if test (count $ssh_keys) -gt 0
         echo ""
-        if gum confirm "Add SSH keys to Bitwarden?"
+
+        # Ask about adding SSH keys
+        set add_keys ""
+        timeout 3 bash -c 'gum confirm "Add SSH keys to Bitwarden?" </dev/tty && echo "yes"' 2>/dev/null | read add_keys
+
+        if test -z "$add_keys"
+            # Fallback to bash select
+            echo "Add SSH keys to Bitwarden?"
+            echo "1) Yes"
+            echo "2) No"
+            bash -c 'PS3="Enter number (1-2): "; select opt in "Yes" "No"; do echo $opt; break; done </dev/tty' | read add_keys
+            set add_keys (test "$add_keys" = "Yes"; and echo "yes")
+        end
+
+        if test "$add_keys" = "yes"
             set script_dir (dirname (status -f))
             for key in $ssh_keys
                 info "Adding $key to Bitwarden..."
