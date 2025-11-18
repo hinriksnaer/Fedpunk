@@ -155,7 +155,7 @@ end
 
 # Check if we're in a non-interactive environment
 function is_non_interactive
-    # Check for common non-interactive indicators
+    # Check for explicit non-interactive flag
     if set -q FEDPUNK_NON_INTERACTIVE
         return 0
     end
@@ -165,19 +165,8 @@ function is_non_interactive
     if test "$TERM" = "dumb"
         return 0
     end
-    if not isatty stdin
-        return 0
-    end
-    # Check for devcontainer
-    if test -f /workspaces/.codespaces/shared/environment-variables.json
-        return 0
-    end
-    if set -q REMOTE_CONTAINERS
-        return 0
-    end
-    if set -q CODESPACES
-        return 0
-    end
+    # Don't check stdin - when running via curl | bash, stdin is the pipe
+    # but we can still show interactive prompts via stderr/tty
     return 1
 end
 
