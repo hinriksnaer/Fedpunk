@@ -3,7 +3,7 @@
 
 [profile]
 name = "Development"
-description = "Complete development environment with containers and Git workflow"
+description = "Complete development environment with containers, Git workflow, and Bitwarden password manager"
 author = "hinriksnaer"
 
 [packages]
@@ -16,7 +16,7 @@ setup = [
     "scripts/install-nvim-mcp.fish",
     "scripts/setup-podman.fish",
     "scripts/setup-devcontainer.fish",
-    "scripts/setup-protonpass.fish",
+    "scripts/setup-bitwarden.fish",
 ]
 
 # To use this profile:

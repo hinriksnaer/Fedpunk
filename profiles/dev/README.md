@@ -1,8 +1,16 @@
-# Dev Profile (Reference Example)
+# Dev Profile
+
+Complete development environment with containers, Git workflow, and **Bitwarden** password manager.
 
 This is a **reference implementation** of a fully-configured development profile.
 
-Use this as a starting point for your own profile, or keep your personal setup elsewhere.
+## Features
+
+- **Bitwarden Integration**: Password management with CLI + GUI (browser integration)
+- **Git Workflow**: Comprehensive git aliases and shortcuts
+- **Container Development**: Podman setup for Docker-compatible workflows
+- **Neovim MCP**: Model Context Protocol integration for AI-assisted development
+- **Devcontainer Support**: Full devcontainer CLI setup
 
 ## What's Configured
 
@@ -13,12 +21,13 @@ Profiles provide overlays that extend or customize the base Fedpunk configuratio
 #### **config.fish** - Fish shell customizations
 Sourced by the main Fish config at `~/.config/fish/config.fish`
 
-Add your personal:
+Includes:
 - Git aliases (gs, ga, gc, gp, gl, etc.)
-- Development shortcuts
-- Environment variables
-- Editor preferences
-- Custom PATH entries
+- Development shortcuts (v, vi, vim → nvim)
+- Container aliases (docker, podman)
+- **Bitwarden CLI aliases**: `bwu`, `bwl`, `bwg`, `bwgen`, `bws`
+- Environment variables (EDITOR, BROWSER)
+- Custom functions (mkproj, gcp, devcon)
 
 #### **keybinds.conf** - Hyprland keybindings
 Included by Hyprland config at `~/.config/hypr/conf.d/keybinds.conf`
@@ -30,6 +39,7 @@ Add your custom:
 
 ### Scripts
 
+- **scripts/setup-bitwarden.fish** - Install Bitwarden (GUI + CLI)
 - **scripts/install-nvim-mcp.fish** - Neovim MCP integration
 - **scripts/setup-podman.fish** - Setup Podman for containers
 - **scripts/setup-devcontainer.fish** - Setup Devcontainer CLI
@@ -37,6 +47,89 @@ Add your custom:
 ### Themes
 
 - **themes/** - Your custom themes (if any)
+
+## Quick Start
+
+### Activate Dev Profile
+
+The dev profile is the default active profile. To ensure it's active:
+
+```bash
+cd ~/.local/share/fedpunk
+ln -sf profiles/dev .active-config
+source ~/.config/fish/config.fish
+```
+
+### Install Bitwarden
+
+Run the setup script to automatically install Bitwarden (GUI + CLI):
+
+```bash
+fish ~/.local/share/fedpunk/profiles/dev/scripts/setup-bitwarden.fish
+```
+
+This will automatically:
+1. Install Flatpak and add Flathub
+2. Install Bitwarden desktop app (for browser integration)
+3. Install Bitwarden CLI (via npm or direct download)
+
+**GUI Usage:**
+- App menu: Search for "Bitwarden"
+- Desktop: Browser extension integration
+
+**CLI Usage:**
+```bash
+# Login
+bw login your-email@example.com
+
+# Unlock vault (save the session key!)
+export BW_SESSION=$(bw unlock --raw)
+
+# Get a password
+bw get password gmail
+
+# List all items
+bw list items
+
+# Generate password
+bw generate --length 20
+
+# Sync vault
+bw sync
+```
+
+**Included Aliases:**
+- `bwu` - Unlock vault
+- `bwl` - List items
+- `bwg` - Get password
+- `bwgen` - Generate password
+- `bws` - Sync vault
+
+### Using Included Aliases
+
+**Git shortcuts:**
+```bash
+gs      # git status
+gd      # git diff
+ga      # git add
+gc      # git commit
+gp      # git push
+gcp "message"  # Quick commit + push
+```
+
+**Bitwarden CLI:**
+```bash
+bwu           # Unlock vault
+bwg gmail     # Get gmail password
+bwgen         # Generate strong password
+bws           # Sync vault
+```
+
+**Development tools:**
+```bash
+v file.txt    # Open in neovim
+dc ps         # docker ps (podman-backed)
+```
 
 ## Setup Checklist
 

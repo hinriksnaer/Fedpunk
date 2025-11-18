@@ -51,8 +51,14 @@ alias grs='git reset --soft HEAD~1'
 # Development Shortcuts
 # ================================
 
-# Password manager
-alias pass='proton-pass'
+# Password manager - Bitwarden CLI
+if command -v bw >/dev/null
+    alias bwu='bw unlock'
+    alias bwl='bw list items'
+    alias bwg='bw get password'
+    alias bwgen='bw generate'
+    alias bws='bw sync'
+end
 
 # Container management
 alias dc='docker'
