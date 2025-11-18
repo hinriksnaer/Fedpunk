@@ -29,9 +29,11 @@ echo "Current status: Claude Vertex AI is $current_status"
 echo ""
 
 # Ask if user wants to configure
-echo "Do you want to configure Claude Code authentication?"
-echo ""
-set configure (gum choose "Yes" "No")
+set configure (gum choose \
+    --header "Do you want to configure Claude Code authentication?" \
+    --cursor.foreground="212" \
+    "Yes" "No" \
+    </dev/tty)
 
 if test "$configure" = "No"
     echo ""
@@ -43,9 +45,12 @@ end
 echo ""
 
 # Prompt for authentication method
-echo "Choose Claude Code authentication method:"
-echo ""
-set auth_method (gum choose "Standard API Key" "Google Vertex AI")
+set auth_method (gum choose \
+    --header "Choose Claude Code authentication method:" \
+    --cursor.foreground="212" \
+    "Standard API Key" \
+    "Google Vertex AI" \
+    </dev/tty)
 
 echo ""
 

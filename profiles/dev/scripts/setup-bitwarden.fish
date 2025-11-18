@@ -214,7 +214,7 @@ function save_session_key
     echo ""
     gum style --foreground 212 "  set -Ux BW_SESSION \"$session_key\""
     echo ""
-    if gum confirm "Save BW_SESSION for this user?"
+    if gum confirm "Save BW_SESSION for this user?" </dev/tty
         set -Ux BW_SESSION "$session_key"
         info "BW_SESSION saved! CLI is ready to use."
         return 0
@@ -224,7 +224,7 @@ end
 
 # Helper function to perform login
 function do_bw_login
-    set email (gum input --placeholder "Enter your Bitwarden email")
+    set email (gum input --placeholder "Enter your Bitwarden email" </dev/tty)
     test -z "$email"; and return 1
 
     echo ""
@@ -263,7 +263,7 @@ if set -q FEDPUNK_NON_INTERACTIVE
 end
 
 # Ask if user wants to set up CLI
-gum confirm "Set up Bitwarden CLI now?"; or exit 0
+gum confirm "Set up Bitwarden CLI now?" </dev/tty; or exit 0
 
 echo ""
 info "Setting up Bitwarden CLI..."
@@ -299,7 +299,7 @@ if test "$bw_status" = "unlocked"
 
         # Ask about adding SSH keys
         echo ""
-        if gum confirm "Add SSH keys to Bitwarden?"
+        if gum confirm "Add SSH keys to Bitwarden?" </dev/tty
             set script_dir (dirname (status -f))
             for key in $ssh_keys
                 info "Adding $key to Bitwarden..."

@@ -175,9 +175,11 @@ if test -d "$final_path" -a "$FEDPUNK_PATH" != "$final_path"
 
     # Use gum directly
     set replace_choice (gum choose \
+        --header "Existing installation found. What would you like to do?" \
+        --cursor.foreground="212" \
         "Replace existing installation" \
         "Cancel installation" \
-        --header "What would you like to do?")
+        </dev/tty)
 
     if test "$replace_choice" = "Cancel installation"
         echo ""
@@ -211,30 +213,32 @@ echo ""
 
 # Installation mode selection
 if not set -q FEDPUNK_TERMINAL_ONLY
-    echo "Choose your installation mode:"
-    echo ""
-
     # Check if headless
     if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
-        echo "⚠️  Note: No display server detected (headless environment)"
-        echo "   Desktop mode can still be installed for later use"
         echo ""
+        warning "No display server detected (headless environment)"
+        info "Desktop mode can still be installed for later use"
     end
 
-    # Use gum directly
+    echo ""
     set install_mode (gum choose \
-        "Desktop (Full: Hyprland + Terminal)" \
-        "Terminal-only (Servers/Containers)")
+        --header "Choose your installation mode:" \
+        --cursor.foreground="212" \
+        "Desktop (Hyprland + Terminal)" \
+        "Terminal-only (Servers/Containers)" \
+        </dev/tty)
 
     if test -z "$install_mode"
         error "No installation mode selected. Exiting."
         exit 1
     else if test "$install_mode" = "Terminal-only (Servers/Containers)"
-        echo "📟 Installing: Terminal-only mode"
+        echo ""
+        info "Installing: Terminal-only mode"
         set -gx FEDPUNK_TERMINAL_ONLY true
         set -gx FEDPUNK_SKIP_DESKTOP true
     else
-        echo "🖥️  Installing: Full desktop environment"
+        echo ""
+        info "Installing: Full desktop environment"
     end
 
     echo ""
@@ -244,26 +248,29 @@ end
 
 # Profile selection
 if not set -q FEDPUNK_PROFILE
-    echo "Choose a profile to activate:"
     echo ""
-
-    # Use gum directly
     set profile_choice (gum choose \
-        "dev (Development tools + Bitwarden)" \
+        --header "Choose a profile to activate:" \
+        --cursor.foreground="212" \
+        "dev (Development + Bitwarden)" \
         "example (Minimal template)" \
-        "none (Skip profile activation)")
+        "none (Skip profile)" \
+        </dev/tty)
 
     if test -z "$profile_choice"
         error "No profile selected. Exiting."
         exit 1
-    else if test "$profile_choice" = "dev (Development tools + Bitwarden)"
-        echo "📦 Profile: dev"
+    else if test "$profile_choice" = "dev (Development + Bitwarden)"
+        echo ""
+        info "Activating profile: dev"
         set -gx FEDPUNK_PROFILE "dev"
     else if test "$profile_choice" = "example (Minimal template)"
-        echo "📦 Profile: example"
+        echo ""
+        info "Activating profile: example"
         set -gx FEDPUNK_PROFILE "example"
     else
-        echo "⏭️  Skipping profile activation"
+        echo ""
+        info "Skipping profile activation"
         set -gx FEDPUNK_PROFILE "none"
     end
 
