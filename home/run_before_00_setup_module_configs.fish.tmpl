@@ -39,14 +39,11 @@ if test -d "$config_path"
                 set subitem_name (basename "$subitem")
                 set target_path "$FEDPUNK_SOURCE_DIR/dot_config/$subitem_name"
 
-                # Remove outdated symlink
+                # Remove any existing symlink (we copy now, don't symlink)
                 if test -L "$target_path"
-                    set current_target (readlink "$target_path")
-                    if test "$current_target" != "$subitem"
-                        rm "$target_path"
-                    end
+                    rm "$target_path"
                 else if test -e "$target_path"
-                    echo "  ⚠ Skipping dot_config/$subitem_name (exists)"
+                    echo "  ⚠ Skipping dot_config/$subitem_name (exists as file/dir)"
                     set skipped_count (math $skipped_count + 1)
                     continue
                 end
