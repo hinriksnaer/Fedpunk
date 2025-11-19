@@ -46,7 +46,7 @@ else
 end
 
 # Phase 2: Desktop preflight (if enabled)
-{{- if .install.desktop_preflight }}
+{{- if .install.desktop_setup }}
 echo ""
 info "Phase 2: Desktop system setup"
 echo ""
@@ -57,7 +57,7 @@ else
     warning "Desktop preflight script not found, skipping"
 end
 {{- else }}
-info "Skipping desktop system setup (desktop_preflight=false)"
+info "Skipping desktop system setup (desktop_setup=false)"
 {{- end }}
 
 # Phase 3: Package installation

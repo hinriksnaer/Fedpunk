@@ -30,9 +30,9 @@
 {{- /* Get profile from environment, default to "dev" */ -}}
 {{- $profile := env "FEDPUNK_PROFILE" | default "dev" -}}
 
-{{- /* Load mode configuration from JSON file */ -}}
-{{- $modeFilePath := joinPath .chezmoi.workingTree "profiles" $profile "modes" (printf "%s.json" $mode) -}}
-{{- $modeConfig := include $modeFilePath | fromJson -}}
+{{- /* Load mode configuration from YAML file */ -}}
+{{- $modeFilePath := joinPath .chezmoi.workingTree "profiles" $profile "modes" (printf "%s.yaml" $mode) -}}
+{{- $modeConfig := include $modeFilePath | fromYaml -}}
 
 [data]
   [data.mode]
