@@ -581,12 +581,21 @@ function load_mode_toml
     set temp_data "$FEDPUNK_PATH/home/.chezmoidata.toml"
     cp "$toml_file" "$temp_data"
 
-    # Execute template and save output to a temp file
-    set temp_output (mktemp)
-    chezmoi execute-template < $temp_template > $temp_output 2>&1
+    # Debug: show what data file looks like
+    info "Debug - chezmoidata.toml contents:"
+    cat "$temp_data"
 
-    if test $status -ne 0
+    # Execute template and save output to a temp file (run from source directory)
+    set temp_output (mktemp)
+    cd "$FEDPUNK_PATH/home" && chezmoi execute-template --source="$FEDPUNK_PATH/home" < $temp_template > $temp_output 2>&1
+    set chezmoi_status $status
+    cd -
+
+    if test $chezmoi_status -ne 0
         error "Failed to parse mode TOML with chezmoi"
+        info "Template was:"
+        cat $temp_template
+        info "Error output:"
         cat $temp_output
         rm -f $temp_template $temp_output
         return 1
