@@ -23,6 +23,14 @@ end
 
 section "Bitwarden Setup"
 
+# Skip in non-interactive container mode (CLI not useful without GUI browser access)
+if set -q FEDPUNK_NON_INTERACTIVE; and test "$FEDPUNK_MODE" = "container"
+    info "Non-interactive container mode - skipping Bitwarden setup"
+    info "Bitwarden is not useful in headless containers"
+    echo ""
+    exit 0
+end
+
 # Uninstall if force reinstall is requested
 if test "$force_reinstall" = true
     warning "Force reinstall requested - uninstalling existing installations..."
@@ -78,30 +86,47 @@ end
 
 subsection "Installing dependencies"
 
-# Install Flatpak if not available
-if not command -v flatpak >/dev/null 2>&1
-    install_package flatpak
+# Detect if we're in a container (skip GUI installation)
+set in_container false
+if test -n "$FEDPUNK_MODE"; and test "$FEDPUNK_MODE" = "container"
+    set in_container true
+    info "Container mode detected - skipping GUI installation"
+else if test -f /.dockerenv; or test -f /run/.containerenv
+    set in_container true
+    info "Container detected - skipping GUI installation"
 end
 
-# Add Flathub repository if not already added
-if not flatpak remotes 2>/dev/null | grep -q flathub
-    step "Adding Flathub repository" "sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo"
-else
-    success "Flathub repository already configured"
-end
-
-# Install Bitwarden desktop app from Flathub
-if test "$gui_installed" = false
-    subsection "Installing Bitwarden desktop app"
-
-    flatpak install -y flathub com.bitwarden.desktop
-
-    if test $status -eq 0
-        success "Bitwarden desktop app installed successfully!"
-        set gui_installed true
-    else
-        error "Failed to install Bitwarden desktop app"
+# Install GUI only if not in container
+if test "$in_container" = false
+    # Install Flatpak if not available
+    if not command -v flatpak >/dev/null 2>&1
+        install_package flatpak
     end
+
+    # Add Flathub repository if not already added
+    if not flatpak remotes 2>/dev/null | grep -q flathub
+        step "Adding Flathub repository" "sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo"
+    else
+        success "Flathub repository already configured"
+    end
+
+    # Install Bitwarden desktop app from Flathub
+    if test "$gui_installed" = false
+        subsection "Installing Bitwarden desktop app"
+
+        flatpak install -y flathub com.bitwarden.desktop
+
+        if test $status -eq 0
+            success "Bitwarden desktop app installed successfully!"
+            set gui_installed true
+        else
+            error "Failed to install Bitwarden desktop app"
+        end
+    end
+else
+    # In container: mark GUI as "installed" (not needed)
+    set gui_installed true
+    info "Skipping desktop app (not needed in containers)"
 end
 
 # Install Bitwarden CLI
