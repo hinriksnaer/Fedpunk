@@ -1,0 +1,25 @@
+{
+  "mode": "container",
+  "description": "Minimal development environment for containers",
+  "install": {
+    "desktop_preflight": false,
+    "yazi": true,
+    "claude": true,
+    "gh": true,
+    "tmux": false,
+    "neovim": true,
+    "btop": false,
+    "lazygit": true,
+    "cli_tools": true,
+    "languages": true,
+    "firefox": false,
+    "fonts": false,
+    "audio": false,
+    "multimedia": false,
+    "bluetooth": false,
+    "extra_apps": false,
+    "kitty": false,
+    "hyprland": false,
+    "rofi": false
+  }
+}

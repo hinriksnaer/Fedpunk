@@ -1,8 +1,7 @@
 #!/usr/bin/env fish
 # Post-deployment: Install tmux plugins
 # This runs after chezmoi applies configs, guaranteeing tmux.conf exists
-
-{{- if .install.tmux }}
+# Note: chezmoi only runs this if .install.tmux is true (via .chezmoiignore)
 
 # Setup tmux plugin manager
 if not test -d $HOME/.tmux/plugins/tpm
@@ -27,5 +26,3 @@ if test -f "$HOME/.config/tmux/tmux.conf"
 else
     echo "⚠ tmux config not found, skipping plugin installation"
 end
-
-{{- end }}

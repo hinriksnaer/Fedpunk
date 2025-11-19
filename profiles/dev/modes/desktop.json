@@ -1,0 +1,25 @@
+{
+  "mode": "desktop",
+  "description": "Full desktop environment with all development tools",
+  "install": {
+    "desktop_preflight": true,
+    "yazi": true,
+    "claude": true,
+    "gh": true,
+    "tmux": true,
+    "neovim": true,
+    "btop": true,
+    "lazygit": true,
+    "cli_tools": true,
+    "languages": true,
+    "firefox": true,
+    "fonts": true,
+    "audio": true,
+    "multimedia": true,
+    "bluetooth": true,
+    "extra_apps": true,
+    "kitty": true,
+    "hyprland": true,
+    "rofi": true
+  }
+}
