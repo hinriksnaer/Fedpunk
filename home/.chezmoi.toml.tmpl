@@ -1,7 +1,7 @@
 {{- $mode := "desktop" -}}
 {{- $autoDetectedMode := "" -}}
 
-{{- /* Auto-detect mode */ -}}
+{{/* Auto-detect mode based on environment */}}
 {{- if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
 {{-   $autoDetectedMode = "container" -}}
 {{-   $mode = "container" -}}
@@ -13,18 +13,16 @@
 {{-   $mode = "desktop" -}}
 {{- end -}}
 
-{{- /* Allow override via environment or prompt */ -}}
+{{/* Allow override via environment or prompt */}}
 {{- if env "FEDPUNK_MODE" -}}
-{{-   /* Explicit mode override */ -}}
 {{-   $mode = env "FEDPUNK_MODE" -}}
 {{- else if env "FEDPUNK_NON_INTERACTIVE" -}}
-{{-   /* Non-interactive: use auto-detected mode */ -}}
+{{/* Non-interactive: use auto-detected mode (already set above) */}}
 {{- else -}}
-{{-   /* Interactive: prompt user */ -}}
 {{-   $mode = promptChoice "mode" (list "desktop" "laptop" "container") $autoDetectedMode -}}
 {{- end -}}
 
-{{- /* Load profile */ -}}
+{{/* Load profile */}}
 {{- $profile := env "FEDPUNK_PROFILE" | default "dev" -}}
 {{- $profilePath := joinPath .chezmoi.workingTree "profiles" $profile -}}
 {{- $manifestPath := joinPath $profilePath "fedpunk.yaml" -}}
