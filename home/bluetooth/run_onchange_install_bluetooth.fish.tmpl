@@ -1,0 +1,8 @@
+#!/usr/bin/env fish
+if test "{{ .mode.name }}" = "container"; exit 0; end
+if not set -q FEDPUNK_INSTALL_BLUETOOTH; or test "$FEDPUNK_INSTALL_BLUETOOTH" != "true"; exit 0; end
+if not set -q FEDPUNK_PATH; set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"; end
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+section "Bluetooth Installation"
+install_packages bluez bluetui
+box "Bluetooth Installation Complete!" $GUM_SUCCESS

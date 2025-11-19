@@ -1,0 +1,24 @@
+#!/usr/bin/env fish
+# Component: Yazi
+# Description: Install yazi file manager
+# Mode: All modes (if FEDPUNK_INSTALL_YAZI=true)
+
+if not set -q FEDPUNK_INSTALL_YAZI; or test "$FEDPUNK_INSTALL_YAZI" != "true"
+    exit 0
+end
+
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+end
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+
+section "Yazi Installation"
+
+if command -v yazi >/dev/null 2>&1
+    success "Yazi already installed"
+else
+    step "Installing Yazi dependencies" "sudo dnf install -qy gcc"
+    step "Installing Yazi via cargo" "cargo install yazi-fm yazi-cli"
+end
+
+box "Yazi Installation Complete!" $GUM_SUCCESS

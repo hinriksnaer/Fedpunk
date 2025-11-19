@@ -1,0 +1,17 @@
+#!/usr/bin/env fish
+# Component: CLI Tools
+# Description: Install core CLI utilities (ripgrep, fd, bat, eza, fzf)
+# Mode: All modes (if FEDPUNK_INSTALL_CLI_TOOLS=true)
+
+if not set -q FEDPUNK_INSTALL_CLI_TOOLS; or test "$FEDPUNK_INSTALL_CLI_TOOLS" != "true"
+    exit 0
+end
+
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+end
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+
+section "CLI Tools Installation"
+install_packages ripgrep fd-find bat eza fzf
+box "CLI Tools Installation Complete!" $GUM_SUCCESS

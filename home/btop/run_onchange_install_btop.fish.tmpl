@@ -1,0 +1,23 @@
+#!/usr/bin/env fish
+# Component: Btop
+# Description: Install btop system monitor
+# Mode: All modes (if FEDPUNK_INSTALL_BTOP=true)
+
+if not set -q FEDPUNK_INSTALL_BTOP; or test "$FEDPUNK_INSTALL_BTOP" != "true"
+    exit 0
+end
+
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+end
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+
+section "Btop Installation"
+
+if command -v btop >/dev/null 2>&1
+    success "Btop already installed"
+else
+    step "Installing btop" "sudo dnf install -qy btop"
+end
+
+box "Btop Installation Complete!" $GUM_SUCCESS

@@ -1,0 +1,8 @@
+#!/usr/bin/env fish
+if test "{{ .mode.name }}" = "container"; exit 0; end
+if not set -q FEDPUNK_INSTALL_MULTIMEDIA; or test "$FEDPUNK_INSTALL_MULTIMEDIA" != "true"; exit 0; end
+if not set -q FEDPUNK_PATH; set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"; end
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+section "Multimedia Installation"
+install_packages ffmpeg gstreamer1-plugins-{base,good,bad-free,ugly-free} mesa-va-drivers libva-utils
+box "Multimedia Installation Complete!" $GUM_SUCCESS

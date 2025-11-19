@@ -1,0 +1,40 @@
+#!/usr/bin/env fish
+# ============================================================================
+# POST-INSTALL: Final setup and package updates
+# ============================================================================
+# Purpose:
+#   - Update all packages to catch COPR updates
+#   - Display completion message
+# Runs: After all files deployed and components installed
+# ============================================================================
+
+# Initialize FEDPUNK_PATH if not set
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+end
+
+# Source helpers
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+
+section "Post-Installation"
+
+# Update packages to catch any COPR or repo updates
+subsection "Checking for package updates"
+step "Updating packages" "sudo dnf upgrade -qy --refresh"
+
+echo ""
+box "Installation Complete!
+
+Mode: {{ .mode.name }}
+
+Next steps:
+  • Restart your shell: exec fish
+  • Check logs: $FEDPUNK_LOG_FILE
+
+For desktop modes:
+  • Logout and select Hyprland from login screen
+  • Super+Enter: Terminal
+  • Super+D: App launcher
+  • Super+Q: Close window" $GUM_SUCCESS
+
+echo ""
