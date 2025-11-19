@@ -43,6 +43,7 @@ local/
 
 # User profiles (personal customizations, won't cause merge conflicts)
 profiles/*/
+!profiles/base/
 !profiles/example/
 !profiles/dev/
 

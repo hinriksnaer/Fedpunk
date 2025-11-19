@@ -1,0 +1,53 @@
+profile:
+  name: base
+  description: Base Fedpunk profile with essential terminal and desktop components
+  author: fedpunk
+  version: 1.0.0
+
+# Base profile doesn't inherit from anything
+inherit: null
+
+# Modules to load (order matters for visual presentation, dependencies auto-resolved)
+modules:
+  # Core system (required)
+  - core
+
+  # Terminal tools
+  - cli-tools
+  - tmux
+  - nvim
+
+  # Programming languages
+  - languages
+
+# Mode-specific modules
+mode_modules:
+  desktop:
+    - hyprland
+    - kitty
+    - themes
+    - fonts
+    - audio
+
+  laptop:
+    - hyprland
+    - kitty
+    - themes
+    - fonts
+    - audio
+
+  container:
+    # Container mode uses only the base modules (no desktop components)
+
+# Global module parameter overrides (optional)
+module_params:
+  nvim:
+    setup_plugins: true
+
+  tmux:
+    setup_tpm: true
+
+  languages:
+    install_nodejs: true
+    install_python: true
+    install_go: true

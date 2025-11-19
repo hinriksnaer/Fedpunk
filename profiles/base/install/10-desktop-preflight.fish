@@ -1,0 +1,93 @@
+#!/usr/bin/env fish
+# ============================================================================
+# DESKTOP PREFLIGHT: Desktop-specific system setup
+# ============================================================================
+# Purpose:
+#   - Enable RPM Fusion repositories
+#   - Setup XDG user directories
+#   - System upgrade (optional, based on mode config)
+#   - Firmware updates (optional, based on mode config)
+#   - Setup Flatpak/Flathub
+# Runs: Only for desktop/laptop modes
+# ============================================================================
+
+# Skip if container mode
+if test "$FEDPUNK_MODE" = "container"
+    info "Skipping desktop preflight (container mode)"
+    exit 0
+end
+
+source "$FEDPUNK_PROFILE_PATH/lib/helpers.fish"
+
+section "Desktop System Setup"
+
+# Enable RPM Fusion repositories
+subsection "Enabling RPM Fusion repositories"
+set fedora_version (rpm -E %fedora)
+set free_url "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$fedora_version.noarch.rpm"
+set nonfree_url "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$fedora_version.noarch.rpm"
+
+if rpm -q rpmfusion-free-release >/dev/null 2>&1
+    success "RPM Fusion already enabled"
+else
+    step "Installing RPM Fusion repos" "sudo dnf install -qy $free_url $nonfree_url"
+end
+
+# Setup XDG user directories
+subsection "Setting up XDG user directories"
+if command -v xdg-user-dirs-update >/dev/null 2>&1
+    step "Configuring user directories" "xdg-user-dirs-update"
+else
+    info "xdg-user-dirs-update will be installed with desktop packages"
+end
+
+# System upgrade (if enabled in mode config)
+echo ""
+if test "$FEDPUNK_INSTALL_SYSTEM_UPGRADE" = "true"
+    subsection "Running system upgrade"
+    step "Upgrading system packages" "sudo dnf upgrade --refresh -qy"
+else
+    info "Skipping system upgrade (disabled in mode config)"
+end
+
+# Firmware updates (if enabled in mode config)
+echo ""
+if test "$FEDPUNK_INSTALL_FIRMWARE_UPDATE" = "true"
+    subsection "Checking for firmware updates"
+
+    if not command -v fwupdmgr >/dev/null 2>&1
+        step "Installing fwupd" "sudo dnf install -qy fwupd"
+    end
+
+    if fwupdmgr refresh --force >/dev/null 2>&1
+        if fwupdmgr get-updates >/dev/null 2>&1
+            step "Applying firmware updates" "sudo fwupdmgr update -y"
+            info "Firmware updated - reboot may be required"
+        else
+            success "All firmware up to date"
+        end
+    else
+        info "Firmware updates not available on this system"
+    end
+else
+    info "Skipping firmware updates (disabled in mode config)"
+end
+
+# Setup Flatpak
+echo ""
+subsection "Setting up Flatpak"
+if not command -v flatpak >/dev/null 2>&1
+    step "Installing Flatpak" "sudo dnf install -qy flatpak"
+end
+
+if flatpak remote-list 2>/dev/null | grep -q "flathub"
+    success "Flathub already configured"
+else
+    step "Adding Flathub repository" "sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo"
+end
+
+# AppImage support (FUSE)
+step "Installing AppImage support" "sudo dnf install -qy fuse"
+
+echo ""
+box "Desktop System Setup Complete!" $GUM_SUCCESS
