@@ -1,19 +1,9 @@
+{{- if ne .mode.name "container" }}
 #!/usr/bin/env fish
 # Install nvim-mcp server for Claude Code integration
+# Mode: {{ .mode.name }}
 
-# Source helper functions
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
 source "{{ .chezmoi.sourceDir }}/home/core/lib/helpers.fish"
-
-# Skip in container mode (MCP server setup typically not needed in containers)
-if test "$FEDPUNK_MODE" = "container"
-    info "Skipping nvim-mcp setup in container mode"
-    info "MCP server is typically used on host systems, not inside containers"
-    echo ""
-    exit 0
-end
 
 function install_nvim_mcp
     section "nvim-mcp Installation"
@@ -68,3 +58,4 @@ function install_nvim_mcp
 end
 
 install_nvim_mcp
+{{- end }}

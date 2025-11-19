@@ -1,22 +1,12 @@
+{{- if ne .mode.name "container" }}
 #!/usr/bin/env fish
 # Setup Devcontainer CLI for use with Podman
 # Note: Requires Node.js/npm (installed by fedpunk essentials)
+# Mode: {{ .mode.name }}
 
-# Source helper functions
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
 source "{{ .chezmoi.sourceDir }}/home/core/lib/helpers.fish"
 
 section "Devcontainer CLI Setup"
-
-# Skip in container mode (devcontainer CLI is for host system, not inside containers)
-if test "$FEDPUNK_MODE" = "container"
-    info "Skipping Devcontainer CLI setup in container mode"
-    info "Devcontainer CLI should be installed on the host system, not inside containers"
-    echo ""
-    exit 0
-end
 
 subsection "Verifying prerequisites"
 
@@ -56,3 +46,4 @@ Or use aliases (after deploying fish config):
 
 Make sure Podman is running:
   systemctl --user start podman.socket" $GUM_SUCCESS
+{{- end }}
