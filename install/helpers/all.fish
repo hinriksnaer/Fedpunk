@@ -335,6 +335,13 @@ end
 # Usage: install_package package_name
 function install_package
     set package_name $argv[1]
+
+    # Check if already installed
+    if rpm -q $package_name >/dev/null 2>&1
+        success "$package_name already installed"
+        return 0
+    end
+
     step "Installing $package_name" "sudo dnf install -qy $package_name"
 end
 
@@ -342,7 +349,23 @@ end
 # Usage: install_packages pkg1 pkg2 pkg3 ...
 function install_packages
     set packages $argv
-    step "Installing packages: "(string join ", " $packages) "sudo dnf install -qy $packages"
+
+    # Check which packages are already installed
+    set packages_to_install
+    for pkg in $packages
+        if not rpm -q $pkg >/dev/null 2>&1
+            set -a packages_to_install $pkg
+        end
+    end
+
+    # If all packages are installed, just report success
+    if test (count $packages_to_install) -eq 0
+        success "All packages already installed: "(string join ", " $packages)
+        return 0
+    end
+
+    # Install only missing packages
+    step "Installing packages: "(string join ", " $packages_to_install) "sudo dnf install -qy $packages_to_install"
 end
 
 # Enable a COPR repository
