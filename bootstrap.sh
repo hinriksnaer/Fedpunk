@@ -57,7 +57,13 @@ echo ""
 echo "Launching Fedpunk installation..."
 echo ""
 
-fish -c "chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git"
+# Initialize chezmoi (clones repo, runs templates)
+# Note: Mode selection happens during init via .chezmoi.toml.tmpl
+fish -c "chezmoi init https://github.com/hinriksnaer/Fedpunk.git"
+
+# Apply dotfiles (run_before scripts copy module configs, then deploy)
+# Separate apply ensures module configs are copied before deployment
+fish -c "chezmoi apply"
 
 echo ""
 echo "✓ Installation complete!"
