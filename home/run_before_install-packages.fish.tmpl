@@ -35,8 +35,35 @@ end
 set -gx FEDPUNK_INSTALL_{{ $key | upper }} {{ $value }}
 {{- end }}
 
-# Run package installation
-info "Installing packages based on mode configuration..."
+# Phase 1: Preflight - System setup
+info "Phase 1: Shared system setup & preflight"
+echo ""
+
+if test -f "$FEDPUNK_INSTALL/preflight/all.fish"
+    source "$FEDPUNK_INSTALL/preflight/all.fish"
+else
+    error "Cannot find preflight script at $FEDPUNK_INSTALL/preflight/all.fish"
+    exit 1
+end
+
+# Phase 2: Desktop preflight (if enabled)
+{{- if .install.desktop_preflight }}
+echo ""
+info "Phase 2: Desktop system setup"
+echo ""
+
+if test -f "$FEDPUNK_INSTALL/desktop/preflight/all.fish"
+    source "$FEDPUNK_INSTALL/desktop/preflight/all.fish"
+else
+    warning "Desktop preflight script not found, skipping"
+end
+{{- else }}
+info "Skipping desktop system setup (desktop_preflight=false)"
+{{- end }}
+
+# Phase 3: Package installation
+echo ""
+info "Phase 3: Installing packages based on mode configuration"
 echo ""
 
 if test -f "$FEDPUNK_INSTALL/packaging/all.fish"
@@ -47,5 +74,5 @@ else
 end
 
 echo ""
-success "Package installation complete"
+success "All installation phases complete"
 echo "Log file: $FEDPUNK_LOG_FILE"

@@ -1,0 +1,30 @@
+#!/usr/bin/env fish
+# Post-deployment: Final setup tasks
+# This runs after configs are deployed
+
+# Set up environment
+set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
+set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
+
+echo "Fedpunk Post-Installation"
+echo "=========================="
+echo ""
+
+# Source helper functions
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+else
+    echo "Error: Cannot find helper functions"
+    exit 1
+end
+
+# Run post-install tasks
+if test -f "$FEDPUNK_INSTALL/post-install/all.fish"
+    source "$FEDPUNK_INSTALL/post-install/all.fish"
+else
+    warning "Post-install script not found, skipping"
+end
+
+echo ""
+success "Post-installation complete"
