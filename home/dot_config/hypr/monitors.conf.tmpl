@@ -2,9 +2,11 @@
 # This file is auto-sourced by hyprland.conf
 # Generated from chezmoi template with mode detection
 
-{{- if .isContainer }}
+{{- $mode := env "FEDPUNK_MODE" }}
+
+{{- if eq $mode "container" }}
 # Container mode - no monitor configuration needed
-{{- else if .isLaptop }}
+{{- else if eq $mode "laptop" }}
 # Laptop mode - internal display with optional external monitors
 # Internal display (auto-detect)
 monitor=,preferred,auto,1
@@ -16,9 +18,9 @@ monitor=,preferred,auto,1
 
 {{- else }}
 # Desktop mode - multi-monitor setup
-{{- if eq .hostname "fedora" }}
+{{- if eq .chezmoi.hostname "fedora" }}
 # Custom configuration for this specific desktop
-monitor=,{{ .primaryResolution }},0x0,{{ .primaryScale }}
+monitor=,7679x2160@120,0x0,1.5
 
 # Add additional monitors here as needed
 # monitor=DP-2,2560x1440@144,2560x0,1

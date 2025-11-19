@@ -40,7 +40,6 @@ set -x PATH "$FEDPUNK_PATH/bin" $PATH
 # Set environment variables based on flags
 if test "$terminal_only" = true
     set -x FEDPUNK_TERMINAL_ONLY true
-    set -x FEDPUNK_SKIP_DESKTOP true
 end
 
 if test "$non_interactive" = true
@@ -49,11 +48,6 @@ end
 
 if test "$verbose" = true
     set -x FEDPUNK_VERBOSE true
-end
-
-# If FEDPUNK_TERMINAL_ONLY is already set via environment, ensure FEDPUNK_SKIP_DESKTOP is also set
-if set -q FEDPUNK_TERMINAL_ONLY; and test "$FEDPUNK_TERMINAL_ONLY" = "true"
-    set -x FEDPUNK_SKIP_DESKTOP true
 end
 
 # Color codes
@@ -138,24 +132,23 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Installation mode selection
-if not set -q FEDPUNK_TERMINAL_ONLY
-    # Check if headless
-    if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
-        echo ""
-        warning "No display server detected (headless environment)"
-        info "Desktop mode can still be installed for later use"
-    end
-
+# Profile selection (FIRST - profiles contain modes)
+if not set -q FEDPUNK_PROFILE
     echo ""
-    if gum confirm "Install full desktop environment (Hyprland)?" </dev/tty
-        echo ""
-        info "Installing: Full desktop environment"
+    set profile_choice (choose "Choose a profile:" \
+        "dev (Development + Bitwarden)" \
+        "example (Minimal template)" \
+        "none (Skip profile)")
+
+    if test -z "$profile_choice"
+        error "No profile selected. Exiting."
+        exit 1
+    else if string match -q "*dev*" "$profile_choice"
+        set -gx FEDPUNK_PROFILE "dev"
+    else if string match -q "*example*" "$profile_choice"
+        set -gx FEDPUNK_PROFILE "example"
     else
-        echo ""
-        info "Installing: Terminal-only mode"
-        set -gx FEDPUNK_TERMINAL_ONLY true
-        set -gx FEDPUNK_SKIP_DESKTOP true
+        set -gx FEDPUNK_PROFILE "none"
     end
 
     echo ""
@@ -163,32 +156,53 @@ if not set -q FEDPUNK_TERMINAL_ONLY
     echo ""
 end
 
-# Profile selection
-if not set -q FEDPUNK_PROFILE
-    echo ""
-    set profile_choice (gum choose \
-        --header "Choose a profile to activate:" \
-        --cursor.foreground="212" \
-        "dev (Development + Bitwarden)" \
-        "example (Minimal template)" \
-        "none (Skip profile)" \
-        </dev/tty)
+# Mode selection (SECOND - from selected profile's modes)
+if not set -q FEDPUNK_MODE
+    # Check if headless
+    if test -z "$DISPLAY" -a -z "$WAYLAND_DISPLAY" -a -z "$XDG_SESSION_TYPE"
+        echo ""
+        warning "No display server detected (headless environment)"
+        info "Desktop mode can still be installed for later use"
+    end
 
-    if test -z "$profile_choice"
-        error "No profile selected. Exiting."
-        exit 1
-    else if test "$profile_choice" = "dev (Development + Bitwarden)"
-        echo ""
-        info "Activating profile: dev"
-        set -gx FEDPUNK_PROFILE "dev"
-    else if test "$profile_choice" = "example (Minimal template)"
-        echo ""
-        info "Activating profile: example"
-        set -gx FEDPUNK_PROFILE "example"
+    # If no profile, default to desktop mode
+    if test "$FEDPUNK_PROFILE" = "none"
+        warning "No profile selected, using desktop mode defaults"
+        set -gx FEDPUNK_MODE "desktop"
     else
+        # Prompt for mode from profile's available modes
         echo ""
-        info "Skipping profile activation"
-        set -gx FEDPUNK_PROFILE "none"
+        set mode_choice (choose "Select installation mode for '$FEDPUNK_PROFILE' profile:" \
+            "🖥️  Desktop (full environment)" \
+            "📦 Container (minimal dev environment)" \
+            --default="🖥️  Desktop (full environment)")
+
+        if test -z "$mode_choice"
+            error "No mode selected. Exiting."
+            exit 1
+        end
+
+        # Extract mode name
+        if string match -q "*Desktop*" "$mode_choice"
+            set -gx FEDPUNK_MODE "desktop"
+        else if string match -q "*Container*" "$mode_choice"
+            set -gx FEDPUNK_MODE "container"
+        end
+    end
+
+    # Source the mode Fish file to set environment variables
+    set mode_file "$FEDPUNK_PATH/profiles/$FEDPUNK_PROFILE/modes/$FEDPUNK_MODE.fish"
+    if test -f "$mode_file"
+        echo ""
+        info "Loading $FEDPUNK_MODE mode configuration for profile '$FEDPUNK_PROFILE'..."
+
+        # Source the mode file to set all environment variables
+        source "$mode_file"
+
+        success "Mode '$FEDPUNK_MODE' configuration loaded"
+    else
+        error "Mode configuration not found: $mode_file"
+        exit 1
     end
 
     echo ""
@@ -211,13 +225,18 @@ echo ""
 # Run each installation phase with proper logging
 run_script "$FEDPUNK_INSTALL/preflight/all.fish" "Shared System Setup & Preflight"
 
-# Desktop-specific preflight (conditional)
-if not set -q FEDPUNK_SKIP_DESKTOP
+# Desktop-specific preflight (skip in container mode)
+if test "$FEDPUNK_MODE" != "container"
     run_script "$FEDPUNK_INSTALL/desktop/preflight/all.fish" "Desktop System Setup"
 end
 
-# Terminal components (always installed)
-run_script "$FEDPUNK_INSTALL/terminal/packaging/all.fish" "Terminal Package Installation"
+# Terminal components (skip in container mode)
+if test "$FEDPUNK_MODE" != "container"
+    run_script "$FEDPUNK_INSTALL/terminal/packaging/all.fish" "Terminal Package Installation"
+else
+    info "Skipping terminal package installation (container mode)"
+    echo "[SKIPPED] Terminal package installation (container mode)" >> "$FEDPUNK_LOG_FILE"
+end
 
 # Deploy all configurations with chezmoi BEFORE running config scripts that depend on them
 echo ""
@@ -236,15 +255,6 @@ if not command -v chezmoi >/dev/null 2>&1
     exit 1
 end
 
-# Generate mode detection data for chezmoi templates
-info "Detecting system mode (laptop/desktop/container)"
-set mode_script "$FEDPUNK_PATH/home/dot_local/bin/executable_fedpunk-detect-mode"
-if test -f "$mode_script"
-    fish "$mode_script" 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
-else
-    warning "Mode detection script not found, using defaults"
-end
-
 # Run chezmoi apply with real-time output and timeout to prevent hanging
 info "Running: chezmoi apply --force --verbose (timeout: 5 minutes)"
 echo "Real-time output:"
@@ -256,16 +266,21 @@ else
     exit 1
 end
 
-# Now run terminal config scripts that may depend on deployed configs
-run_script "$FEDPUNK_INSTALL/terminal/config/all.fish" "Terminal Configuration Deployment"
+# Now run terminal config scripts that may depend on deployed configs (skip in container mode)
+if test "$FEDPUNK_MODE" != "container"
+    run_script "$FEDPUNK_INSTALL/terminal/config/all.fish" "Terminal Configuration Deployment"
+else
+    info "Skipping terminal configuration (container mode)"
+    echo "[SKIPPED] Terminal configuration (container mode)" >> "$FEDPUNK_LOG_FILE"
+end
 
 # Desktop components (conditional)
-if not set -q FEDPUNK_SKIP_DESKTOP
+if test "$FEDPUNK_MODE" != "container"
     run_script "$FEDPUNK_INSTALL/desktop/packaging/all.fish" "Desktop Package Installation"
     run_script "$FEDPUNK_INSTALL/desktop/config/all.fish" "Desktop Configuration Deployment"
 else
-    info "Skipping desktop components (terminal-only mode)"
-    echo "[SKIPPED] Desktop installation (terminal-only mode)" >> "$FEDPUNK_LOG_FILE"
+    info "Skipping desktop components (container mode)"
+    echo "[SKIPPED] Desktop installation (container mode)" >> "$FEDPUNK_LOG_FILE"
 end
 
 run_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"

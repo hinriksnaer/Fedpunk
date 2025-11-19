@@ -209,6 +209,58 @@ function confirm
     end
 end
 
+# Multiple choice selection using gum
+# Usage: choose "header text" "option1" "option2" ... [--default=option1]
+# Returns selected option via stdout, empty string if cancelled
+function choose
+    set -l header $argv[1]
+    set -l options $argv[2..-1]
+    set -l default_option ""
+
+    # Extract --default= flag if present
+    for i in (seq (count $options))
+        if string match -q -- "--default=*" $options[$i]
+            set default_option (string replace -- "--default=" "" $options[$i])
+            set -e options[$i]
+            break
+        end
+    end
+
+    echo "" >> $FEDPUNK_LOG_FILE
+    echo "[CHOOSE] "(date +%H:%M:%S)" $header" >> $FEDPUNK_LOG_FILE
+    echo "Options: "(string join ", " $options) >> $FEDPUNK_LOG_FILE
+
+    # Non-interactive mode: use default or first option
+    if is_non_interactive
+        if test -n "$default_option"
+            set selected $default_option
+        else
+            set selected $options[1]
+        end
+        echo "[NON-INTERACTIVE] Using default: $selected" >> $FEDPUNK_LOG_FILE
+        info "$header [non-interactive: $selected]"
+        echo "$selected"
+        return 0
+    end
+
+    # Interactive mode: prompt user
+    set selected (gum choose \
+        --header "$header" \
+        --cursor.foreground="212" \
+        $options \
+        </dev/tty)
+
+    if test -z "$selected"
+        echo "[RESPONSE] "(date +%H:%M:%S)" Cancelled" >> $FEDPUNK_LOG_FILE
+        echo ""
+        return 1
+    else
+        echo "[RESPONSE] "(date +%H:%M:%S)" Selected: $selected" >> $FEDPUNK_LOG_FILE
+        echo "$selected"
+        return 0
+    end
+end
+
 # Display a styled box message
 function box
     set message $argv[1]
@@ -263,6 +315,44 @@ function opt_in
         info "Skipping: "(string replace -r '\?' '' "$description")
         echo "[SKIPPED] $description - declined by user" >> $FEDPUNK_LOG_FILE
         return 1
+    end
+end
+
+# Conditional installation wrapper with environment variable support
+# Checks env var set by mode, otherwise prompts user
+# Usage: install_if_enabled "FEDPUNK_INSTALL_YAZI" "Install Yazi file manager?" "$FEDPUNK_INSTALL/terminal/packaging/yazi.fish" "yes"
+function install_if_enabled
+    set env_var $argv[1]         # Environment variable name
+    set prompt_text $argv[2]
+    set script_path $argv[3]
+    set default $argv[4]
+
+    # Default to "yes" if not specified
+    if test -z "$default"
+        set default "yes"
+    end
+
+    # Check if environment variable is set by mode
+    echo ""
+    if not set -q $env_var
+        # Not set by mode - prompt user
+        if confirm "$prompt_text" "$default"
+            set -gx $env_var true
+        else
+            set -gx $env_var false
+        end
+    else
+        # Flag set by mode - log it
+        info "$prompt_text [mode: $$env_var]"
+    end
+
+    # Install if enabled
+    if test "$$env_var" = "true"
+        source "$script_path"
+    else
+        set component_name (string replace -r '\?' '' "$prompt_text" | string trim)
+        info "Skipping $component_name"
+        echo "[SKIPPED] $component_name ($env_var=false)" >> $FEDPUNK_LOG_FILE
     end
 end
 

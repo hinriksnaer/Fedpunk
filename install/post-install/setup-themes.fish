@@ -60,7 +60,7 @@ gum spin --spinner dot --title "Setting up terminal themes..." -- fish -c '
 success "Terminal themes set up"
 
 # Desktop-only theme setup
-if not set -q FEDPUNK_SKIP_DESKTOP
+if test "$FEDPUNK_MODE" != "container"
     # Set initial background
     gum spin --spinner dot --title "Configuring wallpaper..." -- fish -c '
         if test -L ~/.config/fedpunk/current/theme

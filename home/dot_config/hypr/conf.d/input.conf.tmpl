@@ -2,6 +2,8 @@
 # Keyboard, mouse, and touchpad settings
 # Generated from chezmoi template with mode detection
 
+{{- $mode := env "FEDPUNK_MODE" }}
+
 input {
     kb_layout = us
     kb_variant =
@@ -13,7 +15,7 @@ input {
 
     sensitivity = 0 # -1.0 - 1.0, 0 means no modification.
 
-{{- if .hasTouchpad }}
+{{- if eq $mode "laptop" }}
     # Laptop touchpad configuration
     touchpad {
         natural_scroll = false
