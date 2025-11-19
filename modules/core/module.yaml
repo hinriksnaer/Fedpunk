@@ -1,6 +1,6 @@
 module:
   name: core
-  description: Essential system setup - DNF config, Fish shell, Git, Cargo, Gum
+  description: Essential system setup - DNF config, Fish shell, Git, Cargo, Starship, Gum
 
 # No dependencies - this is the foundation
 depends: []

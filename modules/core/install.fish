@@ -50,6 +50,16 @@ else
     success "Rust already installed"
 end
 
+# Install Starship prompt
+echo ""
+subsection "Installing Starship"
+if not command -v starship >/dev/null
+    step "Installing Starship via DNF" \
+        "sudo dnf install -y starship"
+else
+    success "Starship already installed"
+end
+
 # Install Gum (TUI library for scripts)
 echo ""
 subsection "Installing Gum"
