@@ -1,0 +1,33 @@
+{
+  "name": "Fedpunk Container Test",
+  "image": "fedora:latest",
+
+  // Set environment variables for testing
+  "containerEnv": {
+    "FEDPUNK_PROFILE": "dev",
+    "FEDPUNK_MODE": "container",
+    "FEDPUNK_NON_INTERACTIVE": "true",
+    "CONTAINER": "true"
+  },
+
+  // Install minimal tools needed for testing
+  "postCreateCommand": "dnf install -y fish curl git",
+
+  // Mount the fedpunk directory
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+
+  "workspaceFolder": "/workspace",
+
+  // Run as root for testing
+  "remoteUser": "root",
+
+  "features": {},
+
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}

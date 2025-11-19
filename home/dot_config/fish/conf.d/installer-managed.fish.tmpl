@@ -1,19 +1,15 @@
 # Auto-managed by Fedpunk (via chezmoi template)
 
-{{- if has "core" .profile.modules }}
 # Rust/Cargo PATH
 {{- if or (lookPath "cargo") (stat (joinPath .chezmoi.homeDir ".cargo" "bin" "cargo")) }}
 fish_add_path -g $HOME/.cargo/bin
 {{- end }}
-{{- end }}
 
-{{- if has "hyprland" .profile.modules }}
-# NVIDIA Wayland support (detected)
+# NVIDIA Wayland support (auto-detected)
 {{- if or (lookPath "nvidia-smi") (stat "/proc/driver/nvidia/version") }}
 set -gx LIBVA_DRIVER_NAME nvidia
 set -gx XDG_SESSION_TYPE wayland
 set -gx GBM_BACKEND nvidia-drm
 set -gx __GLX_VENDOR_LIBRARY_NAME nvidia
 set -gx WLR_NO_HARDWARE_CURSORS 1
-{{- end }}
 {{- end }}

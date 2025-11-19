@@ -1,7 +1,7 @@
-
 {{- $mode := "desktop" -}}
 {{- $autoDetectedMode := "" -}}
 
+{{- /* Auto-detect mode */ -}}
 {{- if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
 {{-   $autoDetectedMode = "container" -}}
 {{-   $mode = "container" -}}
@@ -13,90 +13,18 @@
 {{-   $mode = "desktop" -}}
 {{- end -}}
 
+{{- /* Allow override via environment or prompt */ -}}
 {{- if env "FEDPUNK_MODE" -}}
 {{-   $mode = env "FEDPUNK_MODE" -}}
-
 {{- else if not (env "FEDPUNK_NON_INTERACTIVE") -}}
 {{-   $mode = promptChoice "mode" (list "desktop" "laptop" "container") $autoDetectedMode -}}
-
 {{- end -}}
 
+{{- /* Load profile */ -}}
 {{- $profile := env "FEDPUNK_PROFILE" | default "dev" -}}
-
 {{- $profilePath := joinPath .chezmoi.workingTree "profiles" $profile -}}
 {{- $manifestPath := joinPath $profilePath "fedpunk.yaml" -}}
 {{- $manifest := include $manifestPath | fromYaml -}}
-
-{{- $modules := list -}}
-{{- $moduleParams := dict -}}
-
-{{- if $manifest.inherit -}}
-{{-   $basePath := joinPath .chezmoi.workingTree "profiles" $manifest.inherit -}}
-{{-   $baseManifestPath := joinPath $basePath "fedpunk.yaml" -}}
-{{-   $baseManifest := include $baseManifestPath | fromYaml -}}
-{{-   $modules = $baseManifest.modules | default list -}}
-{{-   $moduleParams = $baseManifest.module_params | default dict -}}
-
-{{-   $baseModeModules := index (index $baseManifest "mode_modules" | default dict) $mode | default list -}}
-{{-   $modules = concat $modules $baseModeModules -}}
-{{- end -}}
-
-{{- $modules = concat $modules ($manifest.modules | default list) -}}
-
-{{- $profileModeModules := index (index $manifest "mode_modules" | default dict) $mode | default list -}}
-{{- $modules = concat $modules $profileModeModules -}}
-
-{{- range $moduleName, $params := ($manifest.module_params | default dict) -}}
-{{-   $_ := set $moduleParams $moduleName $params -}}
-{{- end -}}
-
-{{- $beforeApplyHooks := list -}}
-{{- $afterApplyHooks := list -}}
-{{- $onChangeHooks := list -}}
-{{- $moduleEnvVars := dict -}}
-
-{{- range $modules -}}
-{{-   $moduleName := . -}}
-{{-   $modulePath := joinPath $.chezmoi.workingTree "modules" $moduleName -}}
-{{-   $moduleManifestPath := joinPath $modulePath "module.yaml" -}}
-{{-   if stat $moduleManifestPath -}}
-{{-     $moduleManifest := include $moduleManifestPath | fromYaml -}}
-{{-     $moduleInfo := $moduleManifest.module -}}
-{{-     $modeConfig := index $moduleManifest.modes $mode | default dict -}}
-{{-     $enabled := index $modeConfig "enabled" | default true -}}
-{{-     if $enabled -}}
-{{-       $hooks := $moduleManifest.hooks | default dict -}}
-{{-       range $hook := (index $hooks "before_apply" | default list) -}}
-{{-         $hookStr := printf "%s:%s" $moduleName $hook -}}
-{{-         $beforeApplyHooks = append $beforeApplyHooks $hookStr -}}
-{{-       end -}}
-{{-       range $hook := (index $hooks "after_apply" | default list) -}}
-{{-         $hookStr := printf "%s:%s" $moduleName $hook -}}
-{{-         $afterApplyHooks = append $afterApplyHooks $hookStr -}}
-{{-       end -}}
-{{-       range $hook := (index $hooks "on_change" | default list) -}}
-{{-         $hookStr := printf "%s:%s" $moduleName $hook -}}
-{{-         $onChangeHooks = append $onChangeHooks $hookStr -}}
-{{-       end -}}
-{{-       $modEnv := dict -}}
-{{-       $_ := set $modEnv "ENABLED" "true" -}}
-{{-       $params := index $moduleParams $moduleName | default dict -}}
-{{-       $defaultParams := index $moduleManifest "params" | default dict -}}
-{{-       range $paramName, $defaultValue := $defaultParams -}}
-{{-         $value := index $params $paramName | default $defaultValue -}}
-{{-         $envKey := $paramName | upper -}}
-{{-         $_ := set $modEnv $envKey $value -}}
-{{-       end -}}
-{{-       $autoDetect := index $moduleManifest "auto_detect" | default dict -}}
-{{-       if $autoDetect -}}
-{{-         $_ := set $modEnv "AUTO_DETECT_CMD" (index $autoDetect "command" | default "") -}}
-{{-         $_ := set $modEnv "AUTO_DETECT_PROMPT" (index $autoDetect "prompt" | default "") -}}
-{{-         $_ := set $modEnv "AUTO_DETECT_DEFAULT" (index $autoDetect "default" | default "yes") -}}
-{{-       end -}}
-{{-       $_ := set $moduleEnvVars $moduleName $modEnv -}}
-{{-     end -}}
-{{-   end -}}
-{{- end -}}
 
 [data]
   [data.mode]
@@ -105,22 +33,7 @@
   [data.profile]
     name = {{ $profile | quote }}
     path = {{ $profilePath | quote }}
-    modules = {{ $modules | toJson }}
-    before_apply_hooks = {{ $beforeApplyHooks | toJson }}
-    after_apply_hooks = {{ $afterApplyHooks | toJson }}
-    on_change_hooks = {{ $onChangeHooks | toJson }}
-
-{{- range $modName, $envVars := $moduleEnvVars }}
-  [data.module.{{ $modName | replace "-" "_" }}]
-{{-   range $key, $value := $envVars }}
-{{-     if kindIs "string" $value }}
-    {{ $key }} = {{ $value | quote }}
-{{-     else }}
-    {{ $key }} = {{ $value }}
-{{-     end }}
-{{-   end }}
-{{- end }}
+    description = {{ $manifest.profile.description | default "" | quote }}
 
 # Mode: {{ $mode }}
 # Profile: {{ $profile }}
-# Modules: {{ join ", " $modules }}

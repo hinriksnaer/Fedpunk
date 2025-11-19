@@ -1,12 +1,11 @@
 #!/usr/bin/env fish
-# Chezmoi run_once_after script: Execute module after_apply hooks
-# This runs AFTER chezmoi applies configs, for post-installation tasks
+# Fedpunk Post-Installation Script
+# Runs profile post-install scripts after deploying dotfiles
 
-# Set up environment
 set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
-set -x FEDPUNK_LIB_PATH "$FEDPUNK_PATH/lib"
+set -x FEDPUNK_PROFILE_PATH "{{ .profile.path }}"
 set -x FEDPUNK_MODE "{{ .mode.name }}"
-set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-after-"(date +%Y%m%d-%H%M%S)".log"
+set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-post-install-"(date +%Y%m%d-%H%M%S)".log"
 
 echo ""
 echo "╔═══════════════════════════════════════════════════════╗"
@@ -15,14 +14,9 @@ echo "║          Phase 3: Post-Installation Setup             ║"
 echo "║                                                       ║"
 echo "╚═══════════════════════════════════════════════════════╝"
 echo ""
-{{- if .profile.after_apply_hooks }}
-echo "Running {{ len .profile.after_apply_hooks }} after-apply hook(s):"
-{{-   range $index, $hookStr := .profile.after_apply_hooks }}
-echo "  {{ add $index 1 }}. {{ $hookStr }}"
-{{-   end }}
-{{- else }}
-echo "No after-apply hooks configured"
-{{- end }}
+echo "Configuration:"
+echo "  Mode:    {{ .mode.name }}"
+echo "  Profile: {{ .profile.name }}"
 echo ""
 echo "Log: $FEDPUNK_LOG_FILE"
 echo "───────────────────────────────────────────────────────"
@@ -34,50 +28,32 @@ echo "Mode: {{ .mode.name }}" >> "$FEDPUNK_LOG_FILE"
 echo "Profile: {{ .profile.name }}" >> "$FEDPUNK_LOG_FILE"
 echo "" >> "$FEDPUNK_LOG_FILE"
 
-# Source module loader library
-source "$FEDPUNK_LIB_PATH/modules.fish"
-source "$FEDPUNK_LIB_PATH/helpers.fish"
+# Run profile post-install scripts if they exist
+set post_install_dir "$FEDPUNK_PROFILE_PATH/post-install"
+if test -d "$post_install_dir"
+    echo "Running profile post-install scripts..."
+    echo ""
 
-# Export module environment variables
-{{- range $moduleName := .profile.modules }}
-{{-   $modKey := $moduleName | replace "-" "_" }}
-{{-   $modData := index $.module $modKey | default dict }}
-{{-   $modulePrefix := printf "FEDPUNK_MODULE_%s" ($moduleName | upper | replace "-" "_") }}
-{{-   range $key, $value := $modData }}
-set -gx {{ $modulePrefix }}_{{ $key }} {{ $value | quote }}
-{{-   end }}
-{{- end }}
+    for script in (ls "$post_install_dir"/*.fish 2>/dev/null | sort)
+        set script_name (basename "$script")
+        echo "→ Running $script_name..."
 
-# Execute after_apply hooks
-{{- if .profile.after_apply_hooks }}
+        fish "$script" 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
 
-{{-   range $index, $hookStr := .profile.after_apply_hooks }}
+        if test $status -ne 0
+            echo ""
+            echo "WARNING: Post-install script failed: $script_name"
+            echo "Check log: $FEDPUNK_LOG_FILE"
+        end
 
-# Module {{ add $index 1 }}/{{ len $.profile.after_apply_hooks }}: {{ $hookStr }}
-echo ""
-
-# Parse hook string (format: "module:script")
-set -l hook_parts (string split ":" "{{ $hookStr }}")
-set -l module_name $hook_parts[1]
-set -l script_name $hook_parts[2]
-
-info "Module: $module_name"
-
-if should_run_module "$module_name"
-    execute_module_hook "$module_name" "$script_name" "after_apply"
-    if test $status -ne 0
-        warning "Module hook failed: $module_name/$script_name"
+        echo ""
     end
-else
-    info "Skipping module: $module_name"
-end
-{{-   end }}
-{{- else }}
-info "No after_apply hooks configured"
-{{- end }}
 
-echo ""
-echo "========================================================"
-echo "All after_apply hooks complete"
-echo "Log file: $FEDPUNK_LOG_FILE"
-echo ""
+    echo "====================================================="
+    echo "Post-installation complete"
+    echo "Log file: $FEDPUNK_LOG_FILE"
+    echo ""
+else
+    echo "No post-install scripts found in profile"
+    echo ""
+end

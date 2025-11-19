@@ -48,15 +48,13 @@ profiles/*/
 !profiles/dev/
 
 # Development tools
-.devcontainer/
 .claude/
 
-# Module configs are generated from fragments via templates
-# Only track the template files that include fragments:
+# Track fish config and templates
 home/dot_config/*
 !home/dot_config/fish/
 home/dot_config/fish/*
-!home/dot_config/fish/config.fish.tmpl
+!home/dot_config/fish/config.fish
 !home/dot_config/fish/conf.d/
 home/dot_config/fish/conf.d/*
 !home/dot_config/fish/conf.d/*.tmpl
