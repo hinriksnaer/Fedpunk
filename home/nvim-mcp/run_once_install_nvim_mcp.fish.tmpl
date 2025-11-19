@@ -7,6 +7,14 @@ if not set -q FEDPUNK_PATH
 end
 source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
 
+# Skip in container mode (MCP server setup typically not needed in containers)
+if test "$FEDPUNK_MODE" = "container"
+    info "Skipping nvim-mcp setup in container mode"
+    info "MCP server is typically used on host systems, not inside containers"
+    echo ""
+    exit 0
+end
+
 function install_nvim_mcp
     section "nvim-mcp Installation"
 

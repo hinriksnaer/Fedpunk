@@ -10,6 +10,14 @@ source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
 
 section "Devcontainer CLI Setup"
 
+# Skip in container mode (devcontainer CLI is for host system, not inside containers)
+if test "$FEDPUNK_MODE" = "container"
+    info "Skipping Devcontainer CLI setup in container mode"
+    info "Devcontainer CLI should be installed on the host system, not inside containers"
+    echo ""
+    exit 0
+end
+
 subsection "Verifying prerequisites"
 
 # Verify npm is available

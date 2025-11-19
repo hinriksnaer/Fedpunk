@@ -9,6 +9,14 @@ source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
 
 section "Podman Setup"
 
+# Skip in container mode (can't install container runtime inside a container)
+if test "$FEDPUNK_MODE" = "container"
+    info "Skipping Podman setup in container mode"
+    info "Podman should be installed on the host system, not inside containers"
+    echo ""
+    exit 0
+end
+
 subsection "Installing Podman"
 
 install_packages podman podman-compose podman-docker

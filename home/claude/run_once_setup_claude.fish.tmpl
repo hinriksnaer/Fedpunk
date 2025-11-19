@@ -12,6 +12,14 @@ set config_file "$HOME/.config/fish/config.fish"
 
 section "Claude Code Authentication Setup"
 
+# Skip in container mode (authentication setup not useful in containers)
+if test "$FEDPUNK_MODE" = "container"
+    info "Skipping Claude Code authentication setup in container mode"
+    info "Claude Code auth is typically not needed in container environments"
+    echo ""
+    exit 0
+end
+
 # Require TTY for interactive prompts (or environment variable override)
 require_tty "Claude Code Setup" "FEDPUNK_SETUP_CLAUDE=skip|apikey|vertex"
 
