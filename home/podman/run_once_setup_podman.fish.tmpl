@@ -3,7 +3,7 @@
 
 # Source helper functions
 if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+    set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
 end
 source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
 
