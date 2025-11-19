@@ -537,3 +537,67 @@ function download_and_extract
         return 1
     end
 end
+
+# Load TOML mode configuration and set environment variables
+# Usage: load_mode_toml "/path/to/mode.toml"
+function load_mode_toml
+    set toml_file $argv[1]
+
+    if not test -f "$toml_file"
+        error "Mode TOML file not found: $toml_file"
+        return 1
+    end
+
+    info "Parsing mode configuration from $toml_file"
+
+    # Read the TOML file and parse [mode] and [install] sections
+    set in_install_section false
+
+    while read -l line
+        # Skip comments and empty lines
+        if string match -qr '^\s*#' "$line"; or string match -qr '^\s*$' "$line"
+            continue
+        end
+
+        # Check for [mode] section
+        if string match -q '[mode]' "$line"
+            set in_install_section false
+            continue
+        end
+
+        # Check for [install] section
+        if string match -q '[install]' "$line"
+            set in_install_section true
+            continue
+        end
+
+        # Parse mode name
+        if string match -qr '^name\s*=\s*' "$line"
+            set mode_name (string replace -r '^name\s*=\s*"?([^"]+)"?' '$1' "$line" | string trim)
+            set -gx FEDPUNK_MODE "$mode_name"
+            continue
+        end
+
+        # Parse install flags in [install] section
+        if test "$in_install_section" = true
+            if string match -qr '^\w+\s*=' "$line"
+                # Extract key and value
+                set key (string replace -r '^\s*(\w+)\s*=.*' '$1' "$line" | string trim)
+                set value (string replace -r '.*=\s*(\w+).*' '$1' "$line" | string trim)
+
+                # Convert key to uppercase and prefix with FEDPUNK_INSTALL_
+                set var_name (string upper "FEDPUNK_INSTALL_$key")
+
+                # Set the environment variable
+                if test "$value" = "true"
+                    set -gx $var_name true
+                else if test "$value" = "false"
+                    set -gx $var_name false
+                end
+            end
+        end
+    end < "$toml_file"
+
+    success "Mode configuration loaded: $FEDPUNK_MODE"
+    return 0
+end

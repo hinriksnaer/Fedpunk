@@ -190,14 +190,19 @@ if not set -q FEDPUNK_MODE
         end
     end
 
-    # Source the mode Fish file to set environment variables
-    set mode_file "$FEDPUNK_PATH/profiles/$FEDPUNK_PROFILE/modes/$FEDPUNK_MODE.fish"
+    # Load the mode TOML file to set environment variables
+    set mode_file "$FEDPUNK_PATH/profiles/$FEDPUNK_PROFILE/modes/$FEDPUNK_MODE.toml"
     if test -f "$mode_file"
         echo ""
         info "Loading $FEDPUNK_MODE mode configuration for profile '$FEDPUNK_PROFILE'..."
 
-        # Source the mode file to set all environment variables
-        source "$mode_file"
+        # Parse the TOML mode file and set all environment variables
+        load_mode_toml "$mode_file"
+
+        if test $status -ne 0
+            error "Failed to load mode configuration"
+            exit 1
+        end
 
         success "Mode '$FEDPUNK_MODE' configuration loaded"
     else

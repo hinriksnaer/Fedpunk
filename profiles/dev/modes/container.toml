@@ -1,0 +1,26 @@
+# Development Profile - Container Mode
+# Minimal development environment for containers/devcontainers
+
+[mode]
+name = "container"
+
+[install]
+# Terminal packages - minimal
+claude = true
+gh = true
+
+# Terminal configuration - minimal
+neovim = true
+lazygit = true
+
+# Development tools
+cli_tools = true
+languages = true
+
+# Desktop components - disabled for container
+firefox = false
+fonts = false
+audio = false
+multimedia = false
+bluetooth = false
+extra_apps = false
