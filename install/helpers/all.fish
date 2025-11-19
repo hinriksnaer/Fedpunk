@@ -548,6 +548,26 @@ function load_mode_toml
         return 1
     end
 
+    # Ensure chezmoi is available (install if needed)
+    if not command -v chezmoi >/dev/null 2>&1
+        info "Installing chezmoi (required for mode parsing)..."
+
+        # Add ~/.local/bin to PATH
+        if not contains "$HOME/.local/bin" $PATH
+            set -gx PATH "$HOME/.local/bin" $PATH
+        end
+
+        # Install chezmoi
+        sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" >>$FEDPUNK_LOG_FILE 2>&1
+
+        if not command -v chezmoi >/dev/null 2>&1
+            error "Failed to install chezmoi"
+            return 1
+        end
+
+        success "chezmoi installed"
+    end
+
     info "Parsing mode configuration from $toml_file using chezmoi"
 
     # Create a temporary chezmoi template to extract mode data
