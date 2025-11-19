@@ -27,3 +27,8 @@ audio = true
 multimedia = true
 bluetooth = true
 extra_apps = true
+
+# Desktop configs
+kitty = true
+hyprland = true
+rofi = true

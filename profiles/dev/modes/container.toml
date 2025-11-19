@@ -28,3 +28,8 @@ audio = false
 multimedia = false
 bluetooth = false
 extra_apps = false
+
+# Desktop configs - disabled for container
+kitty = false
+hyprland = false
+rofi = false
