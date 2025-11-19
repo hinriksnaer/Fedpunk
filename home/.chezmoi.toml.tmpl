@@ -1,15 +1,30 @@
-{{- /* Fedpunk Mode Auto-Detection */ -}}
-{{- /* This template generates chezmoi configuration with automatic mode detection */ -}}
+{{- /* Fedpunk Mode Detection */ -}}
+{{- /* Priority: Explicit env var > Interactive prompt > Auto-detection > Default */ -}}
 
-{{- /* Auto-detect mode based on environment */ -}}
 {{- $mode := "desktop" -}}
+{{- $autoDetectedMode := "" -}}
 
-{{- /* Container detection: Check for container indicators */ -}}
+{{- /* Auto-detect mode for smart defaults */ -}}
 {{- if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
+{{-   $autoDetectedMode = "container" -}}
 {{-   $mode = "container" -}}
-{{- /* Laptop detection: Check for battery */ -}}
 {{- else if stat "/sys/class/power_supply/BAT0" -}}
+{{-   $autoDetectedMode = "laptop" -}}
 {{-   $mode = "laptop" -}}
+{{- else -}}
+{{-   $autoDetectedMode = "desktop" -}}
+{{-   $mode = "desktop" -}}
+{{- end -}}
+
+{{- /* 1. Check for explicit mode override */ -}}
+{{- if env "FEDPUNK_MODE" -}}
+{{-   $mode = env "FEDPUNK_MODE" -}}
+
+{{- /* 2. Interactive prompt (if not in non-interactive mode) */ -}}
+{{- else if not (env "FEDPUNK_NON_INTERACTIVE") -}}
+{{-   $mode = promptChoice "mode" (list "desktop" "laptop" "container") $autoDetectedMode -}}
+
+{{- /* 3. Use auto-detected mode (non-interactive mode) */ -}}
 {{- end -}}
 
 {{- /* Get profile from environment, default to "dev" */ -}}
@@ -87,5 +102,8 @@
     rofi = true
 {{- end }}
 
-# Auto-detected mode: {{ $mode }}
+# Mode: {{ $mode }} {{- if env "FEDPUNK_MODE" }} (explicit){{- else if not (env "FEDPUNK_NON_INTERACTIVE") }} (user selected){{- else }} (auto-detected){{- end }}
+{{- if $autoDetectedMode }}
+# Auto-detected as: {{ $autoDetectedMode }}
+{{- end }}
 # Profile: {{ $profile }}
