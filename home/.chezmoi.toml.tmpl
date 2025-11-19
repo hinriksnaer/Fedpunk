@@ -30,83 +30,21 @@
 {{- /* Get profile from environment, default to "dev" */ -}}
 {{- $profile := env "FEDPUNK_PROFILE" | default "dev" -}}
 
+{{- /* Load mode configuration from JSON file */ -}}
+{{- $modeFilePath := joinPath .chezmoi.workingTree "profiles" $profile "modes" (printf "%s.json" $mode) -}}
+{{- $modeConfig := include $modeFilePath | fromJson -}}
+
 [data]
   [data.mode]
     name = {{ $mode | quote }}
-{{- if eq $mode "desktop" }}
-    description = "Full desktop environment with all development tools"
-{{- else if eq $mode "container" }}
-    description = "Minimal development environment for containers"
-{{- else if eq $mode "laptop" }}
-    description = "Laptop-optimized desktop environment with power management"
-{{- end }}
+    description = {{ $modeConfig.description | quote }}
   [data.profile]
     name = {{ $profile | quote }}
 
-{{- /* Define install configuration based on mode */ -}}
-{{- if eq $mode "desktop" }}
+{{- /* Install configuration from mode JSON */ -}}
   [data.install]
-    desktop_preflight = true
-    yazi = true
-    claude = true
-    gh = true
-    tmux = true
-    neovim = true
-    btop = true
-    lazygit = true
-    cli_tools = true
-    languages = true
-    firefox = true
-    fonts = true
-    audio = true
-    multimedia = true
-    bluetooth = true
-    extra_apps = true
-    kitty = true
-    hyprland = true
-    rofi = true
-{{- else if eq $mode "container" }}
-  [data.install]
-    desktop_preflight = false
-    yazi = true
-    claude = true
-    gh = true
-    tmux = true
-    neovim = true
-    btop = true
-    lazygit = true
-    cli_tools = true
-    languages = true
-    firefox = false
-    fonts = false
-    audio = false
-    multimedia = false
-    bluetooth = false
-    extra_apps = false
-    kitty = false
-    hyprland = false
-    rofi = false
-{{- else if eq $mode "laptop" }}
-  [data.install]
-    desktop_preflight = true
-    yazi = true
-    claude = true
-    gh = true
-    tmux = true
-    neovim = true
-    btop = true
-    lazygit = true
-    cli_tools = true
-    languages = true
-    firefox = true
-    fonts = true
-    audio = true
-    multimedia = true
-    bluetooth = true
-    extra_apps = true
-    kitty = true
-    hyprland = true
-    rofi = true
+{{- range $key, $value := $modeConfig.install }}
+    {{ $key }} = {{ $value }}
 {{- end }}
 
 # Mode: {{ $mode }} {{- if env "FEDPUNK_MODE" }} (explicit){{- else if not (env "FEDPUNK_NON_INTERACTIVE") }} (user selected){{- else }} (auto-detected){{- end }}
