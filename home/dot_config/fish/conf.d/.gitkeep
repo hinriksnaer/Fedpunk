@@ -1,0 +1,5 @@
+# This directory contains Fish shell configuration snippets
+# Files in conf.d/ are automatically sourced by Fish shell
+
+# installer-managed.fish is created dynamically by the installer
+# and should NOT be committed to git (see .gitignore)

@@ -50,14 +50,8 @@ profiles/*/
 # Development tools
 .claude/
 
-# Track fish config and templates
-home/dot_config/*
-!home/dot_config/fish/
-home/dot_config/fish/*
-!home/dot_config/fish/config.fish
-!home/dot_config/fish/conf.d/
-home/dot_config/fish/conf.d/*
-!home/dot_config/fish/conf.d/*.tmpl
+# Track all dotfiles in home/ (single source of truth)
+# Exclude only dynamic files that shouldn't be tracked
 
 # User-specific theme selections (symlinks managed by fedpunk theme system)
 dot_config/btop/themes/active.theme
