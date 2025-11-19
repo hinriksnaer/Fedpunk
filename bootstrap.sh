@@ -61,8 +61,8 @@ echo ""
 # Note: Mode selection happens during init via .chezmoi.toml.tmpl
 fish -c "chezmoi init https://github.com/hinriksnaer/Fedpunk.git"
 
-# Apply dotfiles (run_before scripts copy module configs, then deploy)
-# Separate apply ensures module configs are copied before deployment
+# Apply dotfiles (module configs are already tracked in git for immediate deployment)
+# run_before scripts update configs if modules changed, then chezmoi applies everything
 fish -c "chezmoi apply"
 
 echo ""
