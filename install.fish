@@ -204,6 +204,9 @@ if not set -q FEDPUNK_MODE
             exit 1
         end
 
+        # Debug: Show what was set
+        info "Debug - FEDPUNK_INSTALL_DESKTOP_PREFLIGHT is set to: $FEDPUNK_INSTALL_DESKTOP_PREFLIGHT"
+
         # Generate .chezmoidata.toml for chezmoi templates
         info "Generating .chezmoidata.toml for chezmoi templates..."
         set chezmoi_data "$FEDPUNK_PATH/home/.chezmoidata.toml"
