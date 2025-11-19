@@ -1,16 +1,16 @@
 #!/usr/bin/env fish
-# Chezmoi run_before script: Setup module configuration symlinks
-# This runs FIRST to create symlinks for enabled module configs
-# Ensures module configs are available before deployment
+# Chezmoi run_before script: Copy module configurations to chezmoi source
+# This runs FIRST to copy enabled module configs into the chezmoi source directory
+# Chezmoi can then process and deploy these configs normally
 
-# workingTree is the git repo root, we need to create symlinks in the home/ subdirectory
+# workingTree is the git repo root, we need to copy files into the home/ subdirectory
 set -x FEDPUNK_SOURCE_DIR "{{ .chezmoi.workingTree }}/home"
 set -x FEDPUNK_REPO_ROOT "{{ .chezmoi.workingTree }}"
 
 echo "Setting up module configurations..."
 echo ""
 
-# Track symlinks created
+# Track configs copied
 set -l created_count 0
 set -l skipped_count 0
 
@@ -51,35 +51,40 @@ if test -d "$config_path"
                     continue
                 end
 
-                # Create symlink
+                # Copy module config to chezmoi source
                 if not test -e "$target_path"
-                    ln -s "$subitem" "$target_path"
-                    echo "  • Linked: dot_config/$subitem_name ← modules/$module_name/config/"
+                    cp -r "$subitem" "$target_path"
+                    echo "  • Copied: dot_config/$subitem_name ← modules/$module_name/config/"
                     set created_count (math $created_count + 1)
+                else
+                    # Update existing files
+                    cp -r "$subitem"/* "$target_path/"
+                    echo "  • Updated: dot_config/$subitem_name"
                 end
             end
         else
-            # Regular files - link directly
+            # Regular files - copy directly
             set target_path "$FEDPUNK_SOURCE_DIR/$item_name"
 
-            # Remove existing symlink if outdated
-            if test -L "$target_path"
-                set current_target (readlink "$target_path")
-                if test "$current_target" != "$item"
-                    rm "$target_path"
-                    echo "  • Removed outdated symlink: $item_name"
+            # Copy module config file to chezmoi source
+            if test -d "$item"
+                # Directory - copy recursively
+                if not test -e "$target_path"
+                    cp -r "$item" "$target_path"
+                    echo "  • Copied: $item_name ← modules/$module_name/config/"
+                    set created_count (math $created_count + 1)
+                else
+                    # Update existing directory
+                    cp -r "$item"/* "$target_path/"
+                    echo "  • Updated: $item_name"
                 end
-            else if test -e "$target_path"
-                echo "  ⚠ Skipping $item_name (exists)"
-                set skipped_count (math $skipped_count + 1)
-                continue
-            end
-
-            # Create symlink
-            if not test -e "$target_path"
-                ln -s "$item" "$target_path"
-                echo "  • Linked: $item_name ← modules/$module_name/config/"
-                set created_count (math $created_count + 1)
+            else
+                # Regular file - just copy
+                cp "$item" "$target_path"
+                if test $status -eq 0
+                    echo "  • Copied: $item_name ← modules/$module_name/config/"
+                    set created_count (math $created_count + 1)
+                end
             end
         end
     end
@@ -88,7 +93,7 @@ end
 
 echo ""
 if test $created_count -gt 0
-    echo "✓ Created $created_count symlink(s)"
+    echo "✓ Copied $created_count module config(s)"
 end
 if test $skipped_count -gt 0
     echo "⚠ Skipped $skipped_count item(s)"

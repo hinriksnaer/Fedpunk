@@ -51,7 +51,7 @@ profiles/*/
 .devcontainer/
 .claude/
 
-# Module config symlinks (created dynamically by run_before_00_setup_module_configs.fish.tmpl)
+# Module configs (copied dynamically from modules/*/config/ by run_before_00_setup_module_configs.fish.tmpl)
 home/dot_config/*
 !home/dot_config/private_chezmoi
 home/dot_config_*
