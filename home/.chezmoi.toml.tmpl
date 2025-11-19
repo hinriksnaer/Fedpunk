@@ -37,13 +37,13 @@
 {{-   $modules = $baseManifest.modules | default list -}}
 {{-   $moduleParams = $baseManifest.module_params | default dict -}}
 
-{{-   $baseModeModules := index $baseManifest.mode_modules $mode | default list -}}
+{{-   $baseModeModules := index ($baseManifest.mode_modules | default dict) $mode | default list -}}
 {{-   $modules = concat $modules $baseModeModules -}}
 {{- end -}}
 
 {{- $modules = concat $modules ($manifest.modules | default list) -}}
 
-{{- $profileModeModules := index $manifest.mode_modules $mode | default list -}}
+{{- $profileModeModules := index ($manifest.mode_modules | default dict) $mode | default list -}}
 {{- $modules = concat $modules $profileModeModules -}}
 
 {{- range $moduleName, $params := ($manifest.module_params | default dict) -}}
