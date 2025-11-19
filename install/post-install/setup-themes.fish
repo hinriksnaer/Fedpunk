@@ -59,10 +59,9 @@ gum spin --spinner dot --title "Setting up terminal themes..." -- fish -c '
 '
 success "Terminal themes set up"
 
-# Desktop-only theme setup
-if test "$FEDPUNK_MODE" != "container"
-    # Set initial background
-    gum spin --spinner dot --title "Configuring wallpaper..." -- fish -c '
+# Desktop theme setup (wallpaper)
+# Set initial background
+gum spin --spinner dot --title "Configuring wallpaper..." -- fish -c '
         if test -L ~/.config/fedpunk/current/theme
             set first_bg (find ~/.config/fedpunk/current/theme/backgrounds -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) 2>/dev/null | sort | head -1)
             if test -n "$first_bg"
@@ -94,9 +93,6 @@ if test "$FEDPUNK_MODE" != "container"
     else
         warning "Failed to create browser policy directories (may not be needed)"
     end
-else
-    info "Skipping desktop theme components (terminal-only mode)"
-end
 
 set current_theme (basename (readlink ~/.config/fedpunk/current/theme 2>/dev/null) 2>/dev/null; or echo "default")
 echo ""
