@@ -35,7 +35,7 @@ install_if_enabled "FEDPUNK_INSTALL_GH" \
 if test "$FEDPUNK_INSTALL_TMUX" = "true"
     echo ""
     info "Installing tmux"
-    step "Installing tmux package" "sudo dnf install -qy tmux"
+    step "Installing tmux package" "$SUDO_CMD dnf install -qy tmux"
 else
     info "Skipping tmux installation"
     echo "[SKIPPED] tmux installation (FEDPUNK_INSTALL_TMUX=false)" >> $FEDPUNK_LOG_FILE
@@ -45,7 +45,7 @@ end
 if test "$FEDPUNK_INSTALL_BTOP" = "true"
     echo ""
     info "Installing btop"
-    step "Installing btop package" "sudo dnf install -qy btop"
+    step "Installing btop package" "$SUDO_CMD dnf install -qy btop"
 else
     info "Skipping btop installation"
     echo "[SKIPPED] btop installation (FEDPUNK_INSTALL_BTOP=false)" >> $FEDPUNK_LOG_FILE
@@ -58,7 +58,7 @@ if test "$FEDPUNK_INSTALL_NEOVIM" = "true"
 
     # Install dependencies
     set packages "git curl unzip tar gzip"
-    step "Installing Neovim dependencies" "sudo dnf install -qy $packages"
+    step "Installing Neovim dependencies" "$SUDO_CMD dnf install -qy $packages"
 
     # Download and install latest Neovim AppImage
     set nvim_url "https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
@@ -82,8 +82,8 @@ end
 if test "$FEDPUNK_INSTALL_LAZYGIT" = "true"
     echo ""
     info "Installing lazygit"
-    step "Enabling lazygit COPR" "sudo dnf install -qy dnf-plugins-core && sudo dnf copr enable -qy atim/lazygit"
-    step "Installing lazygit" "sudo dnf install --refresh -qy lazygit"
+    step "Enabling lazygit COPR" "$SUDO_CMD dnf install -qy dnf-plugins-core && $SUDO_CMD dnf copr enable -qy atim/lazygit"
+    step "Installing lazygit" "$SUDO_CMD dnf install --refresh -qy lazygit"
 else
     info "Skipping lazygit installation"
     echo "[SKIPPED] lazygit installation (FEDPUNK_INSTALL_LAZYGIT=false)" >> $FEDPUNK_LOG_FILE
@@ -106,11 +106,11 @@ if test "$FEDPUNK_INSTALL_FIREFOX" = "true"
     echo ""
     info "Installing Firefox web browser"
     gum spin --spinner dot --title "Refreshing package metadata..." -- fish -c '
-        sudo dnf makecache --refresh -q >>'"$FEDPUNK_LOG_FILE"' 2>&1
+        $SUDO_CMD dnf makecache --refresh -q >>'"$FEDPUNK_LOG_FILE"' 2>&1
     ' && success "Package metadata refreshed" || warning "Could not refresh metadata"
 
     gum spin --spinner dot --title "Installing Firefox..." -- fish -c '
-        sudo dnf install -qy --skip-broken --best firefox >>'"$FEDPUNK_LOG_FILE"' 2>&1
+        $SUDO_CMD dnf install -qy --skip-broken --best firefox >>'"$FEDPUNK_LOG_FILE"' 2>&1
     ' && success "Firefox installed" || error "Firefox installation failed"
 else
     info "Skipping Firefox installation"
@@ -230,7 +230,7 @@ end
 if test "$FEDPUNK_INSTALL_KITTY" = "true"
     echo ""
     info "Installing Kitty"
-    step "Installing kitty" "sudo dnf install -qy kitty"
+    step "Installing kitty" "$SUDO_CMD dnf install -qy kitty"
 else
     info "Skipping Kitty installation"
     echo "[SKIPPED] Kitty installation (FEDPUNK_INSTALL_KITTY=false)" >> $FEDPUNK_LOG_FILE
@@ -242,22 +242,22 @@ if test "$FEDPUNK_INSTALL_HYPRLAND" = "true"
     info "Installing Hyprland and dependencies"
 
     # Enable Hyprland COPR
-    step "Enabling Hyprland COPR" "sudo dnf copr enable -qy solopasha/hyprland"
+    step "Enabling Hyprland COPR" "$SUDO_CMD dnf copr enable -qy solopasha/hyprland"
 
     # Install Hyprland packages
     set packages "hyprland hyprpaper hyprlock hypridle xdg-desktop-portal-hyprland waybar polkit-gnome"
-    step "Installing Hyprland packages" "sudo dnf install --refresh -qy --skip-broken --best $packages"
+    step "Installing Hyprland packages" "$SUDO_CMD dnf install --refresh -qy --skip-broken --best $packages"
 
     # Install Wayland dependencies
     set wayland_deps "wayland-protocols-devel wlroots wl-clipboard cliphist grim slurp"
-    step "Installing Wayland dependencies" "sudo dnf install --refresh -qy --skip-unavailable --best $wayland_deps"
+    step "Installing Wayland dependencies" "$SUDO_CMD dnf install --refresh -qy --skip-unavailable --best $wayland_deps"
 
     # Install Qt6 Wayland support
     set qt6_packages "qt6-qtwayland"
-    step "Installing Qt6 Wayland support" "sudo dnf install --allowerasing --refresh -qy --skip-unavailable $qt6_packages"
+    step "Installing Qt6 Wayland support" "$SUDO_CMD dnf install --allowerasing --refresh -qy --skip-unavailable $qt6_packages"
 
     # Update graphics stack
-    step "Updating graphics stack" "sudo dnf update -qy mesa-* --refresh"
+    step "Updating graphics stack" "$SUDO_CMD dnf update -qy mesa-* --refresh"
 
     # Update user directories
     step "Updating user directories" "xdg-user-dirs-update"
@@ -276,7 +276,7 @@ end
 if test "$FEDPUNK_INSTALL_ROFI" = "true"
     echo ""
     info "Installing Rofi"
-    step "Installing rofi" "sudo dnf install -qy rofi"
+    step "Installing rofi" "$SUDO_CMD dnf install -qy rofi"
 else
     info "Skipping Rofi installation"
     echo "[SKIPPED] Rofi installation (FEDPUNK_INSTALL_ROFI=false)" >> $FEDPUNK_LOG_FILE

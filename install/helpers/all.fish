@@ -2,6 +2,13 @@
 # Helper functions for Fedpunk installation (Fish version)
 # Provides consistent gum-based interface for all installation scripts
 
+# Detect if we need sudo (not needed if running as root)
+if test (id -u) -eq 0
+    set -gx SUDO_CMD ""
+else
+    set -gx SUDO_CMD "sudo"
+end
+
 # Color codes (fallback for non-gum scenarios)
 set -gx FEDPUNK_COLOR_RESET '\033[0m'
 set -gx FEDPUNK_COLOR_GREEN '\033[0;32m'
