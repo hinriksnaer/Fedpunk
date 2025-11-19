@@ -46,9 +46,7 @@ fi
 # Install gum
 if ! command -v gum >/dev/null 2>&1; then
     echo "Installing gum..."
-    sudo dnf install -y golang >/dev/null 2>&1
-    export PATH="$HOME/go/bin:$PATH"
-    go install github.com/charmbracelet/gum@latest 2>&1 | grep -v "go: downloading" || true
+    sudo dnf install -y gum >/dev/null 2>&1
     echo "✓ Gum installed"
 else
     echo "✓ Gum already installed"
