@@ -18,7 +18,7 @@ end
 
 # Initialize FEDPUNK_PATH if not set
 if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
 end
 
 # Source helpers

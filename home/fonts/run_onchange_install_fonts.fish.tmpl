@@ -1,7 +1,7 @@
 #!/usr/bin/env fish
 if test "{{ .mode.name }}" = "container"; exit 0; end
 if not set -q FEDPUNK_INSTALL_FONTS; or test "$FEDPUNK_INSTALL_FONTS" != "true"; exit 0; end
-if not set -q FEDPUNK_PATH; set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"; end
+if not set -q FEDPUNK_PATH; set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"; end
 source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
 section "Fonts Installation"
 install_packages "google-noto-*fonts" fira-code-fonts jetbrains-mono-fonts-all
