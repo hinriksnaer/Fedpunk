@@ -9,12 +9,17 @@ if not command -v nvim >/dev/null 2>&1
     exit 0
 end
 
+echo ""
+echo "Neovim Plugin Setup"
+echo "==================="
+echo ""
+
 # Install lazy.nvim plugin manager
 set lazy_path "$HOME/.local/share/nvim/lazy/lazy.nvim"
 
 if not test -d "$lazy_path"
-    echo "→ Installing lazy.nvim plugin manager..."
-    git clone --filter=blob:none https://github.com/folke/lazy.nvim.git --branch=stable "$lazy_path"
+    gum spin --spinner dot --title "Installing lazy.nvim plugin manager..." -- \
+        git clone --quiet --filter=blob:none https://github.com/folke/lazy.nvim.git --branch=stable "$lazy_path" 2>/dev/null
     echo "✓ lazy.nvim installed"
 else
     echo "✓ lazy.nvim already installed"
@@ -22,9 +27,11 @@ end
 
 # Sync plugins (headless mode for automated setup)
 if test -f "$HOME/.config/nvim/init.lua"
-    echo "→ Installing Neovim plugins..."
-    nvim --headless "+Lazy! sync" +qa
+    gum spin --spinner dot --title "Installing Neovim plugins..." -- \
+        nvim --headless "+Lazy! sync" +qa 2>/dev/null
     echo "✓ Neovim plugins installed"
 else
     echo "⚠ Neovim config not found, skipping plugin installation"
 end
+
+echo ""
