@@ -9,6 +9,7 @@ name = "container"
 desktop_preflight = false
 
 # Terminal packages - minimal
+yazi = true
 claude = true
 gh = true
 
