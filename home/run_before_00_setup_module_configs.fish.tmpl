@@ -3,7 +3,8 @@
 # This runs FIRST to create symlinks for enabled module configs
 # Ensures module configs are available before deployment
 
-set -x FEDPUNK_SOURCE_DIR "{{ .chezmoi.sourceDir }}"
+# With .chezmoiroot, sourceDir is the git repo root, but we need the actual source
+set -x FEDPUNK_SOURCE_DIR "{{ .chezmoi.sourceDir }}/home"
 set -x FEDPUNK_REPO_ROOT "{{ .chezmoi.workingTree }}"
 
 echo "Setting up module configurations..."
