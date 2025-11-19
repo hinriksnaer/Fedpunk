@@ -11,9 +11,13 @@ source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "Development Packages"
 
-# Install podman and container tools
-subsection "Installing container tools"
-install_packages podman podman-compose podman-docker
+# Install podman and container tools (skip when already in a container)
+if test "$FEDPUNK_MODE" = "container"
+    info "Skipping container tools (already running in container)"
+else
+    subsection "Installing container tools"
+    install_packages podman podman-compose podman-docker
+end
 
 echo ""
 box "Development Packages Installed!" $GUM_SUCCESS

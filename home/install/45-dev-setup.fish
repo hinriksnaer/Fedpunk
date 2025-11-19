@@ -15,13 +15,19 @@ source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "Development Environment Setup"
 
-# List of setup scripts to run
-set setup_scripts \
-    "install-nvim-mcp.fish" \
-    "setup-podman.fish" \
-    "setup-devcontainer.fish" \
-    "setup-bitwarden.fish" \
-    "setup-claude.fish"
+# List of setup scripts to run (based on mode)
+set setup_scripts
+
+# Container-related scripts (skip in container mode)
+if test "$FEDPUNK_MODE" != "container"
+    set -a setup_scripts "setup-podman.fish"
+    set -a setup_scripts "setup-devcontainer.fish"
+end
+
+# General development scripts (run in all modes)
+set -a setup_scripts "install-nvim-mcp.fish"
+set -a setup_scripts "setup-bitwarden.fish"
+set -a setup_scripts "setup-claude.fish"
 
 # Run each setup script
 for script in $setup_scripts
