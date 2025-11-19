@@ -51,11 +51,15 @@ profiles/*/
 .devcontainer/
 .claude/
 
-# Module configs are copied from modules/*/config/ and tracked in git
-# This allows fresh installs to work without requiring run_before scripts first
-# Only ignore dynamic runtime files within configs:
-home/dot_config/fish/fish_variables
-home/dot_config/tmux/plugins/**
+# Module configs are generated from fragments via templates
+# Only track the template files that include fragments:
+home/dot_config/*
+!home/dot_config/fish/
+home/dot_config/fish/*
+!home/dot_config/fish/config.fish.tmpl
+!home/dot_config/fish/conf.d/
+home/dot_config/fish/conf.d/*
+!home/dot_config/fish/conf.d/*.tmpl
 
 # User-specific theme selections (symlinks managed by fedpunk theme system)
 dot_config/btop/themes/active.theme

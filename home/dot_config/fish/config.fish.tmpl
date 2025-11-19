@@ -1,0 +1,50 @@
+# Fedpunk Fish Configuration
+# This file is assembled from module fragments based on enabled modules
+
+# ============================================================================
+# Core Module Fragments
+# ============================================================================
+{{- if has "core" .profile.modules }}
+{{ includeTemplate "modules/core/fragments/fish/paths.fish" . -}}
+
+{{ includeTemplate "modules/core/fragments/fish/shell-config.fish" . -}}
+
+{{ includeTemplate "modules/core/fragments/fish/prompt.fish" . -}}
+
+{{ includeTemplate "modules/core/fragments/fish/ssh-agent.fish" . -}}
+{{- end }}
+
+# ============================================================================
+# CLI Tools Module Fragments
+# ============================================================================
+{{- if has "cli-tools" .profile.modules }}
+{{ includeTemplate "modules/cli-tools/fragments/fish/aliases.fish" . -}}
+
+{{ includeTemplate "modules/cli-tools/fragments/fish/fzf.fish" . -}}
+{{- end }}
+
+# ============================================================================
+# Kitty Module Fragments
+# ============================================================================
+{{- if has "kitty" .profile.modules }}
+{{ includeTemplate "modules/kitty/fragments/fish/terminal.fish" . -}}
+{{- end }}
+
+# ============================================================================
+# Profile System Integration
+# ============================================================================
+
+# Note: Rust/Cargo PATH is managed in conf.d/rustup.fish
+# Note: Claude Code auth is managed in active profile's claude-vertex.fish (if enabled)
+# Note: NVIDIA Wayland env vars are managed in conf.d/installer-managed.fish
+
+# Source virtual environment if it exists
+if test -f ~/.venv/bin/activate.fish
+    source ~/.venv/bin/activate.fish
+end
+
+# Source active config's Fish configuration if it exists
+set -l active_config "$HOME/.local/share/fedpunk/.active-config"
+if test -L "$active_config"; and test -f "$active_config/config.fish"
+    source "$active_config/config.fish"
+end
