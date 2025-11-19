@@ -3,11 +3,6 @@
 # This runs after chezmoi applies configs, guaranteeing nvim config exists
 # Note: Only runs if neovim is installed
 
-# Ensure ~/.local/bin is in PATH for nvim AppImage
-if not contains "$HOME/.local/bin" $PATH
-    set -gx PATH "$HOME/.local/bin" $PATH
-end
-
 # Check if nvim is installed
 if not command -v nvim >/dev/null 2>&1
     echo "ℹ neovim not installed, skipping plugin setup"

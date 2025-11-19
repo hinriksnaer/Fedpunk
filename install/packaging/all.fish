@@ -55,24 +55,7 @@ end
 if test "$FEDPUNK_INSTALL_NEOVIM" = "true"
     echo ""
     info "Installing Neovim"
-
-    # Install dependencies
-    set packages "git curl unzip tar gzip"
-    step "Installing Neovim dependencies" "$SUDO_CMD dnf install -qy $packages"
-
-    # Download and install latest Neovim AppImage
-    set nvim_url "https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
-    set nvim_path "$HOME/.local/bin/nvim"
-
-    if gum spin --spinner dot --title "Installing Neovim..." -- fish -c '
-        mkdir -p '$HOME'/.local/bin &&
-        curl -fsSL '$nvim_url' -o '$nvim_path' >>'"$FEDPUNK_LOG_FILE"' 2>&1 &&
-        chmod +x '$nvim_path' >>'"$FEDPUNK_LOG_FILE"' 2>&1
-    '
-        success "Neovim installed"
-    else
-        error "Failed to install Neovim"
-    end
+    step "Installing Neovim" "$SUDO_CMD dnf install -qy neovim"
 else
     info "Skipping Neovim installation"
     echo "[SKIPPED] Neovim installation (FEDPUNK_INSTALL_NEOVIM=false)" >> $FEDPUNK_LOG_FILE
