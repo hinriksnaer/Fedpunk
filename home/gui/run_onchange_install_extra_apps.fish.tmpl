@@ -1,16 +1,9 @@
+{{- if and .install.extra_apps (ne .mode.name "container") }}
 #!/usr/bin/env fish
 # Install extra applications (Discord, Spotify, etc.)
 
-# Skip if not enabled in mode
-if not set -q FEDPUNK_INSTALL_EXTRA_APPS; or test "$FEDPUNK_INSTALL_EXTRA_APPS" != "true"
-    exit 0
-end
 
-# Initialize FEDPUNK_PATH if not set
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "{{ .chezmoi.sourceDir }}/home/core/lib/helpers.fish"
 
 section "Extra Applications Installation"
 
@@ -37,3 +30,4 @@ box "Extra Apps Installed!
 ✓ Spotify
 
 Launch from your application menu." $GUM_SUCCESS
+{{- end }}

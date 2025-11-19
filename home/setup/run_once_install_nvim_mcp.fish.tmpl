@@ -5,7 +5,7 @@
 if not set -q FEDPUNK_PATH
     set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
 end
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "{{ .chezmoi.sourceDir }}/home/core/lib/helpers.fish"
 
 # Skip in container mode (MCP server setup typically not needed in containers)
 if test "$FEDPUNK_MODE" = "container"

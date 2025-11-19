@@ -1,8 +1,7 @@
+{{- if and .install.kitty (ne .mode.name "container") }}
 #!/usr/bin/env fish
-if test "{{ .mode.name }}" = "container"; exit 0; end
-if not set -q FEDPUNK_INSTALL_KITTY; or test "$FEDPUNK_INSTALL_KITTY" != "true"; exit 0; end
-if not set -q FEDPUNK_PATH; set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"; end
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "{{ .chezmoi.sourceDir }}/home/core/lib/helpers.fish"
 section "Kitty Installation"
 install_if_missing kitty kitty
 box "Kitty Installation Complete!" $GUM_SUCCESS
+{{- end }}

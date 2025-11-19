@@ -1,7 +1,8 @@
+{{- if .install.gh }}
 #!/usr/bin/env fish
 # Component: GitHub CLI
 # Description: Install gh (GitHub CLI)
-# Mode: All modes (if FEDPUNK_INSTALL_GH=true)
+# Mode: {{ .mode.name }}
 
 if not set -q FEDPUNK_INSTALL_GH; or test "$FEDPUNK_INSTALL_GH" != "true"
     exit 0
@@ -23,3 +24,4 @@ else
 end
 
 box "GitHub CLI Installation Complete!" $GUM_SUCCESS
+{{- end }}

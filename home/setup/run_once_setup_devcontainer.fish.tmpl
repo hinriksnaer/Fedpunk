@@ -6,7 +6,7 @@
 if not set -q FEDPUNK_PATH
     set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
 end
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "{{ .chezmoi.sourceDir }}/home/core/lib/helpers.fish"
 
 section "Devcontainer CLI Setup"
 

@@ -1,16 +1,8 @@
+{{- if and .install.nvidia_drivers (ne .mode.name "container") }}
 #!/usr/bin/env fish
 # Install NVIDIA proprietary drivers and Wayland support
 
-# Skip in container mode (no GPU passthrough)
-if test "$FEDPUNK_MODE" = "container"
-    exit 0
-end
-
-# Initialize FEDPUNK_PATH if not set
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "{{ .chezmoi.sourceDir }}/home/core/lib/helpers.fish"
 
 section "NVIDIA Drivers"
 
@@ -86,3 +78,4 @@ After reboot, verify with: nvidia-smi
     echo ""
     warning "System reboot required for drivers to take effect"
 end
+{{- end }}

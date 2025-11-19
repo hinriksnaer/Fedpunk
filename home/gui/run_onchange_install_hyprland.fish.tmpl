@@ -1,16 +1,9 @@
+{{- if and .install.hyprland (ne .mode.name "container") }}
 #!/usr/bin/env fish
 # Install Hyprland Wayland compositor and dependencies
 
-# Skip if not enabled in mode
-if not set -q FEDPUNK_INSTALL_HYPRLAND; or test "$FEDPUNK_INSTALL_HYPRLAND" != "true"
-    exit 0
-end
 
-# Initialize FEDPUNK_PATH if not set
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "{{ .chezmoi.sourceDir }}/home/core/lib/helpers.fish"
 
 section "Hyprland Installation"
 
@@ -30,3 +23,4 @@ Hyprland compositor and all dependencies are ready.
 Launch with: Hyprland
 
 💡 Configuration: ~/.config/hypr/" $GUM_SUCCESS
+{{- end }}
