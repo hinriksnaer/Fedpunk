@@ -44,7 +44,8 @@ subsection "Installing Rust toolchain"
 if not command -v cargo >/dev/null
     step "Installing Rust via rustup" \
         "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal"
-    source "$HOME/.cargo/env"
+    # Add cargo to PATH for this session (fish doesn't source bash scripts)
+    set -gx PATH "$HOME/.cargo/bin" $PATH
 else
     success "Rust already installed"
 end
