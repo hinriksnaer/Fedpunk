@@ -7,9 +7,13 @@
 set script_dir (dirname (status -f))
 
 # Source helper functions for consistent interface
-set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
-if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
-    source "$FEDPUNK_INSTALL/helpers/all.fish"
+set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+set helpers_path "$FEDPUNK_PATH/profiles/base/lib/helpers.fish"
+if test -f "$helpers_path"
+    source "$helpers_path"
+else
+    echo "Error: Cannot find helper functions at $helpers_path"
+    exit 1
 end
 
 if test (count $argv) -lt 1

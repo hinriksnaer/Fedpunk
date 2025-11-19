@@ -1,0 +1,68 @@
+#!/usr/bin/env fish
+# Chezmoi run_once_after script: Execute module after_apply hooks
+# This runs AFTER chezmoi applies configs, for post-installation tasks
+
+# Set up environment
+set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+set -x FEDPUNK_LIB_PATH "$FEDPUNK_PATH/lib"
+set -x FEDPUNK_MODE "{{ .mode.name }}"
+set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-after-"(date +%Y%m%d-%H%M%S)".log"
+
+echo ""
+echo "Fedpunk Post-Installation (Profile: {{ .profile.name }})"
+echo "========================================================"
+echo ""
+
+# Create log file
+echo "Fedpunk Post-Installation - "(date) > "$FEDPUNK_LOG_FILE"
+echo "Mode: {{ .mode.name }}" >> "$FEDPUNK_LOG_FILE"
+echo "Profile: {{ .profile.name }}" >> "$FEDPUNK_LOG_FILE"
+echo "" >> "$FEDPUNK_LOG_FILE"
+
+# Source module loader library
+source "$FEDPUNK_LIB_PATH/modules.fish"
+source "$FEDPUNK_LIB_PATH/helpers.fish"
+
+# Export module environment variables
+{{- range $moduleName := .profile.modules }}
+{{-   $modKey := $moduleName | replace "-" "_" }}
+{{-   $modData := index .module $modKey | default dict }}
+{{-   $modulePrefix := printf "FEDPUNK_MODULE_%s" ($moduleName | upper | replace "-" "_") }}
+{{-   range $key, $value := $modData }}
+set -gx {{ $modulePrefix }}_{{ $key }} {{ $value | quote }}
+{{-   end }}
+{{- end }}
+
+# Execute after_apply hooks
+{{- $hooks := .profile.after_apply_hooks | mustFromJson }}
+{{- if $hooks }}
+section "Running after_apply hooks ({{ len $hooks }} modules)"
+echo ""
+
+{{-   range $index, $hookStr := $hooks }}
+{{-     $parts := split ":" $hookStr }}
+{{-     $moduleName := index $parts 0 }}
+{{-     $script := index $parts 1 }}
+
+# Module {{ add $index 1 }}/{{ len $hooks }}: {{ $moduleName }}
+echo ""
+info "Module: {{ $moduleName }}"
+
+if should_run_module "{{ $moduleName }}"
+    execute_module_hook "{{ $moduleName }}" "{{ $script }}" "after_apply"
+    if test $status -ne 0
+        warning "Module hook failed: {{ $moduleName }}/{{ $script }}"
+    end
+else
+    info "Skipping module: {{ $moduleName }}"
+end
+{{-   end }}
+{{- else }}
+info "No after_apply hooks configured"
+{{- end }}
+
+echo ""
+echo "========================================================"
+echo "All after_apply hooks complete"
+echo "Log file: $FEDPUNK_LOG_FILE"
+echo ""

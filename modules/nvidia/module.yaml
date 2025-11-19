@@ -1,0 +1,28 @@
+module:
+  name: nvidia
+  description: NVIDIA proprietary drivers with Wayland support
+
+depends:
+  - core
+
+# Auto-detection configuration
+auto_detect:
+  command: "lspci | grep -i nvidia >/dev/null 2>&1"
+  prompt: "NVIDIA GPU detected. Install proprietary drivers?"
+  default: "yes"
+
+params:
+  install_wayland_support: true
+  install_cuda: true
+
+hooks:
+  before_apply:
+    - install.fish
+
+modes:
+  container:
+    enabled: false  # Never install GPU drivers in containers
+  desktop:
+    enabled: true
+  laptop:
+    enabled: true

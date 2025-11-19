@@ -4,9 +4,10 @@
 # ESC to cancel and revert, Enter to keep selected theme
 
 # Source helper functions
-set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
-if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
-    source "$FEDPUNK_INSTALL/helpers/all.fish"
+set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+set helpers_path "$FEDPUNK_PATH/profiles/base/lib/helpers.fish"
+if test -f "$helpers_path"
+    source "$helpers_path"
 end
 
 # Find script directory

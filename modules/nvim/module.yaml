@@ -1,0 +1,26 @@
+module:
+  name: nvim
+  description: Neovim text editor with lazy.nvim plugin manager
+
+depends:
+  - core
+  - languages  # For LSPs
+
+# Module parameters (can be overridden in profile)
+params:
+  package_name: neovim  # DNF package name
+  setup_plugins: true   # Install lazy.nvim plugin manager
+
+hooks:
+  before_apply:
+    - install.fish
+  after_apply:
+    - setup-plugins.fish
+
+modes:
+  container:
+    enabled: true
+  desktop:
+    enabled: true
+  laptop:
+    enabled: true

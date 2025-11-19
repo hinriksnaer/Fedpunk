@@ -1,0 +1,20 @@
+module:
+  name: core
+  description: Essential system setup - DNF config, Fish shell, Git, Cargo, Gum
+
+# No dependencies - this is the foundation
+depends: []
+
+# Installation hooks
+hooks:
+  before_apply:
+    - install.fish
+
+# Available in all modes
+modes:
+  container:
+    enabled: true
+  desktop:
+    enabled: true
+  laptop:
+    enabled: true

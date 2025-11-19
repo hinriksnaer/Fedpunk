@@ -1,0 +1,26 @@
+profile:
+  name: dev
+  description: Development environment with podman, devcontainers, and MCP tools
+  author: hinriksnaer
+  version: 1.0.0
+
+# Inherit all modules from base profile
+inherit: base
+
+# Add development-specific modules
+modules:
+  - podman
+  - git-tools
+  - claude
+
+# Module parameter overrides for dev profile
+module_params:
+  podman:
+    setup_rootless: true
+    install_compose: true
+
+  languages:
+    install_nodejs: true
+    install_python: true
+    install_go: true
+    install_rust: true  # Dev profile adds Rust
