@@ -59,40 +59,45 @@ gum spin --spinner dot --title "Setting up terminal themes..." -- fish -c '
 '
 success "Terminal themes set up"
 
-# Desktop theme setup (wallpaper)
-# Set initial background
-gum spin --spinner dot --title "Configuring wallpaper..." -- fish -c '
-        if test -L ~/.config/fedpunk/current/theme
-            set first_bg (find ~/.config/fedpunk/current/theme/backgrounds -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) 2>/dev/null | sort | head -1)
-            if test -n "$first_bg"
-                mkdir -p ~/.config/hypr/wallpapers
-                ln -snf "$first_bg" ~/.config/fedpunk/current/background
-                ln -snf "$first_bg" ~/.config/hypr/wallpapers/current
+# Desktop theme setup (wallpaper, Kitty, browser policies)
+# Skip in container mode - only needed for desktop/laptop
+if test "$FEDPUNK_INSTALL_KITTY" = "true" -o "$FEDPUNK_INSTALL_HYPRLAND" = "true"
+    # Set initial background
+    gum spin --spinner dot --title "Configuring wallpaper..." -- fish -c '
+            if test -L ~/.config/fedpunk/current/theme
+                set first_bg (find ~/.config/fedpunk/current/theme/backgrounds -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) 2>/dev/null | sort | head -1)
+                if test -n "$first_bg"
+                    mkdir -p ~/.config/hypr/wallpapers
+                    ln -snf "$first_bg" ~/.config/fedpunk/current/background
+                    ln -snf "$first_bg" ~/.config/hypr/wallpapers/current
+                end
             end
-        end
-    '
-    success "Wallpaper configured"
+        '
+        success "Wallpaper configured"
 
-    # Kitty theme
-    gum spin --spinner dot --title "Linking desktop themes..." -- fish -c '
-        mkdir -p ~/.config/kitty
-        if test -f ~/.config/fedpunk/current/theme/kitty.conf
-            ln -snf ~/.config/fedpunk/current/theme/kitty.conf ~/.config/kitty/theme.conf
-        end
-    '
-    success "Desktop themes linked"
+        # Kitty theme
+        gum spin --spinner dot --title "Linking desktop themes..." -- fish -c '
+            mkdir -p ~/.config/kitty
+            if test -f ~/.config/fedpunk/current/theme/kitty.conf
+                ln -snf ~/.config/fedpunk/current/theme/kitty.conf ~/.config/kitty/theme.conf
+            end
+        '
+        success "Desktop themes linked"
 
-    # Add managed policy directories for Chromium and Brave for theme changes
-    # Setup browser policy directories (split into separate commands for reliability)
-    if sudo mkdir -p /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
-        if sudo chmod a+rw /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
-            success "Browser policy directories set up"
+        # Add managed policy directories for Chromium and Brave for theme changes
+        # Setup browser policy directories (split into separate commands for reliability)
+        if $SUDO_CMD mkdir -p /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
+            if $SUDO_CMD chmod a+rw /etc/chromium/policies/managed /etc/brave/policies/managed >>$FEDPUNK_LOG_FILE 2>&1
+                success "Browser policy directories set up"
+            else
+                warning "Failed to set permissions on browser policy directories"
+            end
         else
-            warning "Failed to set permissions on browser policy directories"
+            warning "Failed to create browser policy directories (may not be needed)"
         end
-    else
-        warning "Failed to create browser policy directories (may not be needed)"
-    end
+else
+    info "Skipping desktop theme setup (container mode)"
+end
 
 set current_theme (basename (readlink ~/.config/fedpunk/current/theme 2>/dev/null) 2>/dev/null; or echo "default")
 echo ""
