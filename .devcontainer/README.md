@@ -1,6 +1,6 @@
 # Fedpunk Devcontainer Testing
 
-This devcontainer is for testing fedpunk's profile-based installation in container mode.
+This devcontainer is for testing fedpunk's modular component-based installation in container mode.
 
 ## Quick Start
 
@@ -20,8 +20,6 @@ cd /path/to/fedpunk
 
 podman run -it --rm \
   -e FEDPUNK_MODE=container \
-  -e FEDPUNK_PROFILE=dev \
-  -e FEDPUNK_NON_INTERACTIVE=true \
   -v .:/workspace:Z \
   -w /workspace \
   fedora:latest \
@@ -35,8 +33,8 @@ The test script will:
 1. ✓ Detect container environment
 2. ✓ Install chezmoi
 3. ✓ Configure chezmoi to use `/workspace` as source
-4. ✓ Initialize chezmoi
-5. ✓ Show detected profile and mode
+4. ✓ Initialize chezmoi (mode auto-detected as "container")
+5. ✓ Show detected mode
 6. ✓ List files that would be deployed
 7. ✓ Run a dry-run to verify everything works
 
@@ -53,25 +51,13 @@ The test script will:
 → Setting up chezmoi:
   ✓ Already installed
 
-→ Configuring chezmoi:
-  ✓ Set sourceDir to /workspace
-
 → Initializing chezmoi:
-  ✓ Initialized
+  ✓ Initialized with source=/workspace
 
 → Configuration:
 [data]
   [data.mode]
     name = "container"
-  [data.profile]
-    name = "dev"
-    path = "/workspace/profiles/dev"
-
-→ Profile Information:
-  Profile: dev
-  Path: /workspace/profiles/dev
-  Manifest: Found
-  Install scripts: 2
 
 → Files to be deployed:
   Total managed files: XX
@@ -82,39 +68,47 @@ The test script will:
 
 ## Full Installation Test
 
-To actually apply the configuration and run install scripts:
+To actually apply the configuration and run component install scripts:
 
 ```fish
-# Apply dotfiles
+# Apply dotfiles (automatically runs component install scripts)
 chezmoi apply
-
-# Run profile install scripts
-cd /workspace/profiles/dev/install
-for script in *.fish
-    fish $script
-end
 ```
+
+Components will install automatically via their `run_*` scripts.
 
 ## Architecture
 
-The new simplified structure:
+The new modular structure:
 
 ```
 /workspace/
-├── home/               # Dotfiles managed by chezmoi
-│   ├── dot_config/
-│   └── *.tmpl         # Chezmoi templates
-└── profiles/
-    ├── base/
-    │   └── install/   # Base install scripts
-    └── dev/
-        ├── config.fish        # Fish config additions
-        ├── fedpunk.yaml       # Profile metadata
-        └── install/           # Dev-specific install scripts
-            ├── 00-dev-packages.fish
-            └── 10-dev-setup.fish
+├── home/
+│   ├── core/                    # System essentials
+│   │   ├── run_before_00_preflight.fish.tmpl
+│   │   ├── run_before_01_mode_config.fish.tmpl
+│   │   └── lib/                 # Helper functions
+│   ├── desktop/                 # Desktop-only setup
+│   ├── fish/                    # Fish shell
+│   │   ├── dot_config/fish/
+│   │   └── (no install script)
+│   ├── tmux/                    # Tmux
+│   │   ├── dot_config/tmux/
+│   │   └── run_onchange_install_tmux.fish.tmpl
+│   ├── neovim/                  # Neovim
+│   │   ├── dot_config/nvim/
+│   │   └── run_onchange_install_neovim.fish.tmpl
+│   └── <component>/            # One directory per component
+│       ├── dot_config/         # Component dotfiles
+│       └── run_*_install_*.fish.tmpl  # Component install script
+└── modes/                       # Mode configurations
+    ├── container.yaml
+    ├── desktop.yaml
+    └── laptop.yaml
 ```
 
-No more modules! Just:
-- **home/** for dotfiles
-- **profiles/** for environment-specific configs and install scripts
+Key features:
+- **Self-contained components**: Each component has config + install script together
+- **Automatic execution**: Chezmoi runs scripts based on naming conventions
+- **Mode-based**: Components check `FEDPUNK_INSTALL_<COMPONENT>=true` from mode YAML
+- **No orchestration**: No central install script, each component manages itself

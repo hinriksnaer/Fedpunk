@@ -2,11 +2,9 @@
   "name": "Fedpunk Container Test",
   "image": "fedora:latest",
 
-  // Set environment variables for testing
+  // Environment variables
   "containerEnv": {
-    "FEDPUNK_PROFILE": "dev",
     "FEDPUNK_MODE": "container",
-    "FEDPUNK_NON_INTERACTIVE": "true",
     "CONTAINER": "true"
   },
 

@@ -8,9 +8,7 @@ echo ""
 
 # Set up environment
 set -gx FEDPUNK_PATH /workspace
-set -gx FEDPUNK_PROFILE "dev"
 set -gx FEDPUNK_MODE "container"
-set -gx FEDPUNK_NON_INTERACTIVE "true"
 
 # Check for container indicators
 echo "→ Container Detection:"
@@ -58,26 +56,6 @@ echo "→ Configuration:"
 cat ~/.config/chezmoi/chezmoi.toml
 echo ""
 
-# Show profile info
-echo "→ Profile Information:"
-set profile_path "$FEDPUNK_PATH/profiles/$FEDPUNK_PROFILE"
-if test -d "$profile_path"
-    echo "  Profile: $FEDPUNK_PROFILE"
-    echo "  Path: $profile_path"
-
-    if test -f "$profile_path/fedpunk.yaml"
-        echo "  Manifest: Found"
-    end
-
-    if test -d "$profile_path/install"
-        set script_count (count $profile_path/install/*.fish 2>/dev/null)
-        echo "  Install scripts: $script_count"
-    end
-else
-    echo "  ✗ Profile not found at: $profile_path"
-end
-echo ""
-
 # Show what files would be deployed
 echo "→ Files to be deployed:"
 set file_count (chezmoi managed | wc -l)
@@ -107,14 +85,11 @@ echo "╔═══════════════════════�
 echo "║   Test Summary                             ║"
 echo "╚════════════════════════════════════════════╝"
 echo ""
-echo "Profile: $FEDPUNK_PROFILE"
 echo "Mode: $FEDPUNK_MODE"
 echo "Source: $FEDPUNK_PATH"
 echo ""
 echo "Next steps:"
 echo "  1. Review the output above"
 echo "  2. Run: chezmoi apply"
-echo "  3. Run profile install scripts manually if needed:"
-echo "     cd $profile_path/install"
-echo "     for script in *.fish; fish \$script; end"
+echo "  3. Components will install automatically via run_* scripts"
 echo ""

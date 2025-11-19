@@ -20,15 +20,6 @@ end
 
 info "Current status: Claude Vertex AI is $current_status"
 
-# Skip in non-interactive mode
-if set -q FEDPUNK_NON_INTERACTIVE
-    echo ""
-    info "Non-interactive mode - skipping Claude authentication setup"
-    info "Run this script manually later if needed: $script_dir/setup-claude.fish"
-    echo ""
-    exit 0
-end
-
 # Ask if user wants to configure
 echo ""
 set configure (gum choose \

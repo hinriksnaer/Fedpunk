@@ -160,52 +160,16 @@ function step
     end
 end
 
-# Check if we're in a non-interactive environment
-function is_non_interactive
-    # Check for explicit non-interactive flag
-    if set -q FEDPUNK_NON_INTERACTIVE
-        return 0
-    end
-    if set -q CI
-        return 0
-    end
-    if test "$TERM" = "dumb"
-        return 0
-    end
-    # Don't check stdin - when running via curl | bash, stdin is the pipe
-    # but we can still show interactive prompts via stderr/tty
-    return 1
-end
-
 # Yes/No confirmation prompt using gum
-# Usage: confirm "prompt text" [default_value]
-# default_value: "yes" or "no" (used in non-interactive mode)
+# Usage: confirm "prompt text"
+# Prompts user for yes/no confirmation. Requires TTY access.
 function confirm
     set prompt $argv[1]
-    set default $argv[2]
-
-    # Default to "no" if not specified
-    if test -z "$default"
-        set default "no"
-    end
 
     echo "" >> $FEDPUNK_LOG_FILE
     echo "[PROMPT] "(date +%H:%M:%S)" $prompt" >> $FEDPUNK_LOG_FILE
 
-    # Non-interactive mode: use default
-    if is_non_interactive
-        echo "[NON-INTERACTIVE] Using default: $default" >> $FEDPUNK_LOG_FILE
-        info "$prompt [non-interactive: $default]"
-        if test "$default" = "yes"
-            echo "[RESPONSE] "(date +%H:%M:%S)" Yes (auto)" >> $FEDPUNK_LOG_FILE
-            return 0
-        else
-            echo "[RESPONSE] "(date +%H:%M:%S)" No (auto)" >> $FEDPUNK_LOG_FILE
-            return 1
-        end
-    end
-
-    # Interactive mode: prompt user
+    # Prompt user (requires TTY)
     # Redirect from /dev/tty for piped execution (curl | bash)
     if gum confirm "$prompt" </dev/tty
         echo "[RESPONSE] "(date +%H:%M:%S)" Yes" >> $FEDPUNK_LOG_FILE
@@ -217,40 +181,17 @@ function confirm
 end
 
 # Multiple choice selection using gum
-# Usage: choose "header text" "option1" "option2" ... [--default=option1]
-# Returns selected option via stdout, empty string if cancelled
+# Usage: choose "header text" "option1" "option2" ...
+# Returns selected option via stdout, empty string if cancelled. Requires TTY access.
 function choose
     set -l header $argv[1]
     set -l options $argv[2..-1]
-    set -l default_option ""
-
-    # Extract --default= flag if present
-    for i in (seq (count $options))
-        if string match -q -- "--default=*" $options[$i]
-            set default_option (string replace -- "--default=" "" $options[$i])
-            set -e options[$i]
-            break
-        end
-    end
 
     echo "" >> $FEDPUNK_LOG_FILE
     echo "[CHOOSE] "(date +%H:%M:%S)" $header" >> $FEDPUNK_LOG_FILE
     echo "Options: "(string join ", " $options) >> $FEDPUNK_LOG_FILE
 
-    # Non-interactive mode: use default or first option
-    if is_non_interactive
-        if test -n "$default_option"
-            set selected $default_option
-        else
-            set selected $options[1]
-        end
-        echo "[NON-INTERACTIVE] Using default: $selected" >> $FEDPUNK_LOG_FILE
-        info "$header [non-interactive: $selected]"
-        echo "$selected"
-        return 0
-    end
-
-    # Interactive mode: prompt user
+    # Prompt user (requires TTY)
     set selected (gum choose \
         --header "$header" \
         --cursor.foreground="212" \

@@ -21,10 +21,10 @@ end
 
 section "Bitwarden Setup"
 
-# Skip in non-interactive container mode (CLI not useful without GUI browser access)
-if set -q FEDPUNK_NON_INTERACTIVE; and test "$FEDPUNK_MODE" = "container"
-    info "Non-interactive container mode - skipping Bitwarden setup"
-    info "Bitwarden is not useful in headless containers"
+# Skip in container mode (CLI not useful without GUI browser access)
+if test "$FEDPUNK_MODE" = "container"
+    info "Skipping Bitwarden setup in container mode"
+    info "Bitwarden CLI requires GUI browser access for authentication"
     echo ""
     exit 0
 end
@@ -233,25 +233,6 @@ if test "$gui_installed" = false -o "$cli_installed" = false
     test "$gui_installed" = false; and echo "  • Desktop app: Not installed"
     test "$cli_installed" = false; and echo "  • CLI: Not installed"
     exit 1
-end
-
-# Interactive CLI setup (skip in non-interactive mode)
-if set -q FEDPUNK_NON_INTERACTIVE
-    info "Run 'bw login' to set up CLI in interactive mode"
-    box "Bitwarden Installed!
-
-✓ Desktop app installed (search for 'Bitwarden' in app menu)
-✓ CLI installed
-
-Next steps:
-  • Run 'bw login' to authenticate CLI
-
-💡 Quick reference:
-  bwg <name>  - Get password
-  bwl         - List items
-  bwgen       - Generate password
-  bws         - Sync vault" $GUM_SUCCESS
-    exit 0
 end
 
 # Ask if user wants to set up CLI
