@@ -38,7 +38,8 @@ end
 # Install starship (prompt)
 subsection "Installing starship"
 if not command -v starship >/dev/null
-    step "Installing starship via cargo" "cargo install starship --locked"
+    step "Enabling Starship COPR" "sudo dnf copr enable -qy atim/starship"
+    step "Installing starship" "sudo dnf install --refresh -qy starship"
 else
     success "starship already installed"
 end

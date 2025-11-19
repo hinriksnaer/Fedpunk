@@ -54,8 +54,10 @@ end
 echo ""
 subsection "Installing Starship"
 if not command -v starship >/dev/null
-    step "Installing Starship via cargo" \
-        "cargo install starship --locked"
+    step "Enabling Starship COPR repository" \
+        "sudo dnf copr enable -qy atim/starship"
+    step "Installing Starship via DNF" \
+        "sudo dnf install --refresh -qy starship"
 else
     success "Starship already installed"
 end
