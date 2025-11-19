@@ -538,7 +538,7 @@ function download_and_extract
     end
 end
 
-# Load TOML mode configuration and set environment variables
+# Load TOML mode configuration and set environment variables using chezmoi
 # Usage: load_mode_toml "/path/to/mode.toml"
 function load_mode_toml
     set toml_file $argv[1]
@@ -548,55 +548,34 @@ function load_mode_toml
         return 1
     end
 
-    info "Parsing mode configuration from $toml_file"
+    info "Parsing mode configuration from $toml_file using chezmoi"
 
-    # Read the TOML file and parse [mode] and [install] sections
-    set in_install_section false
+    # Create a temporary chezmoi template to extract mode data
+    set temp_template (mktemp)
+    echo '{{- range $key, $value := .install }}' > $temp_template
+    echo 'set -gx FEDPUNK_INSTALL_{{ $key | upper }} {{ $value }}' >> $temp_template
+    echo '{{- end }}' >> $temp_template
+    echo 'set -gx FEDPUNK_MODE {{ .mode.name }}' >> $temp_template
 
-    while read -l line
-        # Skip comments and empty lines
-        if string match -qr '^\s*#' "$line"; or string match -qr '^\s*$' "$line"
-            continue
-        end
+    # Use chezmoi to execute the template with the mode TOML as data
+    set temp_data "$FEDPUNK_PATH/home/.chezmoidata.toml"
+    cp "$toml_file" "$temp_data"
 
-        # Check for [mode] section
-        if string match -q '[mode]' "$line"
-            set in_install_section false
-            continue
-        end
+    # Execute template and capture the output
+    set output (chezmoi execute-template < $temp_template 2>&1)
 
-        # Check for [install] section
-        if string match -q '[install]' "$line"
-            set in_install_section true
-            continue
-        end
+    if test $status -ne 0
+        error "Failed to parse mode TOML with chezmoi: $output"
+        rm -f $temp_template
+        return 1
+    end
 
-        # Parse mode name
-        if string match -qr '^name\s*=\s*' "$line"
-            set mode_name (string replace -r '^name\s*=\s*"?([^"]+)"?' '$1' "$line" | string trim)
-            set -gx FEDPUNK_MODE "$mode_name"
-            continue
-        end
+    # Evaluate the output to set environment variables
+    for line in $output
+        eval $line
+    end
 
-        # Parse install flags in [install] section
-        if test "$in_install_section" = true
-            if string match -qr '^\w+\s*=' "$line"
-                # Extract key and value
-                set key (string replace -r '^\s*(\w+)\s*=.*' '$1' "$line" | string trim)
-                set value (string replace -r '.*=\s*(\w+).*' '$1' "$line" | string trim)
-
-                # Convert key to uppercase and prefix with FEDPUNK_INSTALL_
-                set var_name (string upper "FEDPUNK_INSTALL_$key")
-
-                # Set the environment variable
-                if test "$value" = "true"
-                    set -gx $var_name true
-                else if test "$value" = "false"
-                    set -gx $var_name false
-                end
-            end
-        end
-    end < "$toml_file"
+    rm -f $temp_template
 
     success "Mode configuration loaded: $FEDPUNK_MODE"
     return 0

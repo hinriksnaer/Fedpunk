@@ -240,7 +240,23 @@ echo ""
 
 # Run each installation phase with proper logging
 run_script "$FEDPUNK_INSTALL/preflight/all.fish" "Shared System Setup & Preflight"
-run_script "$FEDPUNK_INSTALL/desktop/preflight/all.fish" "Desktop System Setup"
+
+# Desktop preflight (system upgrade, firmware, RPM Fusion, etc.)
+if not set -q FEDPUNK_INSTALL_DESKTOP_PREFLIGHT
+    if confirm "Run desktop system setup (system upgrade, firmware updates, RPM Fusion)?" "yes"
+        set -gx FEDPUNK_INSTALL_DESKTOP_PREFLIGHT true
+    else
+        set -gx FEDPUNK_INSTALL_DESKTOP_PREFLIGHT false
+    end
+end
+
+if test "$FEDPUNK_INSTALL_DESKTOP_PREFLIGHT" = "true"
+    run_script "$FEDPUNK_INSTALL/desktop/preflight/all.fish" "Desktop System Setup"
+else
+    info "Skipping desktop system setup"
+    echo "[SKIPPED] Desktop system setup (FEDPUNK_INSTALL_DESKTOP_PREFLIGHT=false)" >> "$FEDPUNK_LOG_FILE"
+end
+
 run_script "$FEDPUNK_INSTALL/packaging/all.fish" "Package Installation"
 
 # Deploy all configurations with chezmoi BEFORE running config scripts that depend on them

@@ -5,6 +5,9 @@
 name = "container"
 
 [install]
+# System setup
+desktop_preflight = false
+
 # Terminal packages - minimal
 claude = true
 gh = true
