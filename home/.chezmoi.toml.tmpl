@@ -41,13 +41,12 @@
   [data.profile]
     name = {{ $profile | quote }}
 
-{{- /* Install configuration from mode JSON */ -}}
   [data.install]
 {{- range $key, $value := $modeConfig.install }}
     {{ $key }} = {{ $value }}
 {{- end }}
 
-# Mode: {{ $mode }} {{- if env "FEDPUNK_MODE" }} (explicit){{- else if not (env "FEDPUNK_NON_INTERACTIVE") }} (user selected){{- else }} (auto-detected){{- end }}
+# Mode: {{ $mode }}{{- if env "FEDPUNK_MODE" }} (explicit){{- else if not (env "FEDPUNK_NON_INTERACTIVE") }} (user selected){{- else }} (auto-detected){{- end }}
 {{- if $autoDetectedMode }}
 # Auto-detected as: {{ $autoDetectedMode }}
 {{- end }}
