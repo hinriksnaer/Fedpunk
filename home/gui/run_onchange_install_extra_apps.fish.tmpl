@@ -1,0 +1,39 @@
+#!/usr/bin/env fish
+# Install extra applications (Discord, Spotify, etc.)
+
+# Skip if not enabled in mode
+if not set -q FEDPUNK_INSTALL_EXTRA_APPS; or test "$FEDPUNK_INSTALL_EXTRA_APPS" != "true"
+    exit 0
+end
+
+# Initialize FEDPUNK_PATH if not set
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
+end
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+
+section "Extra Applications Installation"
+
+subsection "Installing extra apps via Flatpak"
+
+# Discord
+if not flatpak list --app 2>/dev/null | grep -q "com.discordapp.Discord"
+    step "Installing Discord" "flatpak install -y flathub com.discordapp.Discord"
+else
+    success "Discord already installed"
+end
+
+# Spotify
+if not flatpak list --app 2>/dev/null | grep -q "com.spotify.Client"
+    step "Installing Spotify" "flatpak install -y flathub com.spotify.Client"
+else
+    success "Spotify already installed"
+end
+
+echo ""
+box "Extra Apps Installed!
+
+✓ Discord
+✓ Spotify
+
+Launch from your application menu." $GUM_SUCCESS

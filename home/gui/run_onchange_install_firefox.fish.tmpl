@@ -1,0 +1,22 @@
+#!/usr/bin/env fish
+# Install Firefox web browser
+
+# Skip if not enabled in mode
+if not set -q FEDPUNK_INSTALL_FIREFOX; or test "$FEDPUNK_INSTALL_FIREFOX" != "true"
+    exit 0
+end
+
+# Initialize FEDPUNK_PATH if not set
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
+end
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+
+section "Firefox Installation"
+
+subsection "Installing Firefox"
+
+install_packages firefox
+
+echo ""
+success "Firefox installed successfully"

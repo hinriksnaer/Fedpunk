@@ -1,0 +1,33 @@
+# Input Configuration
+# Keyboard, mouse, and touchpad settings
+# Generated from chezmoi template with mode detection
+
+{{- $mode := .mode.name }}
+
+input {
+    kb_layout = us
+    kb_variant =
+    kb_model =
+    kb_options = compose:caps
+    kb_rules =
+
+    follow_mouse = 1
+
+    sensitivity = 0 # -1.0 - 1.0, 0 means no modification.
+
+{{- if eq $mode "laptop" }}
+    # Laptop touchpad configuration
+    touchpad {
+        natural_scroll = false
+        tap-to-click = true
+        tap-and-drag = true
+        disable_while_typing = true
+        scroll_factor = 1.0
+    }
+{{- else }}
+    # Desktop mode - no touchpad
+    touchpad {
+        natural_scroll = false
+    }
+{{- end }}
+}
