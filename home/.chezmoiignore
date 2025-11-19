@@ -1,16 +1,23 @@
-{{- /* Conditionally ignore run_once scripts based on install flags */ -}}
+# Files managed dynamically by tools (should not be tracked by chezmoi)
 
-{{- /* Only process if install data is available */ -}}
-{{- if hasKey . "install" }}
+# Fish shell - stores runtime state
+.config/fish/fish_variables
 
-{{- /* Skip tmux setup if tmux not installed */ -}}
-{{-   if not (index .install "tmux") }}
-run_once_after_install-tmux-plugins.fish
-{{-   end }}
+# Tmux - plugins managed by tpm
+.config/tmux/plugins/**
 
-{{- /* Skip neovim setup if neovim not installed */ -}}
-{{-   if not (index .install "neovim") }}
-run_once_after_install-nvim.fish
-{{-   end }}
+# Btop - theme symlinks managed by fedpunk theme system
+.config/btop/themes/active.theme
+.config/btop/themes/current.theme
 
-{{- end }}
+# Hyprland - wallpaper symlink managed by fedpunk theme system
+.config/hypr/wallpapers/current
+
+# Desktop environment - theme symlinks managed by fedpunk theme system
+.config/mako/theme.conf
+.config/kitty/theme.conf
+.config/rofi/theme.rasi
+.config/waybar/theme.css
+
+# Profile system - active config symlinks
+.active-config/**

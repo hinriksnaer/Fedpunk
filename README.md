@@ -12,30 +12,15 @@ Fedpunk transforms Fedora into a productivity-focused workspace featuring tiling
 **⚡ Blazing fast workflow** - Hyprland compositor with optimized keybindings and vim-style navigation
 **🎨 Live theme switching** - 11 complete themes that update across all applications instantly
 **🐟 Fish-first design** - Modern shell with intelligent completions and powerful scripting
-**🖥️ Flexible deployment** - Full desktop or terminal-only for servers and containers
+**🖥️ Flexible deployment** - Desktop, laptop, or container modes
 **🔄 Layout persistence** - Remembers your window layout preferences across theme changes
 **📦 Modular architecture** - Clean separation between terminal and desktop components
 
 ---
 
-## 📚 Documentation
-
-**Complete documentation available in [`docs/`](docs/)**
-
-- **[Architecture Guide](ARCHITECTURE.md)** - System design and philosophy ⭐ **Start Here**
-- **[Installation Guide](docs/guides/installation.md)** - Detailed setup instructions
-- **[Customization Guide](docs/guides/customization.md)** - Make it your own
-- **[Themes Guide](docs/guides/themes.md)** - Theme system and creation
-- **[Keybindings Reference](docs/reference/keybindings.md)** - All keyboard shortcuts
-- **[Configuration Reference](docs/reference/configuration.md)** - Config files and structure
-- **[Scripts Reference](docs/reference/scripts.md)** - Utility scripts documentation
-- **[Contributing Guide](docs/development/contributing.md)** - How to contribute
-
----
-
 ## Quick Start
 
-### Chezmoi-First Install (Recommended)
+### Installation
 
 ```bash
 chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
@@ -49,29 +34,30 @@ chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
 
 **Or use explicit mode:**
 ```bash
+FEDPUNK_MODE=desktop chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
+FEDPUNK_MODE=laptop chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
 FEDPUNK_MODE=container chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
 ```
 
-**Modes available:**
-- **Desktop** - Hyprland compositor + All development tools (19 packages)
-- **Laptop** - Same as desktop with power optimizations
-- **Container** - Minimal dev environment (7 packages, no GUI)
+### Modes
 
-**Desktop mode installs:**
-- Hyprland compositor with optimized window management
-- Kitty terminal with GPU acceleration
-- Neovim, tmux, lazygit, btop
+**Desktop** - Full desktop environment with Hyprland
+- Hyprland compositor + Kitty terminal + Rofi launcher
+- Neovim, tmux, lazygit, btop, yazi
+- Firefox, fonts, audio stack
 - 11 beautiful themes with instant switching
-- NVIDIA drivers (optional, interactive prompt)
+- Optional NVIDIA drivers
 
-**Terminal-only mode installs:**
-- Fish shell with modern tooling
-- Neovim with LSP and plugins
-- tmux, lazygit, btop
+**Laptop** - Desktop mode with power optimizations
+- Same as desktop
+- Firmware updates enabled by default
+- Power-aware settings
+
+**Container** - Minimal terminal environment
+- Terminal tools only (no GUI)
+- Perfect for devcontainers, remote servers, WSL
+- Fish, Neovim, tmux, lazygit, btop, yazi
 - Theme system (terminal apps only)
-- Skips all desktop components
-
-Perfect for devcontainers, remote servers, or when you already have a compositor.
 
 ---
 
@@ -132,9 +118,10 @@ fedpunk-theme-prev              # Cycle backward (Super+Shift+Y)
 | **Tmux** | Terminal multiplexer with sensible defaults |
 | **Lazygit** | Terminal UI for git with vim bindings |
 | **btop** | Beautiful resource monitor |
+| **Yazi** | Modern file manager with preview support |
 | **ripgrep, fzf** | Fast searching and fuzzy finding |
 
-### Desktop Environment
+### Desktop Environment (Desktop/Laptop modes)
 | Component | Purpose |
 |-----------|---------|
 | **Hyprland** | Tiling Wayland compositor with dynamic layouts |
@@ -227,39 +214,14 @@ fedpunk-theme-prev              # Cycle backward (Super+Shift+Y)
 
 ---
 
-## Installation Details
-
-### What Gets Installed
-
-**Core System:**
-- Fish shell with Starship prompt
-- Development tools (git, ripgrep, fzf, fd)
-- PipeWire audio stack
-- Desktop portals (file pickers, authentication)
-
-**Terminal Tools:**
-- Neovim with LSP support and modern plugins
-- Tmux with plugin manager
-- Lazygit for git workflow
-- btop for system monitoring
-
-**Desktop (unless --terminal-only):**
-- Hyprland compositor with dependencies
-- Kitty terminal emulator
-- Rofi application launcher
-- Mako notification daemon
-- Firefox browser
-- Font packages (JetBrainsMono, Nerd Fonts)
-- Optional: NVIDIA drivers with Wayland support
-
-### Architecture
+## Architecture
 
 Fedpunk uses a **chezmoi-first architecture**:
 
 ```
 1. chezmoi init --apply <repo>
    ├─ .chezmoi.toml.tmpl processes mode selection
-   ├─ Loads profiles/<profile>/modes/<mode>.json
+   ├─ Loads profiles/<profile>/modes/<mode>.yaml
    └─ Sets up data model
 
 2. run_before_install-packages.fish
@@ -269,16 +231,19 @@ Fedpunk uses a **chezmoi-first architecture**:
    └─ Deploys all dotfiles to ~/.config/
 
 4. run_once_after scripts
-   ├─ install-tmux-plugins.fish (if enabled)
-   └─ install-nvim.fish (if enabled)
+   ├─ install-nvim.fish (sets up plugins)
+   ├─ install-tmux-plugins.fish (sets up TPM)
+   ├─ post-install.fish (package updates)
+   ├─ desktop-optimize.fish (desktop only)
+   └─ desktop-themes.fish (desktop only)
 ```
 
-**Mode-driven installation** - Modes defined in simple JSON files:
+**Mode-driven installation** - Modes defined in simple YAML files with inline comments:
 ```
 profiles/dev/modes/
-├── container.json  # 7 packages, minimal
-├── desktop.json    # 19 packages, full desktop
-└── laptop.json     # 19 packages, power optimized
+├── container.yaml  # Minimal terminal environment
+├── desktop.yaml    # Full desktop environment
+└── laptop.yaml     # Desktop with power optimizations
 ```
 
 **Installation is idempotent** - Safe to run multiple times. Scripts use `run_once` semantics.
@@ -332,64 +297,6 @@ chezmoi init --apply --force
 ```
 
 Chezmoi's `run_once` scripts ensure setup tasks only run when needed.
-
----
-
-## Advanced Usage
-
-### Terminal-Only Deployment
-
-Perfect for:
-- Devcontainers
-- Remote servers
-- WSL environments
-- Existing desktop setups
-
-```bash
-# During install
-fish install.fish --terminal-only --non-interactive
-
-# Or use the boot script
-bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
-```
-
-### Layout Management
-
-Fedpunk includes intelligent layout persistence:
-
-```bash
-# Toggle between dwindle (standard tiling) and master (ultrawide optimized)
-Super+Alt+Space
-
-# Your choice is remembered across:
-# - Theme changes
-# - Hyprland reloads
-# - System restarts
-```
-
-The system writes your preference to `~/.config/hypr/layout-preference` and automatically restores it.
-
-### Custom Packages
-
-Add packages to the appropriate module:
-
-**Terminal packages:**
-```fish
-# install/terminal/packaging/yourpackage.fish
-function install-yourpackage
-    sudo dnf install -y yourpackage
-end
-```
-
-**Desktop packages:**
-```fish
-# install/desktop/packaging/yourpackage.fish
-function install-yourpackage
-    sudo dnf install -y yourpackage
-end
-```
-
-Then call it from the main install sequence.
 
 ---
 
@@ -462,45 +369,11 @@ Fedpunk is built around core principles:
 
 ---
 
-## Known Issues (v0.1.0)
-
-The following issues are known in this release and will be addressed in future versions:
-
-**Installation:**
-- **Yazi file manager**: Installation may fail if `unzip` package is missing; cargo build can fail on minimal container systems
-- **Neovim configuration**: Git submodule deployment may require manual initialization with `git submodule update --init --recursive`
-- **Final chezmoi deployment**: May fail in some edge cases during installation; investigating root cause
-
-**Profile System:**
-- **Profile config deployment**: Profile-specific config deployment not fully implemented (see `fedpunk-activate-profile:236`)
-- **Stow migration**: Users upgrading from pre-0.1.0 need to migrate from Stow-based profiles (see CHANGELOG.md migration guide)
-
-**Desktop:**
-- **Theme symlink creation**: First-time theme setup may require manual `fedpunk theme set <theme-name>`
-- **Profile keybindings**: Profile-specific keybinds.conf inclusion pending full implementation
-
-**Workarounds:**
-```bash
-# Install yazi dependencies manually if needed
-sudo dnf install -y unzip
-
-# Initialize Neovim submodules if needed
-cd ~/.local/share/fedpunk
-git submodule update --init --recursive
-
-# Manually set theme on first install
-fedpunk theme set ayu-mirage
-```
-
-Installation logs are saved to `/tmp/fedpunk-install-*.log` for troubleshooting.
-
----
-
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Test your changes: `fish install.fish`
+3. Test your changes in a VM or container
 4. Commit with clear messages
 5. Submit a pull request
 
