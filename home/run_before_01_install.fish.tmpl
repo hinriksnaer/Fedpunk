@@ -6,6 +6,10 @@ set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
 set -x FEDPUNK_MODE "{{ .mode.name }}"
 set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
 
+# Load mode configuration (sets FEDPUNK_INSTALL_* variables)
+source "$FEDPUNK_PATH/lib/helpers.fish"
+load_mode_config
+
 echo "╔═══════════════════════════════════════════════════════╗"
 echo "║                                                       ║"
 echo "║              Fedpunk Installation                     ║"

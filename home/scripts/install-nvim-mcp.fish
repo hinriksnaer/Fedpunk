@@ -1,26 +1,35 @@
 #!/usr/bin/env fish
 # Install nvim-mcp server for Claude Code integration
 
+# Source helper functions
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+end
+source "$FEDPUNK_PATH/lib/helpers.fish"
+
 function install_nvim_mcp
-    echo "🔧 Installing nvim-mcp server..."
+    section "nvim-mcp Installation"
+
+    subsection "Installing nvim-mcp server"
 
     # Check if cargo is installed
     if not command -v cargo &>/dev/null
-        echo "⚠️  Cargo not found. Installing Rust toolchain..."
+        info "Cargo not found. Installing Rust toolchain..."
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source ~/.cargo/env
     end
 
     # Install nvim-mcp
     if not command -v nvim-mcp &>/dev/null
-        echo "📦 Installing nvim-mcp via cargo..."
-        cargo install nvim-mcp
-        echo "✅ nvim-mcp installed successfully"
+        step "Installing nvim-mcp via cargo" "cargo install nvim-mcp"
+        success "nvim-mcp installed successfully"
     else
-        echo "✅ nvim-mcp already installed"
+        success "nvim-mcp already installed"
     end
 
     # Create .mcp.json configuration
+    subsection "Configuring nvim-mcp"
+
     set mcp_config '{
   "mcpServers": {
     "nvim": {
@@ -40,13 +49,14 @@ function install_nvim_mcp
             set mcp_file "$project_root/.mcp.json"
 
             if not test -f "$mcp_file"
-                echo "📝 Creating .mcp.json in $project_root"
+                info "Creating .mcp.json in $project_root"
                 echo "$mcp_config" > "$mcp_file"
             end
         end
     end
 
-    echo "✨ nvim-mcp setup complete"
+    echo ""
+    box "nvim-mcp Setup Complete!" $GUM_SUCCESS
 end
 
 install_nvim_mcp

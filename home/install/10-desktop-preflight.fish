@@ -11,13 +11,13 @@
 # Runs: Only for desktop/laptop modes
 # ============================================================================
 
+source "$FEDPUNK_PATH/lib/helpers.fish"
+
 # Skip if container mode
 if test "$FEDPUNK_MODE" = "container"
     info "Skipping desktop preflight (container mode)"
     exit 0
 end
-
-source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "Desktop System Setup"
 

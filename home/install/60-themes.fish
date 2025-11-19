@@ -9,13 +9,13 @@
 # Runs: When theme files change (run_onchange)
 # ============================================================================
 
+source "$FEDPUNK_PATH/lib/helpers.fish"
+
 # Skip if container mode
 if test "$FEDPUNK_MODE" = "container"
     info "Skipping theme setup (container mode)"
     exit 0
 end
-
-source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "Theme System Setup"
 

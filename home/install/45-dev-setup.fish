@@ -8,27 +8,27 @@
 #   - Set up devcontainer support
 #   - Install Bitwarden CLI
 #   - Configure Claude integration
-# Runs: After apply (development profile only)
+# Runs: During installation (all modes)
 # ============================================================================
 
 source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "Development Environment Setup"
 
-# List of setup scripts to run (from profile manifest)
+# List of setup scripts to run
 set setup_scripts \
-    "scripts/install-nvim-mcp.fish" \
-    "scripts/setup-podman.fish" \
-    "scripts/setup-devcontainer.fish" \
-    "scripts/setup-bitwarden.fish" \
-    "scripts/setup-claude.fish"
+    "install-nvim-mcp.fish" \
+    "setup-podman.fish" \
+    "setup-devcontainer.fish" \
+    "setup-bitwarden.fish" \
+    "setup-claude.fish"
 
 # Run each setup script
 for script in $setup_scripts
     echo ""
     subsection "Running: $script"
 
-    set script_path "$FEDPUNK_PROFILE_PATH/$script"
+    set script_path "$FEDPUNK_PATH/home/scripts/$script"
     if test -f "$script_path"
         step "Executing $script" "fish $script_path"
     else

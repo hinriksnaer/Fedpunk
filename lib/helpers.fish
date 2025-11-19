@@ -594,6 +594,12 @@ end
 # Usage: set gpu_type (detect_gpu)
 # Returns: nvidia, amd, intel, or other
 function detect_gpu
+    # Check if lspci command exists (not available in containers)
+    if not command -v lspci >/dev/null 2>&1
+        echo "other"
+        return 0
+    end
+
     if lspci 2>/dev/null | grep -i nvidia >/dev/null 2>&1
         echo "nvidia"
         return 0
@@ -616,5 +622,44 @@ function get_cpu_cores
         nproc
     else
         echo "4"  # Reasonable default
+    end
+end
+
+# Load mode configuration from YAML file
+# Usage: load_mode_config
+# Sets FEDPUNK_INSTALL_* environment variables from modes/$FEDPUNK_MODE.yaml
+function load_mode_config
+    if not set -q FEDPUNK_MODE
+        warning "FEDPUNK_MODE not set, cannot load mode configuration"
+        return 1
+    end
+
+    if not set -q FEDPUNK_PATH
+        set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+    end
+
+    set mode_file "$FEDPUNK_PATH/modes/$FEDPUNK_MODE.yaml"
+    if not test -f "$mode_file"
+        warning "Mode file not found: $mode_file"
+        return 1
+    end
+
+    # Parse YAML and set environment variables
+    # Format: key: value → set -gx FEDPUNK_INSTALL_KEY value
+    for line in (cat "$mode_file")
+        # Skip empty lines, comments, and section headers
+        if string match -qr '^\s*$|^\s*#|^mode:|^description:|^install:' "$line"
+            continue
+        end
+
+        # Parse key: value pairs
+        if string match -qr '^\s+(\w+):\s+(true|false)' "$line"
+            set key (string replace -r '^\s+(\w+):.*' '$1' "$line")
+            set value (string replace -r '.*:\s+(\w+).*' '$1' "$line")
+
+            # Convert to environment variable name (uppercase with FEDPUNK_INSTALL_ prefix)
+            set var_name (string upper "FEDPUNK_INSTALL_$key")
+            set -gx $var_name "$value"
+        end
     end
 end

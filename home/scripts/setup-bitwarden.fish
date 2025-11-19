@@ -4,13 +4,11 @@
 #
 # Usage: setup-bitwarden.fish [--force|--reinstall]
 
-# Source helper functions (handle both standalone and profile activation modes)
-if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
-    source "$FEDPUNK_INSTALL/helpers/all.fish"
-else if test -f "$HOME/.local/share/fedpunk/install/helpers/all.fish"
-    set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
-    source "$FEDPUNK_INSTALL/helpers/all.fish"
+# Source helper functions
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 end
+source "$FEDPUNK_PATH/lib/helpers.fish"
 
 # Parse arguments
 set -l force_reinstall false
