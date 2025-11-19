@@ -1,0 +1,91 @@
+{{- /* Fedpunk Mode Auto-Detection */ -}}
+{{- /* This template generates chezmoi configuration with automatic mode detection */ -}}
+
+{{- /* Auto-detect mode based on environment */ -}}
+{{- $mode := "desktop" -}}
+
+{{- /* Container detection: Check for container indicators */ -}}
+{{- if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
+{{-   $mode = "container" -}}
+{{- /* Laptop detection: Check for battery */ -}}
+{{- else if stat "/sys/class/power_supply/BAT0" -}}
+{{-   $mode = "laptop" -}}
+{{- end -}}
+
+{{- /* Get profile from environment, default to "dev" */ -}}
+{{- $profile := env "FEDPUNK_PROFILE" | default "dev" -}}
+
+[data]
+  [data.mode]
+    name = {{ $mode | quote }}
+  [data.profile]
+    name = {{ $profile | quote }}
+
+{{- /* Define what to install based on mode */ -}}
+{{- if eq $mode "desktop" }}
+  [data.install]
+    desktop_preflight = true
+    yazi = true
+    claude = true
+    gh = true
+    tmux = true
+    neovim = true
+    btop = true
+    lazygit = true
+    cli_tools = true
+    languages = true
+    firefox = true
+    fonts = true
+    audio = true
+    multimedia = true
+    bluetooth = true
+    extra_apps = true
+    kitty = true
+    hyprland = true
+    rofi = true
+{{- else if eq $mode "container" }}
+  [data.install]
+    desktop_preflight = false
+    yazi = true
+    claude = true
+    gh = true
+    neovim = true
+    lazygit = true
+    cli_tools = true
+    languages = true
+    firefox = false
+    fonts = false
+    audio = false
+    multimedia = false
+    bluetooth = false
+    extra_apps = false
+    kitty = false
+    hyprland = false
+    rofi = false
+    tmux = false
+    btop = false
+{{- else if eq $mode "laptop" }}
+  [data.install]
+    desktop_preflight = true
+    yazi = true
+    claude = true
+    gh = true
+    tmux = true
+    neovim = true
+    btop = true
+    lazygit = true
+    cli_tools = true
+    languages = true
+    firefox = true
+    fonts = true
+    audio = true
+    multimedia = true
+    bluetooth = true
+    extra_apps = true
+    kitty = true
+    hyprland = true
+    rofi = true
+{{- end }}
+
+# Auto-detected mode: {{ $mode }}
+# Profile: {{ $profile }}

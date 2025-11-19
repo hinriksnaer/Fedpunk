@@ -1,0 +1,27 @@
+#!/usr/bin/env fish
+# Post-deployment: Setup Neovim lazy.nvim
+# This runs after chezmoi applies configs, guaranteeing nvim config exists
+
+{{- if .install.neovim }}
+
+# Install lazy.nvim plugin manager
+set lazy_path "$HOME/.local/share/nvim/lazy/lazy.nvim"
+
+if not test -d "$lazy_path"
+    echo "→ Installing lazy.nvim plugin manager..."
+    git clone --filter=blob:none https://github.com/folke/lazy.nvim.git --branch=stable "$lazy_path"
+    echo "✓ lazy.nvim installed"
+else
+    echo "✓ lazy.nvim already installed"
+end
+
+# Sync plugins (headless mode for automated setup)
+if test -f "$HOME/.config/nvim/init.lua"
+    echo "→ Installing Neovim plugins..."
+    nvim --headless "+Lazy! sync" +qa
+    echo "✓ Neovim plugins installed"
+else
+    echo "⚠ Neovim config not found, skipping plugin installation"
+end
+
+{{- end }}

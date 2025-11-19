@@ -28,6 +28,68 @@ install_if_enabled "FEDPUNK_INSTALL_GH" \
     "yes"
 
 # ================================
+# Terminal Configuration Tools
+# ================================
+
+# tmux - Terminal multiplexer
+if test "$FEDPUNK_INSTALL_TMUX" = "true"
+    echo ""
+    info "Installing tmux"
+    step "Installing tmux package" "sudo dnf install -qy tmux"
+else
+    info "Skipping tmux installation"
+    echo "[SKIPPED] tmux installation (FEDPUNK_INSTALL_TMUX=false)" >> $FEDPUNK_LOG_FILE
+end
+
+# btop - System monitor
+if test "$FEDPUNK_INSTALL_BTOP" = "true"
+    echo ""
+    info "Installing btop"
+    step "Installing btop package" "sudo dnf install -qy btop"
+else
+    info "Skipping btop installation"
+    echo "[SKIPPED] btop installation (FEDPUNK_INSTALL_BTOP=false)" >> $FEDPUNK_LOG_FILE
+end
+
+# Neovim - Text editor
+if test "$FEDPUNK_INSTALL_NEOVIM" = "true"
+    echo ""
+    info "Installing Neovim"
+
+    # Install dependencies
+    set packages "git curl unzip tar gzip"
+    step "Installing Neovim dependencies" "sudo dnf install -qy $packages"
+
+    # Download and install latest Neovim AppImage
+    set nvim_url "https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
+    set nvim_path "$HOME/.local/bin/nvim"
+
+    if gum spin --spinner dot --title "Installing Neovim..." -- fish -c '
+        mkdir -p '$HOME'/.local/bin &&
+        curl -fsSL '$nvim_url' -o '$nvim_path' >>'"$FEDPUNK_LOG_FILE"' 2>&1 &&
+        chmod +x '$nvim_path' >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    '
+        success "Neovim installed"
+    else
+        error "Failed to install Neovim"
+    end
+else
+    info "Skipping Neovim installation"
+    echo "[SKIPPED] Neovim installation (FEDPUNK_INSTALL_NEOVIM=false)" >> $FEDPUNK_LOG_FILE
+end
+
+# lazygit - Git TUI
+if test "$FEDPUNK_INSTALL_LAZYGIT" = "true"
+    echo ""
+    info "Installing lazygit"
+    step "Enabling lazygit COPR" "sudo dnf install -qy dnf-plugins-core && sudo dnf copr enable -qy atim/lazygit"
+    step "Installing lazygit" "sudo dnf install --refresh -qy lazygit"
+else
+    info "Skipping lazygit installation"
+    echo "[SKIPPED] lazygit installation (FEDPUNK_INSTALL_LAZYGIT=false)" >> $FEDPUNK_LOG_FILE
+end
+
+# ================================
 # Desktop Packages
 # ================================
 
@@ -158,4 +220,64 @@ if test "$FEDPUNK_INSTALL_EXTRA_APPS" = "true"
 else
     info "Skipping extra applications"
     echo "[SKIPPED] Extra applications (FEDPUNK_INSTALL_EXTRA_APPS=false)" >> $FEDPUNK_LOG_FILE
+end
+
+# ================================
+# Desktop Environment
+# ================================
+
+# Kitty - Terminal emulator
+if test "$FEDPUNK_INSTALL_KITTY" = "true"
+    echo ""
+    info "Installing Kitty"
+    step "Installing kitty" "sudo dnf install -qy kitty"
+else
+    info "Skipping Kitty installation"
+    echo "[SKIPPED] Kitty installation (FEDPUNK_INSTALL_KITTY=false)" >> $FEDPUNK_LOG_FILE
+end
+
+# Hyprland - Wayland compositor
+if test "$FEDPUNK_INSTALL_HYPRLAND" = "true"
+    echo ""
+    info "Installing Hyprland and dependencies"
+
+    # Enable Hyprland COPR
+    step "Enabling Hyprland COPR" "sudo dnf copr enable -qy solopasha/hyprland"
+
+    # Install Hyprland packages
+    set packages "hyprland hyprpaper hyprlock hypridle xdg-desktop-portal-hyprland waybar polkit-gnome"
+    step "Installing Hyprland packages" "sudo dnf install --refresh -qy --skip-broken --best $packages"
+
+    # Install Wayland dependencies
+    set wayland_deps "wayland-protocols-devel wlroots wl-clipboard cliphist grim slurp"
+    step "Installing Wayland dependencies" "sudo dnf install --refresh -qy --skip-unavailable --best $wayland_deps"
+
+    # Install Qt6 Wayland support
+    set qt6_packages "qt6-qtwayland"
+    step "Installing Qt6 Wayland support" "sudo dnf install --allowerasing --refresh -qy --skip-unavailable $qt6_packages"
+
+    # Update graphics stack
+    step "Updating graphics stack" "sudo dnf update -qy mesa-* --refresh"
+
+    # Update user directories
+    step "Updating user directories" "xdg-user-dirs-update"
+
+    # Fix SELinux contexts
+    step "Fixing SELinux contexts" "sudo restorecon -Rv $HOME/.config"
+
+    # Enable mako notification service
+    step "Enabling mako notification service" "systemctl --user enable --now mako"
+else
+    info "Skipping Hyprland installation"
+    echo "[SKIPPED] Hyprland installation (FEDPUNK_INSTALL_HYPRLAND=false)" >> $FEDPUNK_LOG_FILE
+end
+
+# Rofi - Application launcher
+if test "$FEDPUNK_INSTALL_ROFI" = "true"
+    echo ""
+    info "Installing Rofi"
+    step "Installing rofi" "sudo dnf install -qy rofi"
+else
+    info "Skipping Rofi installation"
+    echo "[SKIPPED] Rofi installation (FEDPUNK_INSTALL_ROFI=false)" >> $FEDPUNK_LOG_FILE
 end

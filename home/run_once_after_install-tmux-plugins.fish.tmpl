@@ -1,0 +1,31 @@
+#!/usr/bin/env fish
+# Post-deployment: Install tmux plugins
+# This runs after chezmoi applies configs, guaranteeing tmux.conf exists
+
+{{- if .install.tmux }}
+
+# Setup tmux plugin manager
+if not test -d $HOME/.tmux/plugins/tpm
+    echo "→ Cloning tmux plugin manager..."
+    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+    echo "✓ Tmux plugin manager installed"
+else
+    echo "✓ Tmux plugin manager already installed"
+end
+
+# Install tmux plugins (config is guaranteed to exist now)
+if test -f "$HOME/.config/tmux/tmux.conf"
+    echo "→ Installing tmux plugins..."
+    set token tpm_done
+    tmux start-server \; \
+      set -g exit-empty off \; \
+      source-file $HOME/.config/tmux/tmux.conf \; \
+      run-shell "$HOME/.tmux/plugins/tpm/scripts/install_plugins.sh && tmux wait-for -S $token" \; \
+      wait-for "$token" \; \
+      set -g exit-empty on
+    echo "✓ Tmux plugins installed"
+else
+    echo "⚠ tmux config not found, skipping plugin installation"
+end
+
+{{- end }}
