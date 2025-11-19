@@ -29,6 +29,9 @@ if test "$FEDPUNK_MODE" = "container"
     exit 0
 end
 
+# Require TTY for interactive prompts (or environment variable override)
+require_tty "Bitwarden Setup" "FEDPUNK_SETUP_BITWARDEN=skip|install"
+
 # Uninstall if force reinstall is requested
 if test "$force_reinstall" = true
     warning "Force reinstall requested - uninstalling existing installations..."

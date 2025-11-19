@@ -160,6 +160,51 @@ function step
     end
 end
 
+# Require TTY access for interactive prompts
+# Usage: require_tty "Component Name" "ENV_VAR1=value1|value2" "ENV_VAR2=value"
+# Checks if TTY is available for interactive prompts. If not, displays error
+# with instructions on which environment variables can be set instead.
+# Exits with error code 1 if TTY is not available.
+function require_tty
+    # Check if /dev/tty exists and is accessible
+    if test -e /dev/tty
+        return 0
+    end
+
+    # No TTY available - print error and exit
+    set component_name $argv[1]
+    set env_vars $argv[2..-1]
+
+    echo "" >> $FEDPUNK_LOG_FILE
+    echo "[ERROR] "(date +%H:%M:%S)" No TTY available for $component_name" >> $FEDPUNK_LOG_FILE
+
+    echo ""
+    error "No TTY available for interactive prompts"
+    echo ""
+    gum style --foreground $GUM_ERROR "The $component_name requires user input, but no terminal is available."
+    echo ""
+
+    if test (count $env_vars) -gt 0
+        gum style --foreground $GUM_INFO "To run non-interactively, set these environment variables:"
+        echo ""
+        for var in $env_vars
+            gum style --foreground $GUM_SUCCESS "  export $var"
+        end
+        echo ""
+        echo "[ERROR] Missing environment variables: "(string join ", " $env_vars) >> $FEDPUNK_LOG_FILE
+    else
+        gum style --foreground $GUM_WARNING "This component has no environment variable override."
+        gum style --foreground $GUM_WARNING "It must be run with a TTY attached."
+        echo ""
+        echo "[ERROR] No environment variable override available" >> $FEDPUNK_LOG_FILE
+    end
+
+    echo "For more information, see the Fedpunk documentation."
+    echo ""
+
+    exit 1
+end
+
 # Yes/No confirmation prompt using gum
 # Usage: confirm "prompt text"
 # Prompts user for yes/no confirmation. Requires TTY access.

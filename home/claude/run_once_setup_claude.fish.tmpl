@@ -12,6 +12,9 @@ set config_file "$HOME/.config/fish/config.fish"
 
 section "Claude Code Authentication Setup"
 
+# Require TTY for interactive prompts (or environment variable override)
+require_tty "Claude Code Setup" "FEDPUNK_SETUP_CLAUDE=skip|apikey|vertex"
+
 # Check current status
 set current_status "disabled"
 if grep -q "^source.*claude-vertex.fish" "$config_file" 2>/dev/null
