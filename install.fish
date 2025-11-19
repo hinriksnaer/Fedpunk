@@ -225,7 +225,7 @@ echo ""
 # Run each installation phase with proper logging
 run_script "$FEDPUNK_INSTALL/preflight/all.fish" "Shared System Setup & Preflight"
 run_script "$FEDPUNK_INSTALL/desktop/preflight/all.fish" "Desktop System Setup"
-run_script "$FEDPUNK_INSTALL/terminal/packaging/all.fish" "Terminal Package Installation"
+run_script "$FEDPUNK_INSTALL/packaging/all.fish" "Package Installation"
 
 # Deploy all configurations with chezmoi BEFORE running config scripts that depend on them
 echo ""
@@ -255,12 +255,8 @@ else
     exit 1
 end
 
-# Now run terminal config scripts that may depend on deployed configs
-run_script "$FEDPUNK_INSTALL/terminal/config/all.fish" "Terminal Configuration Deployment"
-
-# Desktop components
-run_script "$FEDPUNK_INSTALL/desktop/packaging/all.fish" "Desktop Package Installation"
-run_script "$FEDPUNK_INSTALL/desktop/config/all.fish" "Desktop Configuration Deployment"
+# Now run config scripts that may depend on deployed configs
+run_script "$FEDPUNK_INSTALL/config/all.fish" "Configuration Deployment"
 
 run_script "$FEDPUNK_INSTALL/post-install/all.fish" "Post-Installation Setup"
 
