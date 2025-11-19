@@ -34,7 +34,16 @@ set -gx PATH $HOME/.cargo/bin $PATH
 
 # Modern CLI tools (via DNF or cargo fallback)
 # Note: Starship, Fisher, and fzf.fish are now installed in setup-fish.fish
-if opt_in "Install modern CLI utilities (lsd, ripgrep, bat, fd-find)?" "yes"
+# Check flag or prompt if not set
+if not set -q FEDPUNK_INSTALL_CLI_TOOLS
+    if confirm "Install modern CLI utilities (lsd, ripgrep, bat, fd-find)?" "yes"
+        set -gx FEDPUNK_INSTALL_CLI_TOOLS true
+    else
+        set -gx FEDPUNK_INSTALL_CLI_TOOLS false
+    end
+end
+
+if test "$FEDPUNK_INSTALL_CLI_TOOLS" = "true"
     subsection "Installing modern CLI utilities"
 
     # lsd (modern ls)
@@ -87,7 +96,16 @@ if opt_in "Install modern CLI utilities (lsd, ripgrep, bat, fd-find)?" "yes"
 end
 
 # Other programming languages and runtimes
-if opt_in "Install programming languages (Python, Node.js, Go)?" "yes"
+# Check flag or prompt if not set
+if not set -q FEDPUNK_INSTALL_LANGUAGES
+    if confirm "Install programming languages (Python, Node.js, Go)?" "yes"
+        set -gx FEDPUNK_INSTALL_LANGUAGES true
+    else
+        set -gx FEDPUNK_INSTALL_LANGUAGES false
+    end
+end
+
+if test "$FEDPUNK_INSTALL_LANGUAGES" = "true"
     subsection "Installing programming languages"
 
     # Python, Node.js, Go
