@@ -24,7 +24,7 @@ end
 
 # Install essentials
 subsection "Installing essential packages"
-install_packages git curl wget unzip fish starship
+install_packages git curl wget unzip fish
 
 # Setup Cargo
 subsection "Setting up Rust/Cargo"
@@ -33,6 +33,14 @@ if not command -v cargo >/dev/null
     set -Ux fish_user_paths $HOME/.cargo/bin $fish_user_paths
 else
     success "Cargo already installed"
+end
+
+# Install starship (prompt)
+subsection "Installing starship"
+if not command -v starship >/dev/null
+    step "Installing starship via cargo" "cargo install starship --locked"
+else
+    success "starship already installed"
 end
 
 # Install gum (UI library)

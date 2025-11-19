@@ -54,8 +54,8 @@ end
 echo ""
 subsection "Installing Starship"
 if not command -v starship >/dev/null
-    step "Installing Starship via DNF" \
-        "sudo dnf install -y starship"
+    step "Installing Starship via cargo" \
+        "cargo install starship --locked"
 else
     success "Starship already installed"
 end
