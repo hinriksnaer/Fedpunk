@@ -35,15 +35,27 @@ Fedpunk transforms Fedora into a productivity-focused workspace featuring tiling
 
 ## Quick Start
 
-### Interactive Install (Recommended)
+### Chezmoi-First Install (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
+chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
 ```
 
-**You'll be prompted to choose:**
-- **Desktop (Full)** - Hyprland compositor + Terminal tools
-- **Terminal-only** - For servers/containers (no GUI)
+**That's it!** Chezmoi will:
+1. Prompt you to select a mode (desktop/laptop/container)
+2. Install all packages based on your mode
+3. Deploy configurations
+4. Set up post-deployment tasks
+
+**Or use explicit mode:**
+```bash
+FEDPUNK_MODE=container chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
+```
+
+**Modes available:**
+- **Desktop** - Hyprland compositor + All development tools (19 packages)
+- **Laptop** - Same as desktop with power optimizations
+- **Container** - Minimal dev environment (7 packages, no GUI)
 
 **Desktop mode installs:**
 - Hyprland compositor with optimized window management
@@ -242,30 +254,34 @@ fedpunk-theme-prev              # Cycle backward (Super+Shift+Y)
 
 ### Architecture
 
-Fedpunk uses a **modular installation system**:
+Fedpunk uses a **chezmoi-first architecture**:
 
 ```
-1. Preflight (install/preflight/)
-   - Cargo/Rust toolchain
-   - Fish shell setup
-   - Essential development tools
-   - System repository configuration
+1. chezmoi init --apply <repo>
+   ├─ .chezmoi.toml.tmpl processes mode selection
+   ├─ Loads profiles/<profile>/modes/<mode>.json
+   └─ Sets up data model
 
-2. Terminal Components (install/terminal/)
-   - btop, neovim, tmux, lazygit
-   - Configs deployed via chezmoi
+2. run_before_install-packages.fish
+   └─ Installs packages based on mode configuration
 
-3. Desktop Components (install/desktop/)
-   - hyprland, kitty, rofi
-   - Audio, fonts, bluetooth
-   - Optional NVIDIA drivers
+3. chezmoi apply
+   └─ Deploys all dotfiles to ~/.config/
 
-4. Post-Install (install/post-install/)
-   - Theme system initialization
-   - Final configurations
+4. run_once_after scripts
+   ├─ install-tmux-plugins.fish (if enabled)
+   └─ install-nvim.fish (if enabled)
 ```
 
-**Installation is re-run safe** - gracefully handles already-installed components.
+**Mode-driven installation** - Modes defined in simple JSON files:
+```
+profiles/dev/modes/
+├── container.json  # 7 packages, minimal
+├── desktop.json    # 19 packages, full desktop
+└── laptop.json     # 19 packages, power optimized
+```
+
+**Installation is idempotent** - Safe to run multiple times. Scripts use `run_once` semantics.
 
 All logs saved to `/tmp/fedpunk-install-*.log` for troubleshooting.
 
@@ -308,12 +324,14 @@ Copy a theme directory in `~/.local/share/fedpunk/themes/`, customize the files,
 ## Updates
 
 ```bash
-cd ~/.local/share/fedpunk
-git pull
-fish install.fish  # Re-run installation (safe to repeat)
+# Update dotfiles and re-apply
+chezmoi update
+
+# Or manually
+chezmoi init --apply --force
 ```
 
-The installer detects existing components and only updates what's needed.
+Chezmoi's `run_once` scripts ensure setup tasks only run when needed.
 
 ---
 

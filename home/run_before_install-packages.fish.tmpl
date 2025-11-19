@@ -1,0 +1,51 @@
+#!/usr/bin/env fish
+# Chezmoi run_before script: Install packages based on mode configuration
+# This runs BEFORE chezmoi applies configs, ensuring packages are installed first
+
+# Set up environment (chezmoi provides .chezmoi.workingTree which is the repo root)
+set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
+set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
+set -x FEDPUNK_NON_INTERACTIVE "true"  # Disable prompts, use mode config
+
+echo "Fedpunk Package Installation"
+echo "============================"
+echo ""
+echo "Mode: {{ .mode.name }}"
+echo "Description: {{ .mode.description }}"
+echo "Profile: {{ .profile.name }}"
+echo ""
+
+# Create log file
+echo "Fedpunk Package Installation - "(date) > "$FEDPUNK_LOG_FILE"
+echo "Mode: {{ .mode.name }}" >> "$FEDPUNK_LOG_FILE"
+echo "" >> "$FEDPUNK_LOG_FILE"
+
+# Source helper functions
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+else
+    echo "Error: Cannot find helper functions at $FEDPUNK_INSTALL/helpers/all.fish"
+    echo "Working tree: {{ .chezmoi.workingTree }}"
+    exit 1
+end
+
+# Set install flags from chezmoi data (mode JSON)
+{{- range $key, $value := .install }}
+set -gx FEDPUNK_INSTALL_{{ $key | upper }} {{ $value }}
+{{- end }}
+
+# Run package installation
+info "Installing packages based on mode configuration..."
+echo ""
+
+if test -f "$FEDPUNK_INSTALL/packaging/all.fish"
+    source "$FEDPUNK_INSTALL/packaging/all.fish"
+else
+    error "Cannot find package installation script at $FEDPUNK_INSTALL/packaging/all.fish"
+    exit 1
+end
+
+echo ""
+success "Package installation complete"
+echo "Log file: $FEDPUNK_LOG_FILE"
