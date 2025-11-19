@@ -1,47 +1,26 @@
 #!/usr/bin/env fish
-# Chezmoi run_onchange_after script: Profile-based installation (on_change phase)
-# This runs AFTER chezmoi apply, and re-runs when theme files or this script changes
+# Chezmoi run_onchange_after script: Theme refresh handler
+# This runs AFTER chezmoi apply, and re-runs when theme files change
 
 # Set up environment
 set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
-set -x FEDPUNK_PROFILE_PATH "{{ .profile.path }}"
 set -x FEDPUNK_MODE "{{ .mode.name }}"
-set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-onchange-"(date +%Y%m%d-%H%M%S)".log"
 
 echo ""
-echo "Fedpunk On-Change Tasks (Profile: {{ .profile.name }})"
+echo "Fedpunk Theme Watcher (Mode: {{ .mode.name }})"
 echo "======================================================"
 echo ""
 
-# Create log file
-echo "Fedpunk On-Change Tasks - "(date) > "$FEDPUNK_LOG_FILE"
-echo "Mode: {{ .mode.name }}" >> "$FEDPUNK_LOG_FILE"
-echo "Profile: {{ .profile.name }}" >> "$FEDPUNK_LOG_FILE"
-echo "" >> "$FEDPUNK_LOG_FILE"
-
-# Run on_change phases from profile manifest
-{{- if .profile.on_change_hooks }}
-{{- range $index, $script := .profile.on_change_hooks }}
-echo ""
-echo "Phase {{ add $index 1 }}/{{ len $.profile.on_change_hooks }}: {{ $script }}"
-echo "-------------------------------------------"
-
-set script_path "$FEDPUNK_PROFILE_PATH/{{ $script }}"
-if test -f "$script_path"
-    fish "$script_path"
-    if test $status -ne 0
-        echo "Warning: Phase failed with exit code $status"
-    end
-else
-    echo "Warning: Script not found: $script_path"
-end
-{{- end }}
+# Check if we're in a desktop environment that needs theme refresh
+{{- if eq .mode.name "desktop" }}
+{{- else if eq .mode.name "laptop" }}
+{{- else }}
+echo "Container mode - no theme refresh needed"
 {{- end }}
 
 echo ""
 echo "======================================================"
-echo "All on_change phases complete"
-echo "Log file: $FEDPUNK_LOG_FILE"
+echo "Theme watch complete"
 echo ""
 
 # Theme file checksums (causes re-run when themes change)

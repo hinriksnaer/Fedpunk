@@ -57,12 +57,21 @@ echo ""
 echo "Launching Fedpunk installation..."
 echo ""
 
+# Export environment variables for chezmoi templates
+# If FEDPUNK_NON_INTERACTIVE is not set, detect TTY
+if [ -z "$FEDPUNK_NON_INTERACTIVE" ]; then
+    if [ ! -t 0 ]; then
+        # No TTY (e.g., piped from curl), run non-interactively
+        export FEDPUNK_NON_INTERACTIVE=true
+    fi
+fi
+
 # Initialize chezmoi (clones repo, runs templates)
-# Note: Mode selection happens during init via .chezmoi.toml.tmpl
+# Mode selection happens during init via .chezmoi.toml.tmpl
+# Uses FEDPUNK_MODE (explicit), FEDPUNK_NON_INTERACTIVE (auto-detect), or prompts
 fish -c "chezmoi init https://github.com/hinriksnaer/Fedpunk.git"
 
-# Apply dotfiles (module configs are already tracked in git for immediate deployment)
-# run_before scripts update configs if modules changed, then chezmoi applies everything
+# Apply dotfiles and run installation scripts
 fish -c "chezmoi apply"
 
 echo ""

@@ -15,8 +15,12 @@
 
 {{- /* Allow override via environment or prompt */ -}}
 {{- if env "FEDPUNK_MODE" -}}
+{{-   /* Explicit mode override */ -}}
 {{-   $mode = env "FEDPUNK_MODE" -}}
-{{- else if not (env "FEDPUNK_NON_INTERACTIVE") -}}
+{{- else if env "FEDPUNK_NON_INTERACTIVE" -}}
+{{-   /* Non-interactive: use auto-detected mode */ -}}
+{{- else -}}
+{{-   /* Interactive: prompt user */ -}}
 {{-   $mode = promptChoice "mode" (list "desktop" "laptop" "container") $autoDetectedMode -}}
 {{- end -}}
 
