@@ -17,7 +17,9 @@ set -gx FEDPUNK_INSTALL_CLI_TOOLS true
 set -gx FEDPUNK_INSTALL_LANGUAGES true
 
 # Desktop components (disabled for container)
+set -gx FEDPUNK_INSTALL_FIREFOX false
 set -gx FEDPUNK_INSTALL_FONTS false
 set -gx FEDPUNK_INSTALL_AUDIO false
 set -gx FEDPUNK_INSTALL_MULTIMEDIA false
 set -gx FEDPUNK_INSTALL_BLUETOOTH false
+set -gx FEDPUNK_INSTALL_EXTRA_APPS false

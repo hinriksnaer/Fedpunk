@@ -32,15 +32,28 @@ install_if_enabled "FEDPUNK_INSTALL_GH" \
 # ================================
 
 # Firefox browser
-echo ""
-info "Installing Firefox web browser"
-gum spin --spinner dot --title "Refreshing package metadata..." -- fish -c '
-    sudo dnf makecache --refresh -q >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "Package metadata refreshed" || warning "Could not refresh metadata"
+if not set -q FEDPUNK_INSTALL_FIREFOX
+    if confirm "Install Firefox web browser?" "yes"
+        set -gx FEDPUNK_INSTALL_FIREFOX true
+    else
+        set -gx FEDPUNK_INSTALL_FIREFOX false
+    end
+end
 
-gum spin --spinner dot --title "Installing Firefox..." -- fish -c '
-    sudo dnf install -qy --skip-broken --best firefox >>'"$FEDPUNK_LOG_FILE"' 2>&1
-' && success "Firefox installed" || error "Firefox installation failed"
+if test "$FEDPUNK_INSTALL_FIREFOX" = "true"
+    echo ""
+    info "Installing Firefox web browser"
+    gum spin --spinner dot --title "Refreshing package metadata..." -- fish -c '
+        sudo dnf makecache --refresh -q >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "Package metadata refreshed" || warning "Could not refresh metadata"
+
+    gum spin --spinner dot --title "Installing Firefox..." -- fish -c '
+        sudo dnf install -qy --skip-broken --best firefox >>'"$FEDPUNK_LOG_FILE"' 2>&1
+    ' && success "Firefox installed" || error "Firefox installation failed"
+else
+    info "Skipping Firefox installation"
+    echo "[SKIPPED] Firefox installation (FEDPUNK_INSTALL_FIREFOX=false)" >> $FEDPUNK_LOG_FILE
+end
 
 # Fonts
 if not set -q FEDPUNK_INSTALL_FONTS
@@ -130,6 +143,19 @@ else
 end
 
 # Extra applications
-echo ""
-info "Installing extra applications"
-source "$FEDPUNK_INSTALL/packaging/extra-apps.fish"
+if not set -q FEDPUNK_INSTALL_EXTRA_APPS
+    if confirm "Install extra applications (Discord, Spotify, etc.)?" "yes"
+        set -gx FEDPUNK_INSTALL_EXTRA_APPS true
+    else
+        set -gx FEDPUNK_INSTALL_EXTRA_APPS false
+    end
+end
+
+if test "$FEDPUNK_INSTALL_EXTRA_APPS" = "true"
+    echo ""
+    info "Installing extra applications"
+    source "$FEDPUNK_INSTALL/packaging/extra-apps.fish"
+else
+    info "Skipping extra applications"
+    echo "[SKIPPED] Extra applications (FEDPUNK_INSTALL_EXTRA_APPS=false)" >> $FEDPUNK_LOG_FILE
+end
