@@ -22,20 +22,8 @@
 {{-   $mode = promptChoice "mode" (list "desktop" "laptop" "container") $autoDetectedMode -}}
 {{- end -}}
 
-{{/* Load profile */}}
-{{- $profile := env "FEDPUNK_PROFILE" | default "dev" -}}
-{{- $profilePath := joinPath .chezmoi.workingTree "profiles" $profile -}}
-{{- $manifestPath := joinPath $profilePath "fedpunk.yaml" -}}
-{{- $manifest := include $manifestPath | fromYaml -}}
-
 [data]
   [data.mode]
     name = {{ $mode | quote }}
 
-  [data.profile]
-    name = {{ $profile | quote }}
-    path = {{ $profilePath | quote }}
-    description = {{ $manifest.profile.description | default "" | quote }}
-
 # Mode: {{ $mode }}
-# Profile: {{ $profile }}

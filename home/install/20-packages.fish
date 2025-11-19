@@ -8,8 +8,8 @@
 # Runs: Always (packages vary by mode)
 # ============================================================================
 
-source "$FEDPUNK_PROFILE_PATH/lib/helpers.fish"
-source "$FEDPUNK_PROFILE_PATH/lib/packages.fish"
+source "$FEDPUNK_PATH/lib/helpers.fish"
+source "$FEDPUNK_PATH/lib/packages.fish"
 
 section "Package Installation (mode: $FEDPUNK_MODE)"
 

@@ -1,9 +1,8 @@
 #!/usr/bin/env fish
 # Fedpunk Post-Installation Script
-# Runs profile post-install scripts after deploying dotfiles
+# Runs setup scripts after deploying dotfiles
 
 set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
-set -x FEDPUNK_PROFILE_PATH "{{ .profile.path }}"
 set -x FEDPUNK_MODE "{{ .mode.name }}"
 set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-post-install-"(date +%Y%m%d-%H%M%S)".log"
 
@@ -16,7 +15,6 @@ echo "╚═══════════════════════�
 echo ""
 echo "Configuration:"
 echo "  Mode:    {{ .mode.name }}"
-echo "  Profile: {{ .profile.name }}"
 echo ""
 echo "Log: $FEDPUNK_LOG_FILE"
 echo "───────────────────────────────────────────────────────"
@@ -25,25 +23,30 @@ echo ""
 # Create log file
 echo "Fedpunk Post-Installation - "(date) > "$FEDPUNK_LOG_FILE"
 echo "Mode: {{ .mode.name }}" >> "$FEDPUNK_LOG_FILE"
-echo "Profile: {{ .profile.name }}" >> "$FEDPUNK_LOG_FILE"
 echo "" >> "$FEDPUNK_LOG_FILE"
 
-# Run profile post-install scripts if they exist
-set post_install_dir "$FEDPUNK_PROFILE_PATH/post-install"
-if test -d "$post_install_dir"
-    echo "Running profile post-install scripts..."
+# Run setup scripts if they exist
+set scripts_dir "$FEDPUNK_PATH/home/scripts"
+if test -d "$scripts_dir"
+    echo "Running setup scripts..."
     echo ""
 
-    for script in (ls "$post_install_dir"/*.fish 2>/dev/null | sort)
+    for script in (ls "$scripts_dir"/setup-*.fish 2>/dev/null | sort)
         set script_name (basename "$script")
-        echo "→ Running $script_name..."
+        echo "→ Running: $script_name"
 
         fish "$script" 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
 
         if test $status -ne 0
             echo ""
-            echo "WARNING: Post-install script failed: $script_name"
-            echo "Check log: $FEDPUNK_LOG_FILE"
+            echo "✗ Executing $script_name failed (exit: $status)"
+            echo ""
+            echo "Error details:"
+            tail -20 "$FEDPUNK_LOG_FILE" | grep -A 10 "ERROR\|error\|Error" || echo "  Check full log for details"
+            echo ""
+            echo "→ Full logs: $FEDPUNK_LOG_FILE"
+            echo ""
+            # Continue with other scripts instead of failing
         end
 
         echo ""
@@ -54,6 +57,6 @@ if test -d "$post_install_dir"
     echo "Log file: $FEDPUNK_LOG_FILE"
     echo ""
 else
-    echo "No post-install scripts found in profile"
+    echo "No setup scripts found"
     echo ""
 end

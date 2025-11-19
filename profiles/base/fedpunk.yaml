@@ -1,8 +1,0 @@
-profile:
-  name: base
-  description: Base Fedpunk profile with essential terminal and desktop components
-  author: fedpunk
-  version: 1.0.0
-
-# Installation is handled by scripts in install/ directory
-# Modes can customize behavior through FEDPUNK_MODE environment variable

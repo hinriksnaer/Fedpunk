@@ -10,7 +10,7 @@
 # Runs: After configs are deployed
 # ============================================================================
 
-source "$FEDPUNK_PROFILE_PATH/lib/helpers.fish"
+source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "Plugin Setup"
 

@@ -8,7 +8,7 @@
 # Runs: Always (all modes)
 # ============================================================================
 
-source "$FEDPUNK_PROFILE_PATH/lib/helpers.fish"
+source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "System Preflight"
 

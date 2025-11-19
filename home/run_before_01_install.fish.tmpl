@@ -1,9 +1,8 @@
 #!/usr/bin/env fish
 # Fedpunk Installation Script
-# Runs profile install scripts before deploying dotfiles
+# Runs install scripts before deploying dotfiles
 
 set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
-set -x FEDPUNK_PROFILE_PATH "{{ .profile.path }}"
 set -x FEDPUNK_MODE "{{ .mode.name }}"
 set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
 
@@ -15,8 +14,6 @@ echo "╚═══════════════════════�
 echo ""
 echo "Configuration:"
 echo "  Mode:    {{ .mode.name }}"
-echo "  Profile: {{ .profile.name }}"
-echo "  Path:    {{ .profile.path }}"
 echo ""
 echo "Log: $FEDPUNK_LOG_FILE"
 echo "───────────────────────────────────────────────────────"
@@ -25,13 +22,12 @@ echo ""
 # Create log file
 echo "Fedpunk Installation - "(date) > "$FEDPUNK_LOG_FILE"
 echo "Mode: {{ .mode.name }}" >> "$FEDPUNK_LOG_FILE"
-echo "Profile: {{ .profile.name }}" >> "$FEDPUNK_LOG_FILE"
 echo "" >> "$FEDPUNK_LOG_FILE"
 
-# Run profile install scripts in order
-set install_dir "$FEDPUNK_PROFILE_PATH/install"
+# Run install scripts in order
+set install_dir "$FEDPUNK_PATH/home/install"
 if test -d "$install_dir"
-    echo "Running profile install scripts..."
+    echo "Running install scripts..."
     echo ""
 
     for script in (ls "$install_dir"/*.fish 2>/dev/null | sort)
@@ -55,6 +51,6 @@ if test -d "$install_dir"
     echo "Log file: $FEDPUNK_LOG_FILE"
     echo ""
 else
-    echo "No install scripts found in profile"
+    echo "No install scripts found"
     echo ""
 end

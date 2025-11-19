@@ -14,7 +14,7 @@ if test "$FEDPUNK_MODE" = "container"
     exit 0
 end
 
-source "$FEDPUNK_PROFILE_PATH/lib/helpers.fish"
+source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "Desktop Optimizations"
 

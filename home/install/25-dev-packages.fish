@@ -7,7 +7,7 @@
 # Runs: Before apply (development profile only)
 # ============================================================================
 
-source "$FEDPUNK_PROFILE_PATH/../base/lib/helpers.fish"
+source "$FEDPUNK_PATH/lib/helpers.fish"
 
 section "Development Packages"
 
