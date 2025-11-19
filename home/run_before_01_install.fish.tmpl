@@ -1,37 +1,43 @@
 #!/usr/bin/env fish
-# Chezmoi run_once_after script: Execute module after_apply hooks
-# This runs AFTER chezmoi applies configs, for post-installation tasks
+# Chezmoi run_before script: Execute module before_apply hooks
+# This runs BEFORE chezmoi applies configs
 
 # Set up environment
 set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
 set -x FEDPUNK_LIB_PATH "$FEDPUNK_PATH/lib"
 set -x FEDPUNK_MODE "{{ .mode.name }}"
-set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-after-"(date +%Y%m%d-%H%M%S)".log"
+set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
 
-echo ""
 echo "╔═══════════════════════════════════════════════════════╗"
 echo "║                                                       ║"
-echo "║          Phase 3: Post-Installation Setup             ║"
+echo "║              Fedpunk Installation                     ║"
 echo "║                                                       ║"
 echo "╚═══════════════════════════════════════════════════════╝"
 echo ""
-{{- if .profile.after_apply_hooks }}
-echo "Running {{ len .profile.after_apply_hooks }} after-apply hook(s):"
-{{-   range $index, $hookStr := .profile.after_apply_hooks }}
-echo "  {{ add $index 1 }}. {{ $hookStr }}"
-{{-   end }}
-{{- else }}
-echo "No after-apply hooks configured"
+echo "Configuration:"
+echo "  Mode:    {{ .mode.name }}"
+echo "  Profile: {{ .profile.name }}"
+echo "  Path:    {{ .profile.path }}"
+echo ""
+echo "Modules ({{ len .profile.modules }}):"
+{{- range .profile.modules }}
+echo "  • {{ . }}"
 {{- end }}
+echo ""
+echo "Installation phases:"
+echo "  1. Before-apply hooks ({{ len .profile.before_apply_hooks }} modules)"
+echo "  2. Dotfile deployment"
+echo "  3. After-apply hooks ({{ len .profile.after_apply_hooks }} modules)"
 echo ""
 echo "Log: $FEDPUNK_LOG_FILE"
 echo "───────────────────────────────────────────────────────"
 echo ""
 
 # Create log file
-echo "Fedpunk Post-Installation - "(date) > "$FEDPUNK_LOG_FILE"
+echo "Fedpunk Installation - "(date) > "$FEDPUNK_LOG_FILE"
 echo "Mode: {{ .mode.name }}" >> "$FEDPUNK_LOG_FILE"
 echo "Profile: {{ .profile.name }}" >> "$FEDPUNK_LOG_FILE"
+echo "Modules: {{ join ", " .profile.modules }}" >> "$FEDPUNK_LOG_FILE"
 echo "" >> "$FEDPUNK_LOG_FILE"
 
 # Source module loader library
@@ -48,12 +54,12 @@ set -gx {{ $modulePrefix }}_{{ $key }} {{ $value | quote }}
 {{-   end }}
 {{- end }}
 
-# Execute after_apply hooks
-{{- if .profile.after_apply_hooks }}
+# Execute before_apply hooks
+{{- if .profile.before_apply_hooks }}
 
-{{-   range $index, $hookStr := .profile.after_apply_hooks }}
+{{-   range $index, $hookStr := .profile.before_apply_hooks }}
 
-# Module {{ add $index 1 }}/{{ len $.profile.after_apply_hooks }}: {{ $hookStr }}
+# Module {{ add $index 1 }}/{{ len $.profile.before_apply_hooks }}: {{ $hookStr }}
 echo ""
 
 # Parse hook string (format: "module:script")
@@ -63,21 +69,23 @@ set -l script_name $hook_parts[2]
 
 info "Module: $module_name"
 
+# Check if module should run (auto-detection, mode-enabled, etc.)
 if should_run_module "$module_name"
-    execute_module_hook "$module_name" "$script_name" "after_apply"
+    execute_module_hook "$module_name" "$script_name" "before_apply"
     if test $status -ne 0
-        warning "Module hook failed: $module_name/$script_name"
+        error "Module hook failed: $module_name/$script_name"
+        exit 1
     end
 else
     info "Skipping module: $module_name"
 end
 {{-   end }}
 {{- else }}
-info "No after_apply hooks configured"
+info "No before_apply hooks configured"
 {{- end }}
 
 echo ""
-echo "========================================================"
-echo "All after_apply hooks complete"
+echo "====================================================="
+echo "All before_apply hooks complete"
 echo "Log file: $FEDPUNK_LOG_FILE"
 echo ""

@@ -1,0 +1,96 @@
+#!/usr/bin/env fish
+# Chezmoi run_before script: Setup module configuration symlinks
+# This runs FIRST to create symlinks for enabled module configs
+# Ensures module configs are available before deployment
+
+set -x FEDPUNK_SOURCE_DIR "{{ .chezmoi.sourceDir }}"
+set -x FEDPUNK_REPO_ROOT "{{ .chezmoi.workingTree }}"
+
+echo "Setting up module configurations..."
+echo ""
+
+# Track symlinks created
+set -l created_count 0
+set -l skipped_count 0
+
+# Process each enabled module
+{{- range .profile.modules }}
+set module_name "{{ . }}"
+set module_path "$FEDPUNK_REPO_ROOT/modules/$module_name"
+set config_path "$module_path/config"
+
+# Check if module has a config directory
+if test -d "$config_path"
+    # Find all files/directories in module config (relative paths)
+    set config_items (find "$config_path" -mindepth 1 -maxdepth 1 -type d -o -type f)
+
+    for item in $config_items
+        set item_name (basename "$item")
+
+        # Special handling for dot_config directory - link contents, not the directory itself
+        if test "$item_name" = "dot_config" -a -d "$item"
+            # Ensure dot_config exists in source
+            mkdir -p "$FEDPUNK_SOURCE_DIR/dot_config"
+
+            # Link each item inside dot_config
+            set dot_config_items (find "$item" -mindepth 1 -maxdepth 1)
+            for subitem in $dot_config_items
+                set subitem_name (basename "$subitem")
+                set target_path "$FEDPUNK_SOURCE_DIR/dot_config/$subitem_name"
+
+                # Remove outdated symlink
+                if test -L "$target_path"
+                    set current_target (readlink "$target_path")
+                    if test "$current_target" != "$subitem"
+                        rm "$target_path"
+                    end
+                else if test -e "$target_path"
+                    echo "  ⚠ Skipping dot_config/$subitem_name (exists)"
+                    set skipped_count (math $skipped_count + 1)
+                    continue
+                end
+
+                # Create symlink
+                if not test -e "$target_path"
+                    ln -s "$subitem" "$target_path"
+                    echo "  • Linked: dot_config/$subitem_name ← modules/$module_name/config/"
+                    set created_count (math $created_count + 1)
+                end
+            end
+        else
+            # Regular files - link directly
+            set target_path "$FEDPUNK_SOURCE_DIR/$item_name"
+
+            # Remove existing symlink if outdated
+            if test -L "$target_path"
+                set current_target (readlink "$target_path")
+                if test "$current_target" != "$item"
+                    rm "$target_path"
+                    echo "  • Removed outdated symlink: $item_name"
+                end
+            else if test -e "$target_path"
+                echo "  ⚠ Skipping $item_name (exists)"
+                set skipped_count (math $skipped_count + 1)
+                continue
+            end
+
+            # Create symlink
+            if not test -e "$target_path"
+                ln -s "$item" "$target_path"
+                echo "  • Linked: $item_name ← modules/$module_name/config/"
+                set created_count (math $created_count + 1)
+            end
+        end
+    end
+end
+{{- end }}
+
+echo ""
+if test $created_count -gt 0
+    echo "✓ Created $created_count symlink(s)"
+end
+if test $skipped_count -gt 0
+    echo "⚠ Skipped $skipped_count item(s)"
+end
+echo "Module configurations ready"
+echo ""

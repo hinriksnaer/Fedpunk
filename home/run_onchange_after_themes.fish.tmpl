@@ -19,16 +19,11 @@ echo "Mode: {{ .mode.name }}" >> "$FEDPUNK_LOG_FILE"
 echo "Profile: {{ .profile.name }}" >> "$FEDPUNK_LOG_FILE"
 echo "" >> "$FEDPUNK_LOG_FILE"
 
-# Export install flags as environment variables
-{{- range $key, $value := .install }}
-set -gx FEDPUNK_INSTALL_{{ $key | upper }} {{ $value }}
-{{- end }}
-
 # Run on_change phases from profile manifest
-{{- $phases := .profile.on_change | mustFromJson }}
-{{- range $index, $script := $phases }}
+{{- if .profile.on_change_hooks }}
+{{- range $index, $script := .profile.on_change_hooks }}
 echo ""
-echo "Phase {{ add $index 1 }}/{{ len $phases }}: {{ $script }}"
+echo "Phase {{ add $index 1 }}/{{ len $.profile.on_change_hooks }}: {{ $script }}"
 echo "-------------------------------------------"
 
 set script_path "$FEDPUNK_PROFILE_PATH/{{ $script }}"
@@ -40,6 +35,7 @@ if test -f "$script_path"
 else
     echo "Warning: Script not found: $script_path"
 end
+{{- end }}
 {{- end }}
 
 echo ""

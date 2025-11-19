@@ -2,425 +2,466 @@
 
 **A modern, modular Fedora development environment powered by chezmoi**
 
-Fedpunk transforms Fedora into a productivity-focused workspace featuring tiling window management, seamless theming, and a curated set of development tools—all configured through a composable module system and managed by chezmoi.
+Transform Fedora into a productivity powerhouse featuring tiling window management, seamless theming, and a curated development stack—all managed through a composable module system that adapts to your workflow.
 
 ---
 
-## Table of Contents
+## Why Fedpunk?
 
-- [Quick Start](#quick-start)
-- [Architecture](#architecture)
-- [Profiles](#profiles)
-- [Modules](#modules)
-- [Modes](#modes)
-- [Creating Modules](#creating-modules)
-- [Creating Profiles](#creating-profiles)
-- [Configuration](#configuration)
-- [Themes](#themes)
-- [Troubleshooting](#troubleshooting)
-- [Reference](#reference)
+**🚀 Zero-friction setup** - One command installs everything from compositor to terminal to themes
+**⚡ Blazing fast workflow** - Hyprland compositor with optimized keybindings and vim-style navigation
+**🎨 Live theme switching** - Complete themes that update across all applications instantly
+**🐟 Fish-first design** - Modern shell with intelligent completions and powerful scripting
+**🖥️ Flexible deployment** - Desktop, laptop, or container modes adapt to your environment
+**📦 Modular architecture** - Self-contained modules with configs, scripts, and dependencies
+**🔄 Dynamic configuration** - Modules enable/disable based on your profile and environment
+**🎯 Profile-driven** - Compose your perfect setup from base, dev, or custom profiles
 
 ---
 
 ## Quick Start
 
-### Installation
+### One-Line Installation
 
 ```bash
-# Clone and initialize (interactive mode selection)
+curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/bootstrap.sh | bash
+```
+
+**That's it!** The bootstrap will:
+1. Install essentials (chezmoi, fish, gum)
+2. Launch Fedpunk installation
+3. Auto-detect your environment (desktop/laptop/container)
+4. Prompt for profile selection (base/dev)
+5. Install and configure everything
+
+### Manual Installation
+
+If you already have chezmoi, fish, and gum:
+
+```bash
+# Interactive installation (prompts for mode/profile)
 chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
 
-# Or specify mode explicitly
+# Explicit mode and profile
 FEDPUNK_MODE=desktop FEDPUNK_PROFILE=dev chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
 ```
-
-**What happens:**
-1. Chezmoi clones the repository
-2. Mode detection (or prompts you to choose: desktop/laptop/container)
-3. Profile manifest loaded (default: `dev`)
-4. Module dependencies resolved
-5. Before-apply hooks execute (installs packages)
-6. Dotfiles deployed to `~/.config/`
-7. After-apply hooks execute (plugin setup, optimizations)
-
-### Available Profiles
-
-| Profile | Description | Modules |
-|---------|-------------|---------|
-| **base** | Essential terminal + desktop | core, cli-tools, tmux, nvim, languages, hyprland, kitty, themes, fonts, audio |
-| **dev** | Development environment (inherits base) | + podman, git-tools, claude |
-
-### Modes
-
-| Mode | Environment | Desktop Components | Use Case |
-|------|-------------|-------------------|----------|
-| **desktop** | Full desktop | ✅ Hyprland, themes, audio | Workstation |
-| **laptop** | Desktop + power mgmt | ✅ + battery optimizations | Mobile |
-| **container** | Terminal only | ❌ No GUI components | Devcontainers, WSL, remote |
-
----
-
-## Architecture
-
-Fedpunk uses a **module-centric architecture** where functionality is organized into self-contained, composable modules managed by profiles.
-
-### Directory Structure
-
-```
-fedpunk/
-├── modules/              # Self-contained functionality modules
-│   ├── core/
-│   │   ├── module.yaml   # Module metadata, deps, hooks, params
-│   │   └── install.fish  # Installation script
-│   ├── nvim/
-│   │   ├── module.yaml
-│   │   ├── install.fish
-│   │   └── setup-plugins.fish
-│   └── hyprland/
-│       ├── module.yaml
-│       └── install.fish
-│
-├── profiles/             # Composable configuration profiles
-│   ├── base/
-│   │   ├── fedpunk.yaml  # Profile manifest (lists modules)
-│   │   └── modes/        # Mode-specific settings
-│   │       ├── desktop.yaml
-│   │       ├── laptop.yaml
-│   │       └── container.yaml
-│   └── dev/
-│       └── fedpunk.yaml  # Inherits base, adds dev modules
-│
-├── lib/                  # Shared libraries
-│   ├── helpers.fish      # Logging, installation helpers
-│   └── modules.fish      # Module loader/executor
-│
-├── home/                 # Chezmoi source directory
-│   ├── .chezmoi.toml.tmpl           # Template engine
-│   ├── run_before_install.fish.tmpl # Execute before_apply hooks
-│   ├── run_once_after_setup.fish.tmpl # Execute after_apply hooks
-│   └── dot_config/                  # Dotfiles
-│
-└── themes/               # Theme definitions
-    ├── ayu-mirage/
-    ├── tokyo-night/
-    └── ...
-```
-
-### How It Works
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 1. chezmoi init --apply                                      │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 2. .chezmoi.toml.tmpl processes                             │
-│    ├─ Detects/prompts for mode (desktop/laptop/container)   │
-│    ├─ Loads profile manifest (profiles/<profile>/fedpunk.yaml)│
-│    ├─ Resolves module dependencies                          │
-│    ├─ Merges module parameters                              │
-│    └─ Builds execution plan (hooks + env vars)              │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 3. run_before_install.fish executes                         │
-│    └─ Runs before_apply hooks for each module               │
-│       ├─ core:install.fish (DNF, Fish, Git, Cargo, Gum)     │
-│       ├─ cli-tools:install.fish (ripgrep, fd, bat, eza)     │
-│       ├─ tmux:install.fish                                  │
-│       ├─ nvim:install.fish                                  │
-│       ├─ languages:install.fish (Node, Python, Go)          │
-│       └─ hyprland:install.fish (desktop/laptop only)        │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 4. chezmoi apply                                            │
-│    └─ Deploys dotfiles to ~/.config/                        │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│ 5. run_once_after_setup.fish executes                       │
-│    └─ Runs after_apply hooks for each module                │
-│       ├─ tmux:setup-plugins.fish (TPM setup)                │
-│       ├─ nvim:setup-plugins.fish (lazy.nvim)                │
-│       └─ ... (other post-installation tasks)                │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Profiles
-
-Profiles are collections of modules with specific configurations. They define **what** gets installed and **how** it's configured.
-
-### Profile Manifest
-
-**profiles/dev/fedpunk.yaml:**
-```yaml
-profile:
-  name: dev
-  description: Development environment with containers and tools
-  author: hinriksnaer
-  version: 1.0.0
-
-# Inherit modules from another profile
-inherit: base
-
-# Additional modules for this profile
-modules:
-  - podman
-  - git-tools
-  - claude
-
-# Override module parameters
-module_params:
-  languages:
-    install_rust: true  # Base has false, dev enables Rust
-
-  podman:
-    setup_rootless: true
-    install_compose: true
-```
-
-### Profile Inheritance
-
-Profiles can inherit from other profiles:
-
-```yaml
-# base profile provides: core, cli-tools, tmux, nvim, languages
-inherit: base
-
-# dev profile adds: podman, git-tools, claude
-# Final module list: core, cli-tools, tmux, nvim, languages, podman, git-tools, claude
-```
-
-**Inheritance rules:**
-- Modules are merged (base + profile)
-- Module parameters can be overridden
-- Mode-specific modules are additive
-- Profile's parameters take precedence over base
-
-### Mode-Specific Modules
-
-Profiles can specify modules that only load in certain modes:
-
-```yaml
-modules:
-  - core      # Loads in all modes
-  - tmux      # Loads in all modes
-  - nvim      # Loads in all modes
-
-mode_modules:
-  desktop:
-    - hyprland   # Only in desktop mode
-    - kitty      # Only in desktop mode
-
-  laptop:
-    - hyprland   # Only in laptop mode
-    - kitty      # Only in laptop mode
-
-  container:
-    # No additional modules in container mode
-```
-
----
-
-## Modules
-
-Modules are self-contained units of functionality. Each module can:
-- Install packages
-- Configure services
-- Run setup tasks
-- Declare dependencies
-- Accept parameters
-- Auto-detect hardware
-
-### Module Structure
-
-**modules/nvim/module.yaml:**
-```yaml
-module:
-  name: nvim
-  description: Neovim text editor with lazy.nvim plugin manager
-
-# Dependencies (installed first)
-depends:
-  - core        # Requires core system setup
-  - languages   # Requires LSP support
-
-# Module parameters (can be overridden in profiles)
-params:
-  package_name: neovim    # DNF package name
-  setup_plugins: true     # Install lazy.nvim
-
-# Installation hooks
-hooks:
-  before_apply:
-    - install.fish          # Runs before configs deployed
-  after_apply:
-    - setup-plugins.fish    # Runs after configs deployed
-
-# Mode availability
-modes:
-  container:
-    enabled: true
-  desktop:
-    enabled: true
-  laptop:
-    enabled: true
-```
-
-**modules/nvim/install.fish:**
-```fish
-#!/usr/bin/env fish
-# NVIM MODULE: Install Neovim
-
-source "$FEDPUNK_LIB_PATH/helpers.fish"
-
-subsection "Installing Neovim"
-
-# Access module parameter
-set -q FEDPUNK_MODULE_NVIM_PACKAGE_NAME; or set FEDPUNK_MODULE_NVIM_PACKAGE_NAME "neovim"
-
-install_if_missing nvim $FEDPUNK_MODULE_NVIM_PACKAGE_NAME
-
-success "Neovim installed"
-```
-
-### Built-in Modules
-
-| Module | Description | Dependencies | Hooks |
-|--------|-------------|--------------|-------|
-| **core** | System essentials (DNF, Fish, Git, Cargo, Gum) | None | before_apply |
-| **cli-tools** | CLI utilities (ripgrep, fd, bat, eza, fzf) | core | before_apply |
-| **tmux** | Terminal multiplexer with TPM | core | before_apply, after_apply |
-| **nvim** | Neovim with lazy.nvim | core, languages | before_apply, after_apply |
-| **languages** | Programming toolchains (Node, Python, Go) | core | before_apply |
-| **hyprland** | Wayland compositor | core | before_apply |
-| **nvidia** | NVIDIA proprietary drivers (auto-detects GPU) | core | before_apply |
-
-### Module Parameters
-
-Parameters allow customizing module behavior from profiles:
-
-**In module.yaml:**
-```yaml
-params:
-  install_nodejs: true
-  install_python: true
-  install_go: true
-  install_rust: false  # Default: disabled
-```
-
-**Override in profile:**
-```yaml
-module_params:
-  languages:
-    install_rust: true  # Enable Rust
-```
-
-**Access in module script:**
-```fish
-# Exported as FEDPUNK_MODULE_<MODULE>_<PARAM>
-set -q FEDPUNK_MODULE_LANGUAGES_INSTALL_RUST; or set FEDPUNK_MODULE_LANGUAGES_INSTALL_RUST "false"
-
-if test "$FEDPUNK_MODULE_LANGUAGES_INSTALL_RUST" = "true"
-    install_packages rust cargo
-end
-```
-
-### Auto-Detection
-
-Modules can auto-detect hardware and prompt for installation:
-
-**modules/nvidia/module.yaml:**
-```yaml
-auto_detect:
-  command: "lspci | grep -i nvidia >/dev/null 2>&1"
-  prompt: "NVIDIA GPU detected. Install proprietary drivers?"
-  default: "yes"
-```
-
-The module loader checks the command. If it succeeds, it prompts the user (using `gum confirm`).
 
 ---
 
 ## Modes
 
-Modes determine which components get installed based on your environment.
+Choose your deployment target:
 
-### Mode Configuration
+| Mode | Environment | Desktop | Use Case |
+|------|-------------|---------|----------|
+| **🖥️ Desktop** | Full system | ✅ Hyprland + GUI apps | Workstation, gaming rig |
+| **💻 Laptop** | Mobile system | ✅ Hyprland + power mgmt | On-the-go development |
+| **📦 Container** | Minimal environment | ❌ Terminal only | Docker, WSL, remote servers |
 
-**profiles/base/modes/desktop.yaml:**
-```yaml
-mode:
-  name: desktop
-  description: Full desktop environment with all development tools
+**Auto-detection**: Fedpunk automatically detects your environment:
+- Container: Checks for `/.dockerenv`, `/run/.containerenv`, or `$CONTAINER`
+- Laptop: Detects battery via `/sys/class/power_supply/BAT0`
+- Desktop: Default fallback
 
-# Module-specific settings (exported as FEDPUNK_MODULE_<MODULE>_<KEY>)
-module_config:
-  core:
-    system_upgrade: true
-    firmware_update: true
+---
 
-  hyprland:
-    enable_copr: true
-    install_extras: true
+## Themes
 
-  multimedia:
-    install_codecs: true
-    enable_hw_accel: true
+Fedpunk includes a dynamic theme system with **11+ beautiful themes** (desktop/laptop modes):
+
+### Theme Previews
+
+**Catppuccin Mocha**
+![Catppuccin Theme](themes/catppuccin/preview.png)
+
+**Nord**
+![Nord Theme](themes/nord/preview.png)
+
+**Tokyo Night**
+![Tokyo Night Theme](themes/tokyo-night/preview.png)
+
+**Ayu Mirage**
+![Ayu Mirage Theme](themes/ayu-mirage/theme.png)
+
+**Rose Pine**
+![Rose Pine Theme](themes/rose-pine/preview.png)
+
+**Torrentz Hydra**
+![Torrentz Hydra Theme](themes/torrentz-hydra/preview.png)
+
+**Osaka Jade**
+![Osaka Jade Theme](themes/osaka-jade/preview.png)
+
+**Aetheria**
+![Aetheria Theme](themes/aetheria/preview.png)
+
+**Ristretto**
+![Ristretto Theme](themes/ristretto/preview.png)
+
+**Matte Black**
+![Matte Black Theme](themes/matte-black/preview.png)
+
+**Catppuccin Latte** (Light theme)
+![Catppuccin Latte Theme](themes/catppuccin-latte/preview.png)
+
+### Switch Themes
+
+```bash
+# List available themes
+fedpunk-theme-list
+
+# Switch theme instantly
+fedpunk-theme-set catppuccin-mocha
+
+# Get current theme
+fedpunk-theme-get
 ```
 
-### Mode Detection
+**Themes update instantly across:**
+- Hyprland (window decorations, gaps, borders)
+- Kitty (terminal colors)
+- Waybar (status bar colors)
+- Rofi (launcher colors)
+- Btop (system monitor)
+- Neovim (editor colors)
 
-Auto-detection priority:
-1. **Explicit**: `FEDPUNK_MODE=desktop` environment variable
-2. **Interactive**: Prompts user to choose (if terminal is interactive)
-3. **Auto-detect**:
-   - Container: Checks for `/.dockerenv`, `/run/.containerenv`, or `$CONTAINER` env
-   - Laptop: Checks for `/sys/class/power_supply/BAT0`
-   - Desktop: Default fallback
+---
+
+## Profiles
+
+Compose your perfect environment:
+
+### 📦 Base Profile
+**Essential terminal and desktop experience**
+
+**Modules**: `core`, `cli-tools`, `tmux`, `nvim`, `languages`, `hyprland`, `kitty`, `themes`, `fonts`, `audio`
+
+**What you get**:
+- **Core**: Fish shell, Git, Cargo, Gum, DNF optimizations
+- **CLI Tools**: eza, fd, ripgrep, fzf, bat, btop, yazi, lazygit
+- **Terminal**: tmux with TPM plugin manager
+- **Editor**: Neovim with lazy.nvim and LSP support
+- **Languages**: Go, Node.js, Python toolchains
+- **Desktop** (desktop/laptop only): Hyprland, Kitty, Rofi, Waybar, Mako
+- **Theming** (desktop/laptop only): 11+ themes with instant switching
+- **Fonts**: JetBrainsMono Nerd Font, system fonts
+- **Audio** (desktop/laptop only): PipeWire, pavucontrol
+
+### 🚀 Dev Profile
+**Full development environment (inherits base + adds tools)**
+
+**Additional Modules**: `podman`, `git-tools`, `claude`
+
+**What you get** (on top of base):
+- **Podman**: Container runtime with Docker CLI compatibility
+- **Git Tools**: Delta diff viewer, advanced Git config
+- **Claude**: Claude Code CLI and integrations
+
+### 🎨 Create Your Own
+Profiles are composable! Create `profiles/myprofile/fedpunk.yaml`:
+
+```yaml
+profile:
+  name: myprofile
+  description: My custom setup
+
+inherit: base  # Start with base, add your modules
+
+modules:
+  - custom-module
+
+module_params:
+  languages:
+    install_rust: true
+    install_go: false
+```
+
+---
+
+## Architecture
+
+### Module-Centric Design
+
+Fedpunk uses a **module-centric architecture** where each module is completely self-contained:
+
+```
+fedpunk/
+├── modules/                    # Self-contained modules
+│   ├── nvim/
+│   │   ├── module.yaml        # Metadata, dependencies, hooks, params
+│   │   ├── install.fish       # Installation script
+│   │   ├── setup-plugins.fish # Post-install setup
+│   │   └── config/            # Module's dotfiles
+│   │       └── dot_config/
+│   │           └── nvim/      # Deployed to ~/.config/nvim
+│   │               ├── init.lua
+│   │               └── lua/
+│   ├── tmux/
+│   │   ├── module.yaml
+│   │   ├── install.fish
+│   │   ├── setup-plugins.fish
+│   │   └── config/
+│   │       └── dot_config/tmux/
+│   └── hyprland/
+│       ├── module.yaml
+│       ├── install.fish
+│       └── config/
+│           └── dot_config/
+│               ├── hypr/
+│               ├── waybar/
+│               └── rofi/
+│
+├── profiles/                   # Composition layer
+│   ├── base/
+│   │   └── fedpunk.yaml       # Lists modules to enable
+│   └── dev/
+│       └── fedpunk.yaml       # Inherits base + adds more
+│
+├── lib/                        # Shared libraries
+│   ├── helpers.fish           # Logging, installation helpers
+│   └── modules.fish           # Module loader/executor
+│
+├── dot_config/                 # Dynamic symlinks (created automatically)
+├── .chezmoi.toml.tmpl         # Orchestration engine
+└── bootstrap.sh               # Bootstrap installer
+```
+
+### How It Works
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ 1. Bootstrap Phase                                            │
+│    • Install: chezmoi, fish, gum                             │
+│    • Launch: chezmoi init --apply                            │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│ 2. Template Processing (.chezmoi.toml.tmpl)                  │
+│    • Auto-detect mode (container/laptop/desktop)             │
+│    • Load profile manifest (default: dev)                    │
+│    • Resolve module dependencies                             │
+│    • Build execution plan (hooks + configs)                  │
+│    • Export module environment variables                     │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│ 3. Dynamic Configuration Setup (run_before_00)               │
+│    • For each enabled module:                                │
+│      - Check if module has config/ directory                 │
+│      - Create symlinks: dot_config/nvim -> modules/nvim/...  │
+│    • Result: Module configs available for deployment         │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│ 4. Installation Phase (run_before_01)                        │
+│    • Execute before_apply hooks for each module:             │
+│      - core: DNF config, install Fish, Git, Gum              │
+│      - cli-tools: Install eza, fd, ripgrep, fzf, etc.        │
+│      - tmux: Install tmux, set up TPM                        │
+│      - nvim: Install Neovim                                  │
+│      - languages: Install Go, Node.js, Python                │
+│      - hyprland: Install compositor + GUI apps (if desktop)  │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│ 5. Dotfile Deployment (chezmoi apply)                        │
+│    • Follow symlinks in dot_config/                          │
+│    • Deploy to ~/.config/, ~/.local/, ~/                     │
+│    • Result: All configs in place                            │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│ 6. Post-Installation (run_once_after)                        │
+│    • Execute after_apply hooks:                              │
+│      - tmux: Install TPM plugins                             │
+│      - nvim: Bootstrap lazy.nvim, install plugins            │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│ 7. Theme Setup (run_onchange_after)                          │
+│    • Execute on_change hooks (runs on theme updates)         │
+│    • Initialize theme system                                 │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Key Features
+
+**🔗 Dynamic Module Linking**
+- Module configs live inside `modules/*/config/`
+- Symlinks created automatically during installation
+- Only enabled modules get linked
+- Updates handled gracefully on `chezmoi apply`
+
+**🎯 Declarative Composition**
+- Profiles declare which modules to enable
+- Modules declare dependencies, hooks, and parameters
+- Template engine orchestrates everything
+- No imperative scripting in user code
+
+**🔧 Flexible Parameterization**
+- Modules expose parameters via `module.yaml`
+- Profiles override parameters for customization
+- Environment variables exported automatically
+- Example: `FEDPUNK_MODULE_NVIM_SETUP_PLUGINS=true`
+
+**📊 Mode-Aware Execution**
+- Modules can disable themselves per mode
+- Example: Hyprland disabled in container mode
+- Automatic detection + manual override supported
+
+---
+
+## Modules
+
+### Core System Modules
+
+#### 🔧 core
+Essential system setup and shell configuration
+
+**Installs**: Fish shell, Git, Cargo, Gum, starship prompt
+**Configures**: DNF parallel downloads, Fish config, starship prompt
+**Depends**: None (foundation module)
+
+#### 🛠️ cli-tools
+Modern CLI utilities for development
+
+**Installs**: eza, fd, ripgrep, fzf, bat, btop, yazi, lazygit, lazydocker
+**Configures**: Tool configs with sensible defaults
+**Depends**: `core`
+
+#### 📺 tmux
+Terminal multiplexer with plugin manager
+
+**Installs**: tmux, TPM (plugin manager)
+**Configures**: Vim-style keybindings, plugins (sensible, resurrect, continuum)
+**Depends**: `core`
+
+#### ✏️ nvim
+Neovim editor with LSP and plugin ecosystem
+
+**Installs**: Neovim, lazy.nvim plugin manager
+**Configures**: LSP, Treesitter, Telescope, file explorer
+**Depends**: `core`, `languages`
+**Parameters**:
+- `package_name`: Package to install (default: `neovim`)
+- `setup_plugins`: Auto-install plugins (default: `true`)
+
+#### 💻 languages
+Programming language toolchains
+
+**Installs**: Go, Node.js, Python
+**Configures**: Version managers, package managers
+**Depends**: `core`
+**Parameters**:
+- `install_go`: Install Go toolchain (default: `true`)
+- `install_nodejs`: Install Node.js (default: `true`)
+- `install_python`: Install Python (default: `true`)
+
+### Desktop Modules
+
+#### 🪟 hyprland
+Wayland compositor and window management
+
+**Installs**: Hyprland, Waybar, Rofi, Mako, Wayland utils
+**Configures**: Window rules, keybindings, workspaces, animations
+**Depends**: `core`, `kitty`, `themes`
+**Modes**: Desktop, Laptop only
+
+#### 🖥️ kitty
+GPU-accelerated terminal emulator
+
+**Installs**: Kitty terminal
+**Configures**: Font rendering, colors, keybindings
+**Depends**: `core`, `fonts`
+**Modes**: Desktop, Laptop only
+
+#### 🎨 themes
+Dynamic theme system with instant switching
+
+**Installs**: Theme assets, wallpapers
+**Configures**: 11+ themes for Hyprland, Kitty, Waybar, Rofi, btop
+**Depends**: `hyprland`, `kitty`
+**Modes**: Desktop, Laptop only
+
+**Available themes**: catppuccin-mocha, nord, dracula, gruvbox, tokyo-night, and more
+
+#### 🔤 fonts
+System fonts and Nerd Fonts
+
+**Installs**: JetBrainsMono Nerd Font, system fonts
+**Configures**: Font rendering, fontconfig
+**Depends**: `core`
+
+#### 🔊 audio
+Audio stack for desktop
+
+**Installs**: PipeWire, pavucontrol, audio plugins
+**Configures**: Audio routing, volume control
+**Depends**: `core`
+**Modes**: Desktop, Laptop only
+
+### Development Modules
+
+#### 🐳 podman
+Container runtime and management
+
+**Installs**: Podman, podman-compose, Docker CLI compatibility
+**Configures**: Rootless containers, registries
+**Depends**: `core`
+
+#### 🌿 git-tools
+Enhanced Git workflow
+
+**Installs**: Delta (diff viewer), Git extras
+**Configures**: Advanced Git config, aliases, diff highlighting
+**Depends**: `core`
+
+#### 🤖 claude
+Claude Code CLI integration
+
+**Installs**: Claude Code CLI
+**Configures**: Claude integrations, settings
+**Depends**: `core`
 
 ---
 
 ## Creating Modules
 
-### Step 1: Create Module Directory
+Modules are self-contained with configs, scripts, and metadata:
+
+### 1. Create Module Structure
 
 ```bash
-mkdir -p modules/my-module
+mkdir -p modules/mymodule/config/dot_config/myapp
 ```
 
-### Step 2: Define Module Manifest
+### 2. Write Module Manifest
 
-**modules/my-module/module.yaml:**
+**modules/mymodule/module.yaml**:
 ```yaml
 module:
-  name: my-module
-  description: Brief description of what this module does
+  name: mymodule
+  description: My custom module
 
-# Dependencies
 depends:
-  - core  # List modules that must run before this one
+  - core  # Dependencies
 
-# Parameters with defaults
 params:
-  some_option: true
-  package_name: "my-package"
+  enable_feature: true  # Configurable parameters
+  package_name: myapp
 
-# Hooks
 hooks:
   before_apply:
-    - install.fish
+    - install.fish  # Installation script
   after_apply:
-    - configure.fish
+    - setup.fish    # Post-install setup
 
-# Mode availability
 modes:
   container:
     enabled: true
@@ -430,169 +471,121 @@ modes:
     enabled: true
 ```
 
-### Step 3: Create Installation Script
+### 3. Write Installation Script
 
-**modules/my-module/install.fish:**
+**modules/mymodule/install.fish**:
 ```fish
 #!/usr/bin/env fish
-# MY-MODULE: Install packages
 
-source "$FEDPUNK_LIB_PATH/helpers.fish"
+info "Installing mymodule"
 
-subsection "Installing my-module"
+# Access module parameters
+set package $FEDPUNK_MODULE_MYMODULE_PACKAGE_NAME
 
-# Access parameters
-set -q FEDPUNK_MODULE_MY_MODULE_PACKAGE_NAME; or set FEDPUNK_MODULE_MY_MODULE_PACKAGE_NAME "my-package"
+# Install package
+install_package $package
 
-# Use helper functions
-install_if_missing my-command $FEDPUNK_MODULE_MY_MODULE_PACKAGE_NAME
-
-success "my-module installed"
+success "mymodule installed"
 ```
 
-### Step 4: Add to Profile
+### 4. Add Module Configs
 
-**profiles/my-profile/fedpunk.yaml:**
+**modules/mymodule/config/dot_config/myapp/config.conf**:
+```
+# Your app configuration
+# Deployed to ~/.config/myapp/config.conf
+```
+
+### 5. Use Module in Profile
+
+**profiles/custom/fedpunk.yaml**:
 ```yaml
+profile:
+  name: custom
+
+inherit: base
+
 modules:
-  - my-module
-```
+  - mymodule
 
-### Helper Functions Reference
-
-Available in all module scripts (via `$FEDPUNK_LIB_PATH/helpers.fish`):
-
-```fish
-# Logging
-section "Section Title"          # Major section header
-subsection "Subsection Title"    # Minor section header
-info "Info message"              # Informational message
-success "Success message"        # Success indicator
-warning "Warning message"        # Warning indicator
-error "Error message"            # Error indicator
-box "Boxed message" $GUM_SUCCESS # Boxed message with style
-
-# Installation
-install_packages pkg1 pkg2 ...   # Install multiple packages with DNF
-install_if_missing cmd pkg       # Install pkg if cmd not found
-step "Description" "command"     # Run command with spinner + logging
-
-# System detection
-detect_gpu                       # Returns: nvidia, amd, intel, or unknown
-get_cpu_cores                    # Returns: number of CPU cores
-
-# User interaction
-confirm "Question?" "yes"        # Prompt yes/no (requires gum)
+module_params:
+  mymodule:
+    enable_feature: false
+    package_name: myapp-nightly
 ```
 
 ---
 
-## Creating Profiles
+## Theme Management
 
-### Step 1: Create Profile Directory
+Fedpunk includes a dynamic theme system (desktop/laptop modes):
 
-```bash
-mkdir -p profiles/my-profile/modes
-```
-
-### Step 2: Create Profile Manifest
-
-**profiles/my-profile/fedpunk.yaml:**
-```yaml
-profile:
-  name: my-profile
-  description: Custom profile for my use case
-  author: your-name
-  version: 1.0.0
-
-# Optionally inherit from another profile
-inherit: base
-
-# List modules to include
-modules:
-  - core
-  - tmux
-  - nvim
-  - my-custom-module
-
-# Mode-specific modules
-mode_modules:
-  desktop:
-    - hyprland
-    - kitty
-
-  laptop:
-    - hyprland
-    - kitty
-
-  container:
-    # Container mode has no additional modules
-
-# Override module parameters
-module_params:
-  nvim:
-    setup_plugins: true
-
-  tmux:
-    setup_tpm: true
-
-  languages:
-    install_nodejs: true
-    install_python: true
-    install_go: true
-```
-
-### Step 3: Create Mode Configurations
-
-**profiles/my-profile/modes/desktop.yaml:**
-```yaml
-mode:
-  name: desktop
-  description: Full desktop environment
-
-module_config:
-  core:
-    system_upgrade: true
-    firmware_update: true
-
-  hyprland:
-    enable_copr: true
-    install_extras: true
-```
-
-**profiles/my-profile/modes/laptop.yaml:**
-```yaml
-mode:
-  name: laptop
-  description: Desktop with power optimizations
-
-module_config:
-  core:
-    system_upgrade: true
-    firmware_update: true
-
-  hyprland:
-    enable_copr: true
-    install_extras: true
-```
-
-**profiles/my-profile/modes/container.yaml:**
-```yaml
-mode:
-  name: container
-  description: Minimal terminal environment
-
-module_config:
-  core:
-    system_upgrade: false
-    firmware_update: false
-```
-
-### Step 4: Use Your Profile
+### Switch Themes
 
 ```bash
-FEDPUNK_PROFILE=my-profile chezmoi init --apply <repo>
+# List available themes
+fedpunk-theme-list
+
+# Switch theme
+fedpunk-theme-set catppuccin-mocha
+
+# Get current theme
+fedpunk-theme-get
 ```
+
+### Available Themes
+
+- **catppuccin-mocha** - Soothing pastel theme (default)
+- **nord** - Arctic, north-bluish color palette
+- **dracula** - Dark theme with bright colors
+- **gruvbox-dark** - Retro groove colors
+- **tokyo-night** - Clean dark theme
+- **one-dark** - Atom's iconic theme
+- **solarized-dark** - Precision colors
+- And more!
+
+### Theme Previews
+
+**Catppuccin Mocha**
+![Catppuccin Theme](themes/catppuccin/preview.png)
+
+**Nord**
+![Nord Theme](themes/nord/preview.png)
+
+**Tokyo Night**
+![Tokyo Night Theme](themes/tokyo-night/preview.png)
+
+**Ayu Mirage**
+![Ayu Mirage Theme](themes/ayu-mirage/theme.png)
+
+**Rose Pine**
+![Rose Pine Theme](themes/rose-pine/preview.png)
+
+**Torrentz Hydra**
+![Torrentz Hydra Theme](themes/torrentz-hydra/preview.png)
+
+**Osaka Jade**
+![Osaka Jade Theme](themes/osaka-jade/preview.png)
+
+**Aetheria**
+![Aetheria Theme](themes/aetheria/preview.png)
+
+**Ristretto**
+![Ristretto Theme](themes/ristretto/preview.png)
+
+**Matte Black**
+![Matte Black Theme](themes/matte-black/preview.png)
+
+**Catppuccin Latte** (Light theme)
+![Catppuccin Latte Theme](themes/catppuccin-latte/preview.png)
+
+Themes update instantly across:
+- Hyprland (window decorations, gaps, borders)
+- Kitty (terminal colors)
+- Waybar (status bar colors)
+- Rofi (launcher colors)
+- Btop (system monitor)
+- Neovim (editor colors)
 
 ---
 
@@ -600,181 +593,224 @@ FEDPUNK_PROFILE=my-profile chezmoi init --apply <repo>
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FEDPUNK_MODE` | auto-detect | Force mode: `desktop`, `laptop`, or `container` |
-| `FEDPUNK_PROFILE` | `dev` | Profile to use |
-| `FEDPUNK_NON_INTERACTIVE` | - | Skip interactive prompts, use auto-detection |
+Control Fedpunk behavior:
 
-### Runtime Paths
+```bash
+# Mode selection (auto-detected if not set)
+export FEDPUNK_MODE=desktop|laptop|container
 
-During installation, these variables are available:
+# Profile selection (default: dev)
+export FEDPUNK_PROFILE=base|dev|custom
 
-| Variable | Value | Description |
-|----------|-------|-------------|
-| `$FEDPUNK_PATH` | Repository root | Base path to fedpunk |
-| `$FEDPUNK_LIB_PATH` | `$FEDPUNK_PATH/lib` | Helper libraries |
-| `$FEDPUNK_MODE` | Mode name | Current mode |
-| `$FEDPUNK_PROFILE_PATH` | Profile directory | Path to active profile |
-| `$FEDPUNK_CURRENT_MODULE` | Module name | Currently executing module |
-| `$FEDPUNK_MODULE_PATH` | Module directory | Path to current module |
-
-### Module Environment Variables
-
-Module parameters are exported as:
-```
-FEDPUNK_MODULE_<MODULE_NAME>_<PARAMETER_NAME>
+# Non-interactive mode (skip prompts)
+export FEDPUNK_NON_INTERACTIVE=1
 ```
 
-Examples:
+### Module Parameters
+
+Modules expose parameters in `.chezmoi.toml`:
+
+```toml
+[data.module.nvim]
+  ENABLED = "true"
+  PACKAGE_NAME = "neovim"
+  SETUP_PLUGINS = true
+
+[data.module.languages]
+  ENABLED = "true"
+  INSTALL_GO = true
+  INSTALL_NODEJS = true
+  INSTALL_PYTHON = false  # Override to disable Python
+```
+
+### Accessing Parameters in Scripts
+
+Module parameters are exported as environment variables:
+
 ```fish
-FEDPUNK_MODULE_NVIM_SETUP_PLUGINS=true
-FEDPUNK_MODULE_TMUX_SETUP_TPM=true
-FEDPUNK_MODULE_LANGUAGES_INSTALL_NODEJS=true
+# Format: FEDPUNK_MODULE_<MODULE>_<PARAM>
+echo $FEDPUNK_MODULE_NVIM_PACKAGE_NAME  # "neovim"
+echo $FEDPUNK_MODULE_NVIM_SETUP_PLUGINS # "true"
 ```
 
 ---
 
-## Themes
+## Updating
 
-Fedpunk includes 11 curated themes that update all applications simultaneously.
+Keep your Fedpunk installation up to date:
 
-### Theme Management
+```bash
+# Update chezmoi source (pulls latest changes)
+chezmoi update
 
-```fish
-fedpunk-theme-list              # List all themes
-fedpunk-theme-current           # Show current theme
-fedpunk-theme-set <name>        # Switch to specific theme
-fedpunk-theme-set-desktop <name> # Desktop apps only
-fedpunk-theme-set-terminal <name> # Terminal apps only
+# Re-apply configurations (updates symlinks, runs changed hooks)
+chezmoi apply
+
+# Full refresh (re-run all installation)
+chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
 ```
 
-### Available Themes
+**What gets updated**:
+- Module configs (via symlinks)
+- Changed dotfiles
+- Hook scripts marked as `run_onchange` or `run_once`
 
-- **aetheria** - Ethereal purple and blue gradients
-- **ayu-mirage** - Warm, muted desert tones (default)
-- **catppuccin** - Soothing pastel palette (mocha)
-- **catppuccin-latte** - Light mode variant
-- **matte-black** - Pure minimalist black
-- **nord** - Arctic-inspired cool tones
-- **osaka-jade** - Vibrant teal and green
-- **ristretto** - Rich espresso browns
-- **rose-pine** - Soft rose and pine palette
-- **tokyo-night** - Deep blues with neon accents
-- **torrentz-hydra** - Bold contrast scheme
-
-### What Themes Control
-
-- **Hyprland** - Border colors, gaps, decorations
-- **Kitty** - Terminal colors (live reload)
-- **Neovim** - Editor colorscheme (live reload)
-- **btop** - System monitor colors (live reload)
-- **tmux** - Status bar theme
-- **Rofi** - Launcher appearance
-- **Mako** - Notification styling
-- **Wallpapers** - Per-theme backgrounds
+**What doesn't re-run**:
+- Package installations (unless you remove chezmoi state)
+- `run_once` scripts that haven't changed
 
 ---
 
 ## Troubleshooting
 
-### Debugging Installation
+### Check Installation Logs
 
-All installation logs are saved:
 ```bash
-# View installation logs
+# View installation log
 tail -f /tmp/fedpunk-install-*.log
+
+# View post-installation log
 tail -f /tmp/fedpunk-after-*.log
+
+# View theme change log
+tail -f /tmp/fedpunk-onchange-*.log
 ```
 
-### Module Execution
+### Verify Module Configuration
 
-Check which modules are loaded:
 ```bash
+# Check loaded configuration
+chezmoi data | jq '.profile'
+
+# View modules
 chezmoi data | jq '.profile.modules'
-chezmoi data | jq '.profile.before_apply_hooks'
-chezmoi data | jq '.profile.after_apply_hooks'
+
+# View module parameters
+chezmoi data | jq '.module'
 ```
 
-### Module Parameters
+### Debug Symlinks
 
-Check exported parameters for a module:
 ```bash
-chezmoi data | jq '.module.nvim'
-chezmoi data | jq '.module.languages'
+# Check symlinks in source directory
+ls -la ~/.local/share/chezmoi/dot_config/
+
+# Should show symlinks like:
+# nvim -> /path/to/chezmoi/modules/nvim/config/dot_config/nvim
 ```
 
-### Re-running Installation
+### Reset Installation
 
 ```bash
-# Force re-init (re-runs all installation)
+# Remove chezmoi state
 rm -rf ~/.local/share/chezmoi ~/.config/chezmoi
-FEDPUNK_MODE=desktop FEDPUNK_PROFILE=dev chezmoi init --apply <repo>
 
-# Update existing installation
-chezmoi update
+# Fresh installation
+chezmoi init --apply https://github.com/hinriksnaer/Fedpunk.git
 ```
 
 ### Common Issues
 
-**Fish not available:**
-```bash
-exec fish  # Or restart terminal
-```
+**Module configs not appearing**:
+- Check symlinks were created: `ls -la ~/.local/share/chezmoi/dot_config/`
+- Verify module is enabled: `chezmoi data | jq '.profile.modules'`
+- Re-run symlink setup: `chezmoi apply`
 
-**Hyprland won't start:**
-```bash
-# Check driver issues
-dmesg | grep -i error
+**Package installation fails**:
+- Check DNF configuration: `/etc/dnf/dnf.conf`
+- View installation logs: `tail -f /tmp/fedpunk-install-*.log`
+- Verify network connectivity
 
-# NVIDIA users
-lsmod | grep nvidia
-
-# Check logs
-cat /tmp/hypr/$(ls -t /tmp/hypr/ | head -1)/hyprland.log
-```
-
-**Module failed to install:**
-```bash
-# Check module script directly
-cd /path/to/fedpunk
-source lib/helpers.fish
-fish modules/<module>/install.fish
-```
+**Theme switching doesn't work**:
+- Desktop/laptop mode only (not available in container mode)
+- Check theme exists: `fedpunk-theme-list`
+- View theme logs: `tail -f /tmp/fedpunk-onchange-*.log`
 
 ---
 
 ## Reference
 
+### Helper Functions
+
+Available in all module scripts via `lib/helpers.fish`:
+
+**Logging**:
+- `info "message"` - Blue info message
+- `success "message"` - Green success message
+- `warning "message"` - Yellow warning
+- `error "message"` - Red error (doesn't exit)
+- `section "title"` - Section header
+
+**Package Management**:
+- `install_package pkg [pkg...]` - Install with spinner + logging
+- `install_package_group @group` - Install package group
+
+**Spinners**:
+- `start_spinner "message"` - Start loading spinner
+- `stop_spinner 0` - Stop spinner (0=success, 1=failure)
+- `spinner_with_command "message" command args` - Run with spinner
+
+**Conditionals**:
+- `if is_container` - Check if in container mode
+- `if is_desktop` - Check if in desktop mode
+- `if is_laptop` - Check if in laptop mode
+
+### Module Loader Functions
+
+Available via `lib/modules.fish`:
+
+- `should_run_module "module_name"` - Check if module should execute
+- `execute_module_hook "module" "script" "phase"` - Run module hook
+
+### Chezmoi Template Variables
+
+Available in `.tmpl` files:
+
+```go
+{{ .mode.name }}              // "desktop", "laptop", "container"
+{{ .profile.name }}           // "base", "dev", etc.
+{{ .profile.path }}           // Full path to profile directory
+{{ .profile.modules }}        // List of enabled modules
+{{ .profile.before_apply_hooks }}  // List of installation hooks
+{{ .profile.after_apply_hooks }}   // List of setup hooks
+{{ .module.nvim.ENABLED }}    // Module-specific parameters
+{{ .chezmoi.sourceDir }}      // ~/.local/share/chezmoi
+{{ .chezmoi.homeDir }}        // ~
+```
+
 ### Module Manifest Schema
 
 ```yaml
 module:
-  name: string              # Module identifier (kebab-case)
-  description: string       # Brief description
+  name: string              # Module identifier
+  description: string       # Human-readable description
 
-depends: [string]           # List of module dependencies
+depends:                    # Module dependencies
+  - string[]
 
-params:                     # Default parameters
-  param_name: value         # Can be overridden in profiles
+params:                     # Configurable parameters
+  key: value
 
 hooks:
-  before_apply: [string]    # Scripts run before config deployment
-  after_apply: [string]     # Scripts run after config deployment
-  on_change: [string]       # Scripts run when files change
+  before_apply:             # Installation phase
+    - script.fish[]
+  after_apply:              # Post-install phase
+    - script.fish[]
+  on_change:                # Re-run when files change
+    - script.fish[]
 
-auto_detect:                # Optional auto-detection
-  command: string           # Shell command to detect (exit 0 = detected)
-  prompt: string            # Question to ask user
-  default: string           # Default answer (yes/no)
-
-modes:                      # Mode availability
+modes:                      # Mode-specific settings
   container:
     enabled: bool
   desktop:
     enabled: bool
   laptop:
     enabled: bool
+
+auto_detect:                # Optional auto-detection
+  command: string           # Command to check if installed
+  prompt: string            # User prompt
+  default: yes|no           # Default answer
 ```
 
 ### Profile Manifest Schema
@@ -782,79 +818,37 @@ modes:                      # Mode availability
 ```yaml
 profile:
   name: string              # Profile identifier
-  description: string       # Brief description
-  author: string            # Author name
-  version: string           # Semantic version
+  description: string       # Human-readable description
 
-inherit: string|null        # Base profile to inherit from
+inherit: string             # Optional parent profile (base)
 
-modules: [string]           # List of modules to include
+modules:                    # Modules to enable
+  - string[]
 
 mode_modules:               # Mode-specific modules
-  desktop: [string]
-  laptop: [string]
-  container: [string]
+  desktop:
+    - string[]
+  laptop:
+    - string[]
 
-module_params:              # Module parameter overrides
-  module-name:
-    param_name: value
+module_params:              # Parameter overrides
+  module_name:
+    param: value
 ```
-
-### Execution Hooks
-
-Hooks are strings in the format `"module:script"`:
-```toml
-before_apply_hooks = ["core:install.fish", "nvim:install.fish"]
-after_apply_hooks = ["nvim:setup-plugins.fish", "tmux:setup-plugins.fish"]
-```
-
-Split and execute:
-```fish
-set parts (string split ":" $hookStr)
-set moduleName (index $parts 0)
-set script (index $parts 1)
-execute_module_hook $moduleName $script "before_apply"
-```
-
----
-
-## Philosophy
-
-Fedpunk is built around core principles:
-
-- **Modular** - Functionality organized into composable modules
-- **Declarative** - Profiles declare intent, modules handle implementation
-- **Idempotent** - Safe to run multiple times
-- **Mode-aware** - Adapts to environment (desktop/laptop/container)
-- **Parameter-driven** - Customizable without code changes
-- **Dependency-aware** - Modules declare and resolve dependencies
-- **Keyboard-first** - Mouse optional, everything via keybindings
-- **Aesthetic** - Beautiful themes across all applications
 
 ---
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-module`
-3. Test in a VM or container
-4. Submit a pull request
+Fedpunk is designed to be extended! Contributions welcome:
 
-**Contribution areas:**
-- New modules (databases, editors, tools)
-- New profiles (specialized workflows)
-- New themes
-- Documentation improvements
-- Bug fixes
+1. **Create modules** - Add new functionality
+2. **Improve themes** - Design new color schemes
+3. **Enhance docs** - Help others get started
+4. **Report issues** - Found a bug? Let us know
+5. **Share configs** - Post your customizations
 
-**Module contribution checklist:**
-- [ ] `module.yaml` with complete metadata
-- [ ] Installation script with error handling
-- [ ] Uses helper functions from `lib/helpers.fish`
-- [ ] Declares all dependencies
-- [ ] Mode-awareness configured
-- [ ] Parameters documented
-- [ ] Tested in all applicable modes
+**Repository**: https://github.com/hinriksnaer/Fedpunk
 
 ---
 
@@ -864,4 +858,17 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Fedpunk - Modular, composable Fedora configuration**
+## Credits
+
+Built with:
+- [chezmoi](https://www.chezmoi.io/) - Dotfile manager
+- [Fish](https://fishshell.com/) - Modern shell
+- [Hyprland](https://hyprland.org/) - Wayland compositor
+- [Neovim](https://neovim.io/) - Text editor
+- [Gum](https://github.com/charmbracelet/gum) - TUI library
+
+Inspired by the Fedora community and developers who value efficiency, aesthetics, and automation.
+
+---
+
+**Made with ❤️ for developers who want their environment to just work.**

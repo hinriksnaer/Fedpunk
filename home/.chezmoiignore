@@ -1,5 +1,10 @@
 # Files managed dynamically by tools (should not be tracked by chezmoi)
 
+# Fedpunk system directories (not deployed)
+modules/**
+profiles/**
+lib/**
+
 # Fish shell - stores runtime state
 .config/fish/fish_variables
 
