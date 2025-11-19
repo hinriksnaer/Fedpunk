@@ -2,7 +2,7 @@
 # Keyboard, mouse, and touchpad settings
 # Generated from chezmoi template with mode detection
 
-{{- $mode := env "FEDPUNK_MODE" }}
+{{- $mode := .mode.name }}
 
 input {
     kb_layout = us

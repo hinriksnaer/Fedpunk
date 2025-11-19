@@ -21,7 +21,7 @@ exec-once = bash -c 'if [[ -f ~/.config/hypr/wallpapers/current ]]; then swaybg 
 # Network management
 exec-once = nm-applet
 
-{{- $mode := env "FEDPUNK_MODE" }}
+{{- $mode := .mode.name }}
 {{- if eq $mode "laptop" }}
 # Laptop-specific: Battery and brightness management
 # Power management applet

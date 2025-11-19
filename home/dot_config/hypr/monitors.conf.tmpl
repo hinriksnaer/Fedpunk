@@ -2,7 +2,7 @@
 # This file is auto-sourced by hyprland.conf
 # Generated from chezmoi template with mode detection
 
-{{- $mode := env "FEDPUNK_MODE" }}
+{{- $mode := .mode.name }}
 
 {{- if eq $mode "container" }}
 # Container mode - no monitor configuration needed
