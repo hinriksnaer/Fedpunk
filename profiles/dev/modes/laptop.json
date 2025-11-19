@@ -3,6 +3,8 @@
   "description": "Laptop-optimized desktop environment with power management",
   "install": {
     "desktop_preflight": true,
+    "system_upgrade": false,
+    "firmware_update": true,
     "yazi": true,
     "claude": true,
     "gh": true,

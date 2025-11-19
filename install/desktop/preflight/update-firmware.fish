@@ -6,9 +6,12 @@ source "$FEDPUNK_INSTALL/helpers/all.fish"
 
 section "Firmware Updates"
 
-# Skip if user doesn't want firmware updates
-if not opt_in "Check for firmware updates?" "no"
-    box "Firmware Updates Skipped" $GUM_WARNING
+# Check if firmware updates are enabled via mode configuration
+if not set -q FEDPUNK_INSTALL_FIRMWARE_UPDATE; or test "$FEDPUNK_INSTALL_FIRMWARE_UPDATE" = "false"
+    info "Firmware updates skipped (firmware_update=false in mode configuration)"
+    echo "[SKIPPED] Firmware updates disabled by mode configuration" >> $FEDPUNK_LOG_FILE
+    echo ""
+    box "Firmware Updates Phase Complete!" $GUM_SUCCESS
     exit 0
 end
 

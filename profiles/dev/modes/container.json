@@ -3,6 +3,8 @@
   "description": "Minimal development environment for containers",
   "install": {
     "desktop_preflight": false,
+    "system_upgrade": false,
+    "firmware_update": false,
     "yazi": true,
     "claude": true,
     "gh": true,

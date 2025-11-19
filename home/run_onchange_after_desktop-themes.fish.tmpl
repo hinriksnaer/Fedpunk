@@ -1,0 +1,43 @@
+#!/usr/bin/env fish
+# Desktop theme setup
+# Only runs for desktop/laptop modes
+# Re-runs when theme files or this script changes
+
+{{- if or (eq .mode.name "desktop") (eq .mode.name "laptop") }}
+
+# Set up environment
+set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
+set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-themes-"(date +%Y%m%d-%H%M%S)".log"
+
+echo "Theme System Setup"
+echo "=================="
+echo ""
+
+# Source helper functions
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+else
+    echo "Error: Cannot find helper functions"
+    exit 1
+end
+
+# Run theme setup
+if test -f "$FEDPUNK_INSTALL/post-install/setup-themes.fish"
+    source "$FEDPUNK_INSTALL/post-install/setup-themes.fish"
+else
+    warning "Theme setup script not found, skipping"
+end
+
+echo ""
+success "Theme setup complete"
+
+{{- else }}
+# Not a desktop mode, skip
+echo "Skipping theme setup (mode: {{ .mode.name }})"
+{{- end }}
+
+# Theme file checksums (causes re-run when themes change)
+{{- range (glob (printf "%s/themes/*" .chezmoi.workingTree)) }}
+# {{ . | sha256sum }}
+{{- end }}

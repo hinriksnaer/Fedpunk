@@ -6,7 +6,6 @@
 set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
 set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
-set -x FEDPUNK_NON_INTERACTIVE "true"  # Disable prompts, use mode config
 
 echo "Fedpunk Package Installation"
 echo "============================"

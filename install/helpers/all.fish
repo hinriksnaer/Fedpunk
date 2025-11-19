@@ -545,3 +545,76 @@ function download_and_extract
     end
 end
 
+# Ensure FEDPUNK environment variables are set
+# Usage: ensure_fedpunk_env
+function ensure_fedpunk_env
+    if not set -q FEDPUNK_PATH
+        set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+    end
+    if not set -q FEDPUNK_INSTALL
+        set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
+    end
+    if not set -q FEDPUNK_LOG_FILE
+        set -gx FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
+        echo "Fedpunk Installation Log - "(date) > $FEDPUNK_LOG_FILE
+        echo "=================================" >> $FEDPUNK_LOG_FILE
+        echo "" >> $FEDPUNK_LOG_FILE
+    end
+end
+
+# Install a command if it's not already available
+# Usage: install_if_missing command_name package_name [install_method]
+# install_method: "dnf" (default), "cargo", "script"
+function install_if_missing
+    set cmd_name $argv[1]
+    set pkg_name $argv[2]
+    set install_method $argv[3]
+
+    if test -z "$install_method"
+        set install_method "dnf"
+    end
+
+    if command -v $cmd_name >/dev/null 2>&1
+        success "$cmd_name already installed"
+        return 0
+    end
+
+    switch $install_method
+        case "dnf"
+            step "Installing $pkg_name" "$SUDO_CMD dnf install -qy $pkg_name"
+        case "cargo"
+            step "Installing $pkg_name via Cargo" "cargo install $pkg_name"
+        case "*"
+            error "Unknown install method: $install_method"
+            return 1
+    end
+end
+
+# Detect GPU type
+# Usage: set gpu_type (detect_gpu)
+# Returns: nvidia, amd, intel, or other
+function detect_gpu
+    if lspci 2>/dev/null | grep -i nvidia >/dev/null 2>&1
+        echo "nvidia"
+        return 0
+    else if lspci 2>/dev/null | grep -i amd >/dev/null 2>&1
+        echo "amd"
+        return 0
+    else if lspci 2>/dev/null | grep -i intel.*graphics >/dev/null 2>&1
+        echo "intel"
+        return 0
+    else
+        echo "other"
+        return 0
+    end
+end
+
+# Get number of CPU cores for parallel builds
+# Usage: set cores (get_cpu_cores)
+function get_cpu_cores
+    if command -v nproc >/dev/null 2>&1
+        nproc
+    else
+        echo "4"  # Reasonable default
+    end
+end

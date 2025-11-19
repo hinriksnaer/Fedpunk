@@ -1,0 +1,37 @@
+#!/usr/bin/env fish
+# Desktop-only system optimizations
+# Only runs for desktop/laptop modes
+
+{{- if or (eq .mode.name "desktop") (eq .mode.name "laptop") }}
+
+# Set up environment
+set -x FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
+set -x FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
+set -x FEDPUNK_LOG_FILE "/tmp/fedpunk-desktop-optimize-"(date +%Y%m%d-%H%M%S)".log"
+
+echo "Desktop System Optimizations"
+echo "============================="
+echo ""
+
+# Source helper functions
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+else
+    echo "Error: Cannot find helper functions"
+    exit 1
+end
+
+# Run desktop optimizations
+if test -f "$FEDPUNK_INSTALL/post-install/optimize-system.fish"
+    source "$FEDPUNK_INSTALL/post-install/optimize-system.fish"
+else
+    warning "Desktop optimization script not found, skipping"
+end
+
+echo ""
+success "Desktop optimizations complete"
+
+{{- else }}
+# Not a desktop mode, skip
+echo "Skipping desktop optimizations (mode: {{ .mode.name }})"
+{{- end }}

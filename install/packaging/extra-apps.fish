@@ -2,16 +2,17 @@
 # Extra Applications & Tooling
 # Edit the lists below to add your own applications
 
-# Source helper functions
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
-end
+# Ensure environment is set (for standalone execution)
 if not set -q FEDPUNK_INSTALL
+    if not set -q FEDPUNK_PATH
+        set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
+    end
     set -gx FEDPUNK_INSTALL "$FEDPUNK_PATH/install"
 end
-if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
-    source "$FEDPUNK_INSTALL/helpers/all.fish"
-end
+
+# Source helper functions
+source "$FEDPUNK_INSTALL/helpers/all.fish"
+ensure_fedpunk_env
 
 
 section "Extra Applications & Tooling"
