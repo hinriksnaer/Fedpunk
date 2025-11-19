@@ -1,11 +1,16 @@
 {{- /* Conditionally ignore run_once scripts based on install flags */ -}}
 
+{{- /* Only process if install data is available */ -}}
+{{- if hasKey . "install" }}
+
 {{- /* Skip tmux setup if tmux not installed */ -}}
-{{- if not .install.tmux }}
+{{-   if not (index .install "tmux") }}
 run_once_after_install-tmux-plugins.fish
-{{- end }}
+{{-   end }}
 
 {{- /* Skip neovim setup if neovim not installed */ -}}
-{{- if not .install.neovim }}
+{{-   if not (index .install "neovim") }}
 run_once_after_install-nvim.fish
+{{-   end }}
+
 {{- end }}
