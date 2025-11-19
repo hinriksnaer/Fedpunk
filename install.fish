@@ -236,6 +236,15 @@ if not command -v chezmoi >/dev/null 2>&1
     exit 1
 end
 
+# Generate mode detection data for chezmoi templates
+info "Detecting system mode (laptop/desktop/container)"
+set mode_script "$FEDPUNK_PATH/home/dot_local/bin/executable_fedpunk-detect-mode"
+if test -f "$mode_script"
+    fish "$mode_script" 2>&1 | tee -a "$FEDPUNK_LOG_FILE"
+else
+    warning "Mode detection script not found, using defaults"
+end
+
 # Run chezmoi apply with real-time output and timeout to prevent hanging
 info "Running: chezmoi apply --force --verbose (timeout: 5 minutes)"
 echo "Real-time output:"

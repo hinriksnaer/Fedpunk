@@ -1,5 +1,6 @@
 # Autostart Applications
 # Programs to run on Hyprland startup
+# Generated from chezmoi template with mode detection
 
 # Essential services first
 # Import all critical Wayland/toolkit environment variables into systemd user session
@@ -19,6 +20,18 @@ exec-once = bash -c 'if [[ -f ~/.config/hypr/wallpapers/current ]]; then swaybg 
 
 # Network management
 exec-once = nm-applet
+
+{{- if .isLaptop }}
+# Laptop-specific: Battery and brightness management
+# Power management applet
+exec-once = xfce4-power-manager
+
+# Brightness control notification (optional)
+# exec-once = brightnessctl set 50%
+
+# Auto-lock on low battery (optional)
+# exec-once = bash -c 'while true; do battery=$(cat /sys/class/power_supply/BAT0/capacity); if [[ $battery -lt 10 ]]; then swaylock; fi; sleep 60; done'
+{{- end }}
 
 # Waybar status bar
 exec-once = waybar

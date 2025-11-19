@@ -1,0 +1,83 @@
+#!/usr/bin/env fish
+# Fedpunk Mode Detection Script
+# Auto-generates .chezmoidata.toml based on hardware detection
+
+set -l fedpunk_home (dirname (dirname (dirname (status -f))))
+set -l source_dir "$HOME/.local/share/fedpunk/home"
+set -l output_file "$source_dir/.chezmoidata.toml"
+
+# Detect mode based on hardware
+set -l mode "desktop"
+set -l has_touchpad false
+
+if test -f /.dockerenv; or test -f /run/.containerenv
+    set mode "container"
+else if test -d /sys/class/power_supply/BAT0; or test -d /sys/class/power_supply/BAT1
+    set mode "laptop"
+    set has_touchpad true
+end
+
+# Detect NVIDIA
+set -l has_nvidia false
+if command -v nvidia-smi >/dev/null 2>&1; or test -f /proc/driver/nvidia/version
+    set has_nvidia true
+end
+
+# Get hostname
+set -l machine_hostname (hostname)
+
+# Set default display configuration
+set -l primary_monitor "auto"
+set -l primary_resolution "preferred"
+set -l primary_scale "1"
+
+# Machine-specific overrides (customize this section)
+switch $machine_hostname
+    case fedora
+        set primary_monitor "DP-1"
+        set primary_resolution "7679x2160@120"
+        set primary_scale "1.5"
+    case your-laptop-name
+        # Example laptop config
+        set primary_monitor "eDP-1"
+        set primary_resolution "1920x1080@60"
+        set primary_scale "1"
+    case your-desktop-name
+        # Example desktop config
+        set primary_monitor "DP-1"
+        set primary_resolution "2560x1440@144"
+        set primary_scale "1"
+end
+
+# Generate .chezmoidata.toml
+echo "# Fedpunk Mode Detection Data" > $output_file
+echo "# This file is generated/updated by the fedpunk installer" >> $output_file
+echo "# To regenerate: run 'fedpunk-detect-mode' or reinstall" >> $output_file
+echo "" >> $output_file
+echo "# Mode detection" >> $output_file
+echo "mode = \"$mode\"" >> $output_file
+echo "hostname = \"$machine_hostname\"" >> $output_file
+echo "" >> $output_file
+echo "# Mode-specific flags (for easy conditionals in templates)" >> $output_file
+echo "isLaptop = "(test $mode = laptop; and echo "true"; or echo "false") >> $output_file
+echo "isDesktop = "(test $mode = desktop; and echo "true"; or echo "false") >> $output_file
+echo "isContainer = "(test $mode = container; and echo "true"; or echo "false") >> $output_file
+echo "" >> $output_file
+echo "# Hardware detection" >> $output_file
+echo "hasNvidia = $has_nvidia" >> $output_file
+echo "hasTouchpad = $has_touchpad" >> $output_file
+echo "" >> $output_file
+echo "# Display configuration (customize per machine)" >> $output_file
+echo "primaryMonitor = \"$primary_monitor\"" >> $output_file
+echo "primaryResolution = \"$primary_resolution\"" >> $output_file
+echo "primaryScale = \"$primary_scale\"" >> $output_file
+
+echo "✓ Mode detection complete!"
+echo "  Mode: $mode"
+echo "  Hostname: $machine_hostname"
+echo "  NVIDIA: $has_nvidia"
+echo "  Touchpad: $has_touchpad"
+echo ""
+echo "Generated: $output_file"
+echo ""
+echo "To apply changes, run: chezmoi apply"
