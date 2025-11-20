@@ -19,9 +19,13 @@ end
 # Environment variables already set by preflight
 # Set up environment variables
 set -gx FEDPUNK_MODE "{{ .mode.name }}"
+set -gx FEDPUNK_REPO_ROOT "{{ .chezmoi.workingTree }}"
 
 # Source helpers
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
+
+# Load mode configuration to get install flags
+load_mode_config
 
 section "Desktop System Setup"
 
