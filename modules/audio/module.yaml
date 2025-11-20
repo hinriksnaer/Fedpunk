@@ -1,0 +1,46 @@
+module:
+  name: audio
+  description: PipeWire audio stack with codecs and Bluetooth support
+  dependencies: []
+
+lifecycle:
+  before: []
+  after:
+    - setup-audio
+
+packages:
+  dnf:
+    # PipeWire core
+    - pipewire
+    - pipewire-alsa
+    - pipewire-jack-audio-connection-kit
+    - pipewire-pulseaudio
+    - pipewire-utils
+    - wireplumber
+    - gstreamer1-pipewire
+    # Audio codecs
+    - ffmpeg
+    - gstreamer1-plugins-base
+    - gstreamer1-plugins-good
+    - gstreamer1-plugins-bad-free
+    - gstreamer1-plugins-ugly-free
+    - gstreamer1-libav
+    - lame
+    - opus
+    # Audio control utilities
+    - pavucontrol
+    - playerctl
+    - wpctl
+    - alsa-utils
+    - pulseaudio-utils
+    # Bluetooth audio
+    - bluez
+    - bluez-tools
+    - pipewire-plugin-libcamera
+  cargo: []
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn
