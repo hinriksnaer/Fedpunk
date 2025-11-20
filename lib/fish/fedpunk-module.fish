@@ -404,26 +404,21 @@ function fedpunk-module-deploy
     fedpunk-module-install-packages $module_name
     or return 1
 
-    # 2. Run install lifecycle
-    echo ""
-    echo "==> Running install lifecycle"
-    fedpunk-module-run-lifecycle $module_name install
-
-    # 3. Run before lifecycle
+    # 2. Run before lifecycle
     echo ""
     echo "==> Running before hook"
     fedpunk-module-run-lifecycle $module_name before
 
-    # 4. Stow config
+    # 3. Run after lifecycle
+    echo ""
+    echo "==> Running after hook"
+    fedpunk-module-run-lifecycle $module_name after
+
+    # 4. Stow config (always last)
     echo ""
     echo "==> Deploying configuration"
     fedpunk-module-stow $module_name
     or return 1
-
-    # 5. Run after lifecycle
-    echo ""
-    echo "==> Running after hook"
-    fedpunk-module-run-lifecycle $module_name after
 
     echo ""
     echo "✓ Module $module_name deployed successfully"
