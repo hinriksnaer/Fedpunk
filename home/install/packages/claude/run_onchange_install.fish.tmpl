@@ -1,0 +1,18 @@
+{{- if .install.claude -}}
+#!/usr/bin/env fish
+# Component: Claude Code
+# Description: Install Claude Code CLI
+# Mode: {{ .mode.name }}
+
+source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
+
+section "Claude Code Installation"
+
+if command -v claude >/dev/null 2>&1
+    success "Claude Code already installed: "(claude --version)
+else
+    step "Installing Claude Code" "npm install -g @anthropics/claude-code"
+end
+
+box "Claude Code Installation Complete!" $GUM_SUCCESS
+{{- end }}
