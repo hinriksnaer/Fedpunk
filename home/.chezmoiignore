@@ -26,3 +26,4 @@ lib/**
 
 # Profile system - active config symlinks
 .active-config/**
+.modes/**

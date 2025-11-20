@@ -14,8 +14,23 @@
 {{-   $mode = env "FEDPUNK_MODE" -}}
 {{- end -}}
 
+{{/* Load mode configuration from YAML file */}}
+{{- $modeFile := joinPath .chezmoi.sourceDir ".modes" (printf "%s.yaml" $mode) -}}
+{{- $modeConfig := dict -}}
+{{- if stat $modeFile -}}
+{{-   $modeConfig = include $modeFile | fromYaml -}}
+{{- end -}}
+
 [data]
   [data.mode]
     name = {{ $mode | quote }}
+
+{{/* Populate install flags from mode YAML */}}
+{{- if hasKey $modeConfig "install" }}
+  [data.install]
+{{-   range $key, $value := $modeConfig.install }}
+    {{ $key }} = {{ $value }}
+{{-   end }}
+{{- end }}
 
 # Mode: {{ $mode }}
