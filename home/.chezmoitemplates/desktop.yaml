@@ -29,7 +29,7 @@ install:
   audio: true              # PipeWire audio stack
   multimedia: true         # Codecs, hardware acceleration
   bluetooth: true          # BlueZ + bluetui
-  nvidia_drivers: false    # NVIDIA proprietary drivers (prompt if GPU detected)
+  nvidia_drivers: true     # NVIDIA proprietary drivers (prompt if GPU detected)
 
   # Optional extras
   extra_apps: true         # Discord, Spotify, etc.
