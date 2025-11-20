@@ -2,7 +2,6 @@ module:
   name: fonts
   description: Programming and UI fonts including Nerd Fonts
   dependencies: []
-  priority: 8
 
 lifecycle:
   before: []

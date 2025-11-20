@@ -3,7 +3,6 @@ module:
   description: GPU-accelerated terminal emulator
   dependencies:
     - fonts
-  priority: 8
 
 lifecycle:
   before: []

@@ -3,7 +3,6 @@ module:
   description: Wayland tiling compositor with full desktop environment
   dependencies:
     - kitty
-  priority: 9
 
 lifecycle:
   before: []
