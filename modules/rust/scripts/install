@@ -14,6 +14,12 @@ if not command -v rustc >/dev/null 2>&1
     # Add cargo to PATH for current session
     set -gx PATH $HOME/.cargo/bin $PATH
 
+    # Ensure default toolchain is set (in case --default-toolchain didn't work)
+    if not rustup default stable >/dev/null 2>&1
+        ui-error "Failed to set default Rust toolchain"
+        return 1
+    end
+
     ui-success "Rust toolchain installed"
 else
     ui-success "Rust already installed: "(rustc --version)
@@ -22,12 +28,14 @@ else
     set -gx PATH $HOME/.cargo/bin $PATH
 end
 
-# Update Rust to latest stable
-ui-info "Updating Rust to latest stable..."
-if rustup update stable >/dev/null 2>&1
-    ui-success "Rust updated to latest stable"
-else
-    ui-warning "Failed to update Rust (may already be latest)"
+# Update Rust to latest stable (only if rustc available)
+if command -v rustc >/dev/null 2>&1
+    ui-info "Updating Rust to latest stable..."
+    if rustup update stable >/dev/null 2>&1
+        ui-success "Rust updated to latest stable"
+    else
+        ui-warning "Failed to update Rust (may already be latest)"
+    end
 end
 
 ui-info "Rust setup complete"
