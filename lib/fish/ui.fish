@@ -9,6 +9,35 @@ set -g UI_WARNING 214  # Orange
 set -g UI_INFO 39      # Blue
 set -g UI_MUTED 245    # Gray
 
+# Logging configuration
+set -g UI_LOG_ENABLED true  # Enable logging during development
+set -g UI_DEBUG_MODE false  # Extra verbose output (set true for deep debugging)
+
+# Initialize log file
+if test "$UI_LOG_ENABLED" = "true"
+    if not set -q UI_LOG_FILE
+        set -gx UI_LOG_FILE "/tmp/fedpunk-ui-"(date +%Y%m%d-%H%M%S)".log"
+        echo "=== Fedpunk UI Log ===" > "$UI_LOG_FILE"
+        echo "Started: "(date) >> "$UI_LOG_FILE"
+        echo "" >> "$UI_LOG_FILE"
+    end
+end
+
+# Log a message to the UI log file
+function ui-log
+    set -l level $argv[1]
+    set -l message $argv[2..]
+
+    if test "$UI_LOG_ENABLED" = "true"
+        echo "["(date +%H:%M:%S)"] [$level] $message" >> "$UI_LOG_FILE"
+    end
+
+    # If debug mode, also output to stderr
+    if test "$UI_DEBUG_MODE" = "true"
+        echo "[DEBUG][$level] $message" >&2
+    end
+end
+
 # Check if gum is available
 function ui-has-gum
     command -v gum >/dev/null 2>&1
@@ -22,6 +51,8 @@ end
 # Spinner/progress indicator
 function ui-spin
     # Usage: ui-spin --title "Loading..." -- command args
+    ui-log SPIN "Starting: $argv"
+
     if ui-has-gum
         gum spin $argv
     else
@@ -46,6 +77,10 @@ function ui-spin
             eval $argv[$cmd_start..]
         end
     end
+
+    set -l status_code $status
+    ui-log SPIN "Completed with status: $status_code"
+    return $status_code
 end
 
 # Styled text output
@@ -62,6 +97,8 @@ end
 # Success message
 function ui-success
     set -l message $argv[1]
+    ui-log SUCCESS "$message"
+
     if ui-has-gum
         gum style --foreground $UI_SUCCESS "✓ $message"
     else
@@ -72,6 +109,8 @@ end
 # Error message
 function ui-error
     set -l message $argv[1]
+    ui-log ERROR "$message"
+
     if ui-has-gum
         gum style --foreground $UI_ERROR "✗ $message"
     else
@@ -82,6 +121,8 @@ end
 # Warning message
 function ui-warning
     set -l message $argv[1]
+    ui-log WARNING "$message"
+
     if ui-has-gum
         gum style --foreground $UI_WARNING "⚠ $message"
     else
@@ -92,6 +133,8 @@ end
 # Info message
 function ui-info
     set -l message $argv[1]
+    ui-log INFO "$message"
+
     if ui-has-gum
         gum style --foreground $UI_INFO "→ $message"
     else
@@ -102,6 +145,8 @@ end
 # Section header
 function ui-section
     set -l title $argv[1]
+    ui-log SECTION "$title"
+
     if ui-has-gum
         echo ""
         gum style --border double --padding "1 2" --border-foreground $UI_INFO "$title"
@@ -118,6 +163,8 @@ end
 # Subsection header
 function ui-subsection
     set -l title $argv[1]
+    ui-log SUBSECTION "$title"
+
     if ui-has-gum
         echo ""
         gum style --foreground $UI_INFO --bold "$title"
@@ -135,6 +182,8 @@ function ui-box
     if test -z "$color"
         set color $UI_SUCCESS
     end
+
+    ui-log BOX "$message"
 
     if ui-has-gum
         echo ""
@@ -154,21 +203,26 @@ end
 # Choose from list
 function ui-choose
     # Usage: ui-choose --header "Select option" option1 option2 option3
+    set -l header ""
+    set -l options
+
+    # Parse arguments to extract header and options for logging
+    for i in (seq (count $argv))
+        if test "$argv[$i]" = "--header"
+            set header $argv[(math $i + 1)]
+        else if not string match -q -- "--*" $argv[$i]
+            set -a options $argv[$i]
+        end
+    end
+
+    ui-log CHOOSE "Presenting choice: $header | Options: $options"
+
     if ui-has-gum
-        gum choose $argv
+        set -l choice (gum choose $argv)
+        ui-log CHOOSE "User selected: $choice"
+        echo $choice
     else
         # Fallback: use fish's read with prompt
-        set -l header ""
-        set -l options
-
-        for i in (seq (count $argv))
-            if test "$argv[$i]" = "--header"
-                set header $argv[(math $i + 1)]
-            else if not string match -q -- "--*" $argv[$i]
-                set -a options $argv[$i]
-            end
-        end
-
         if test -n "$header"
             echo "$header"
         end
@@ -179,7 +233,11 @@ function ui-choose
 
         read -l -P "Select number: " selection
         if test -n "$selection" -a $selection -le (count $options)
-            echo $options[$selection]
+            set -l choice $options[$selection]
+            ui-log CHOOSE "User selected: $choice (option $selection)"
+            echo $choice
+        else
+            ui-log CHOOSE "Invalid selection: $selection"
         end
     end
 end
@@ -188,37 +246,55 @@ end
 function ui-confirm
     # Usage: ui-confirm "Are you sure?" (returns 0 for yes, 1 for no)
     set -l prompt $argv[1]
+    ui-log CONFIRM "Asking: $prompt"
 
     if ui-has-gum
-        gum confirm "$prompt"
+        if gum confirm "$prompt"
+            ui-log CONFIRM "User answered: YES"
+            return 0
+        else
+            ui-log CONFIRM "User answered: NO"
+            return 1
+        end
     else
         # Fallback: use fish's read
         read -l -P "$prompt (y/N) " response
-        string match -qi "y*" "$response"
+        if string match -qi "y*" "$response"
+            ui-log CONFIRM "User answered: YES ($response)"
+            return 0
+        else
+            ui-log CONFIRM "User answered: NO ($response)"
+            return 1
+        end
     end
 end
 
 # Text input
 function ui-input
     # Usage: ui-input --placeholder "Enter value"
+    set -l placeholder ""
+
+    for i in (seq (count $argv))
+        if test "$argv[$i]" = "--placeholder"
+            set placeholder $argv[(math $i + 1)]
+        end
+    end
+
+    ui-log INPUT "Requesting input: $placeholder"
+
     if ui-has-gum
-        gum input $argv
+        set -l value (gum input $argv)
+        ui-log INPUT "User entered: [redacted - length "(string length "$value)")"]"
+        echo $value
     else
         # Fallback: use fish's read
-        set -l placeholder ""
-
-        for i in (seq (count $argv))
-            if test "$argv[$i]" = "--placeholder"
-                set placeholder $argv[(math $i + 1)]
-            end
-        end
-
         if test -n "$placeholder"
             read -l -P "$placeholder: " value
         else
             read -l value
         end
 
+        ui-log INPUT "User entered: [redacted - length "(string length "$value)")"]"
         echo $value
     end
 end
@@ -226,6 +302,8 @@ end
 # Filter/search from list
 function ui-filter
     # Usage: echo "item1\nitem2\nitem3" | ui-filter --placeholder "Search..."
+    ui-log FILTER "Filtering list"
+
     if ui-has-gum
         gum filter $argv
     else
@@ -253,9 +331,18 @@ function ui-step
     set -l total $argv[2]
     set -l description $argv[3]
 
+    ui-log STEP "Step $current/$total: $description"
+
     if ui-has-gum
         gum style --foreground $UI_INFO "[$current/$total] $description"
     else
         echo "[$current/$total] $description"
+    end
+end
+
+# Log file location
+function ui-log-location
+    if test "$UI_LOG_ENABLED" = "true"
+        echo $UI_LOG_FILE
     end
 end
