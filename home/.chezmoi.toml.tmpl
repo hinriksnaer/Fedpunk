@@ -1,24 +1,17 @@
 {{- $mode := "desktop" -}}
-{{- $autoDetectedMode := "" -}}
 
 {{/* Auto-detect mode based on environment */}}
 {{- if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
-{{-   $autoDetectedMode = "container" -}}
 {{-   $mode = "container" -}}
 {{- else if stat "/sys/class/power_supply/BAT0" -}}
-{{-   $autoDetectedMode = "laptop" -}}
 {{-   $mode = "laptop" -}}
 {{- else -}}
-{{-   $autoDetectedMode = "desktop" -}}
 {{-   $mode = "desktop" -}}
 {{- end -}}
 
-{{/* Allow override via environment or prompt */}}
+{{/* Allow override via FEDPUNK_MODE environment variable */}}
 {{- if env "FEDPUNK_MODE" -}}
 {{-   $mode = env "FEDPUNK_MODE" -}}
-{{- else -}}
-{{-   /* Use promptChoiceOnce to avoid re-prompting on apply */}}
-{{-   $mode = promptChoiceOnce . "mode" "Select installation mode" (list "desktop" "laptop" "container") $autoDetectedMode -}}
 {{- end -}}
 
 [data]
