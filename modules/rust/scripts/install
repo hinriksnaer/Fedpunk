@@ -6,28 +6,40 @@ source "$FEDPUNK_ROOT/lib/fish/ui.fish"
 
 ui-info "Installing Rust toolchain (required for cargo-based tools)"
 
-if not command -v rustc >/dev/null 2>&1
+# Add cargo to PATH for current session
+set -gx PATH $HOME/.cargo/bin $PATH
+
+# Check if rustup is installed
+if not command -v rustup >/dev/null 2>&1
     ui-spin --title "Installing Rust toolchain via rustup..." -- fish -c '
-        curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path >/dev/null 2>&1
+        curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path
     '
 
-    # Add cargo to PATH for current session
-    set -gx PATH $HOME/.cargo/bin $PATH
-
     ui-success "Rust toolchain installed"
-else
-    ui-success "Rust already installed: "(rustc --version)
-
-    # Ensure cargo is in PATH for current session
-    set -gx PATH $HOME/.cargo/bin $PATH
 end
 
-# Update Rust to latest stable
-ui-info "Updating Rust to latest stable..."
-if rustup update stable >/dev/null 2>&1
-    ui-success "Rust updated to latest stable"
+# Check if default toolchain is configured (handles partial installs)
+if not rustc --version >/dev/null 2>&1
+    ui-info "Configuring default Rust toolchain..."
+
+    if not rustup default stable 2>&1
+        ui-error "Failed to set default Rust toolchain"
+        return 1
+    end
+
+    ui-success "Default toolchain configured"
 else
-    ui-warning "Failed to update Rust (may already be latest)"
+    ui-success "Rust already configured: "(rustc --version)
+end
+
+# Update Rust to latest stable (only if rustc is working)
+if rustc --version >/dev/null 2>&1
+    ui-info "Updating Rust to latest stable..."
+    if rustup update stable >/dev/null 2>&1
+        ui-success "Rust updated to latest stable"
+    else
+        ui-warning "Failed to update Rust (may already be latest)"
+    end
 end
 
 ui-info "Rust setup complete"
