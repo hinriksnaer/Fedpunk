@@ -16,6 +16,27 @@ source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "Post-Installation"
 
+# Setup themes directory symlink
+subsection "Setting up themes directory"
+set fedpunk_dir "$HOME/.local/share/fedpunk"
+set themes_src "{{ .chezmoi.workingTree }}/themes"
+
+if not test -d "$fedpunk_dir"
+    mkdir -p "$fedpunk_dir"
+end
+
+# Remove old themes directory/symlink if it exists
+if test -e "$fedpunk_dir/themes"
+    rm -rf "$fedpunk_dir/themes"
+end
+
+# Create symlink to themes in repo
+if ln -sf "$themes_src" "$fedpunk_dir/themes"
+    success "Themes directory linked to $themes_src"
+else
+    warning "Failed to link themes directory"
+end
+
 # Update packages to catch any COPR or repo updates
 subsection "Checking for package updates"
 step "Updating packages" "sudo dnf upgrade -qy --refresh"
