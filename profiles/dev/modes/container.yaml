@@ -1,0 +1,16 @@
+# Development Profile - Container Mode
+# Minimal development environment for containers/devcontainers
+
+mode:
+  name: container
+  description: Minimal development environment for containers/devcontainers
+
+modules:
+  - essentials
+  # Phase 2 modules (not yet created):
+  # - neovim
+  # - tmux
+  # - lazygit
+  # - yazi
+  # - claude
+  # - gh

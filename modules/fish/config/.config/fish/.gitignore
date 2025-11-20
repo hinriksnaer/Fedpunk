@@ -1,0 +1,9 @@
+# Fisher-managed files (installed dynamically by setup-fisher script)
+completions/fisher.fish
+functions/fisher.fish
+
+# fzf.fish plugin files (installed by Fisher)
+completions/fzf_configure_bindings.fish
+functions/_fzf_*.fish
+functions/fzf_configure_bindings.fish
+conf.d/fzf.fish

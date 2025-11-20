@@ -1,0 +1,16 @@
+# Example Profile - Container Mode
+# Template for creating your own profiles
+
+mode:
+  name: container
+  description: Minimal container environment
+
+modules:
+  - essentials
+  # Add your modules here
+  # - neovim
+  # - tmux
+  # - lazygit
+  # - yazi
+  # - claude
+  # - gh

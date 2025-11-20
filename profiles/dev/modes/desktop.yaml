@@ -1,0 +1,24 @@
+# Development Profile - Desktop Mode
+# Full desktop environment with all development tools
+
+mode:
+  name: desktop
+  description: Full desktop environment with all development tools
+
+modules:
+  - essentials
+  - languages
+  # Phase 2+ modules (not yet created):
+  # - fonts
+  # - neovim
+  # - tmux
+  # - lazygit
+  # - btop
+  # - yazi
+  # - claude
+  # - gh
+  # - audio
+  # - kitty
+  # - hyprland
+  # - rofi
+  # - firefox

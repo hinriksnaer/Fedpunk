@@ -1,0 +1,27 @@
+module:
+  name: system-config
+  description: System-level configuration - DNF optimization, Terra repo, SELinux, core utilities
+  dependencies: []
+  priority: 15
+
+lifecycle:
+  before:
+    - configure-dnf
+    - setup-system
+  after: []
+
+packages:
+  dnf:
+    - curl
+    - wget
+    - which
+    - dbus-devel
+    - pkgconf-pkg-config
+    - util-linux-user
+  cargo: []
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn

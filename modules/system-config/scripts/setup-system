@@ -1,39 +1,65 @@
 #!/usr/bin/env fish
-# System setup: git submodules, SELinux configuration
+# Shared system setup: git submodules, system upgrade, core utilities, SELinux
 
+# Source UI functions
 source "$FEDPUNK_ROOT/lib/fish/ui.fish"
 
-ui-info "Configuring system"
+ui-section "System Setup"
+
+# Verify FEDPUNK_ROOT exists before changing to it
+if not test -d "$FEDPUNK_ROOT"
+    ui-error "FEDPUNK_ROOT not set or directory doesn't exist: $FEDPUNK_ROOT"
+    return 1
+end
+
+cd "$FEDPUNK_ROOT"
 
 # Git submodules
-if test -d "$FEDPUNK_ROOT/.git"
-    ui-info "Initializing git submodules"
+ui-info "Initializing git submodules"
 
-    # Check if any submodules use git-lfs
-    if git -C "$FEDPUNK_ROOT" submodule foreach --quiet 'git lfs ls-files -s' 2>/dev/null | grep -q .
-        if not command -v git-lfs >/dev/null 2>&1
-            ui-spin --title "Installing git-lfs..." -- fish -c '
-                sudo dnf install -qy git-lfs >/dev/null 2>&1
-            '
-            git lfs install >/dev/null 2>&1
+# Check if any submodules use git-lfs
+if git submodule foreach --quiet 'git lfs ls-files -s' 2>/dev/null | grep -q .
+    ui-spin --title "Installing git-lfs..." -- fish -c '
+        sudo dnf install -qy git-lfs >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "git-lfs installed"
+        if not git lfs install >/dev/null 2>&1
+            ui-warning "git-lfs installation failed, continuing anyway"
         end
+    else
+        ui-warning "Failed to install git-lfs, continuing anyway"
     end
+end
 
-    ui-spin --title "Syncing git submodules..." -- fish -c '
-        git -C '$FEDPUNK_ROOT' submodule sync --recursive >/dev/null 2>&1
-    '
+# Sync git submodules
+ui-spin --title "Syncing git submodules..." -- fish -c '
+    git submodule sync --recursive >/dev/null 2>&1
+'
 
-    ui-spin --title "Updating git submodules..." -- fish -c '
-        git -C '$FEDPUNK_ROOT' submodule update --init --recursive >/dev/null 2>&1
-    '
+if test $status -eq 0
+    ui-success "Syncing git submodules"
+else
+    ui-error "Syncing git submodules failed"
+end
 
-    ui-success "Git submodules initialized"
+# Update git submodules
+ui-spin --title "Updating git submodules..." -- fish -c '
+    git submodule update --init --recursive >/dev/null 2>&1
+'
+
+if test $status -eq 0
+    ui-success "Updating git submodules"
+else
+    ui-error "Updating git submodules failed"
 end
 
 # SELinux configuration
 echo ""
 ui-info "Checking SELinux configuration"
 
+# Check if getenforce command exists
 if command -v getenforce >/dev/null 2>&1
     set selinux_status (getenforce 2>/dev/null || echo "Disabled")
 else
@@ -61,12 +87,24 @@ if test "$selinux_status" = "Enforcing"
         ui-spin --title "Restoring SELinux context for .config..." -- fish -c '
             sudo restorecon -R "'$home_dir'/.config" >/dev/null 2>&1
         '
+
+        if test $status -eq 0
+            ui-success "SELinux context restored for .config"
+        else
+            ui-warning "Failed to restore SELinux context for .config"
+        end
     end
 
     if test -d "$home_dir/.local"
         ui-spin --title "Restoring SELinux context for .local..." -- fish -c '
             sudo restorecon -R "'$home_dir'/.local" >/dev/null 2>&1
         '
+
+        if test $status -eq 0
+            ui-success "SELinux context restored for .local"
+        else
+            ui-warning "Failed to restore SELinux context for .local"
+        end
     end
 
     ui-success "SELinux configuration complete"
@@ -74,4 +112,5 @@ else
     ui-info "SELinux not enforcing, skipping SELinux setup"
 end
 
-ui-success "System configuration complete"
+echo ""
+ui-box "Shared System Setup Complete!"

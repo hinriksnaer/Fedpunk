@@ -5,7 +5,7 @@
 # Source dependencies
 set -l lib_dir (dirname (status -f))
 source "$lib_dir/ui.fish"
-source "$lib_dir/toml-parser.fish"
+source "$lib_dir/yaml-parser.fish"
 source "$lib_dir/fedpunk-module.fish"
 
 function installer-select-profile
@@ -39,9 +39,9 @@ function installer-select-profile
     # Interactive selection
     ui-info "Available profiles:" >&2
     for profile in $available_profiles
-        set -l profile_toml "$profiles_dir/$profile/fedpunk.toml"
-        if test -f "$profile_toml"
-            set -l description (toml-get-value "$profile_toml" "profile" "description")
+        set -l profile_yaml "$profiles_dir/$profile/fedpunk.yaml"
+        if test -f "$profile_yaml"
+            set -l description (yaml-get-value "$profile_yaml" "profile" "description")
             echo "  • $profile - $description" >&2
         else
             echo "  • $profile" >&2
@@ -71,9 +71,9 @@ function installer-select-mode
 
     # List available modes
     set -l available_modes
-    for mode_file in $modes_dir/*.toml
+    for mode_file in $modes_dir/*.yaml
         if test -f "$mode_file"
-            set -l mode_name (basename "$mode_file" .toml)
+            set -l mode_name (basename "$mode_file" .yaml)
             set -a available_modes $mode_name
         end
     end
@@ -92,8 +92,8 @@ function installer-select-mode
     # Interactive selection
     ui-info "Available modes for profile '$profile':" >&2
     for mode in $available_modes
-        set -l mode_file "$modes_dir/$mode.toml"
-        set -l description (toml-get-value "$mode_file" "mode" "description")
+        set -l mode_file "$modes_dir/$mode.yaml"
+        set -l description (yaml-get-value "$mode_file" "mode" "description")
         if test -n "$description"
             echo "  • $mode - $description" >&2
         else
@@ -116,14 +116,14 @@ function installer-load-modules
     # Load module list from mode configuration
     set -l profile $argv[1]
     set -l mode $argv[2]
-    set -l mode_file "$FEDPUNK_ROOT/profiles/$profile/modes/$mode.toml"
+    set -l mode_file "$FEDPUNK_ROOT/profiles/$profile/modes/$mode.yaml"
 
     if not test -f "$mode_file"
         ui-error "Mode file not found: $mode_file"
         return 1
     end
 
-    toml-get-array "$mode_file" "modules" "enabled"
+    yaml-get-array "$mode_file" ".modules[]"
 end
 
 function installer-deploy-modules
@@ -239,8 +239,15 @@ function installer-run
     echo ""
     ui-info "Loading module configuration..."
     set -l modules (installer-load-modules $profile $mode)
+    set -l load_status $status
 
-    if test $status -ne 0
+    if test $load_status -ne 0
+        ui-error "Failed to load module configuration"
+        return 1
+    end
+
+    if test (count $modules) -eq 0
+        ui-error "No modules found in $profile/$mode configuration"
         return 1
     end
 

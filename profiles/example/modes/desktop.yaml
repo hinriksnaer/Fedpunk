@@ -1,0 +1,24 @@
+# Example Profile - Desktop Mode
+# Template for creating your own profiles
+
+mode:
+  name: desktop
+  description: Full desktop environment
+
+modules:
+  - essentials
+  # Add your modules here
+  # - languages
+  # - fonts
+  # - neovim
+  # - tmux
+  # - lazygit
+  # - btop
+  # - yazi
+  # - claude
+  # - gh
+  # - audio
+  # - kitty
+  # - hyprland
+  # - rofi
+  # - firefox
