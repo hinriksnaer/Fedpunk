@@ -1,6 +1,6 @@
 {{- if and .install.multimedia (ne .mode.name "container") }}
 #!/usr/bin/env fish
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "$FEDPUNK_PATH/core/lib/helpers.fish"
 section "Multimedia Installation"
 install_packages ffmpeg gstreamer1-plugins-{base,good,bad-free,ugly-free} mesa-va-drivers libva-utils
 box "Multimedia Installation Complete!" $GUM_SUCCESS

@@ -10,7 +10,7 @@ end
 
     set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
 end
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "$FEDPUNK_PATH/core/lib/helpers.fish"
 
 section "Language Toolchains Installation"
 install_packages nodejs python3 python3-pip golang

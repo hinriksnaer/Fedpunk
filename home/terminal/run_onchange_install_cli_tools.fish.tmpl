@@ -11,7 +11,7 @@ end
 if not set -q FEDPUNK_PATH
     set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
 end
-source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
+source "$FEDPUNK_PATH/core/lib/helpers.fish"
 
 section "CLI Tools Installation"
 install_packages ripgrep fd-find bat eza fzf
