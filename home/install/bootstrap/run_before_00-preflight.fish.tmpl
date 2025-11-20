@@ -14,7 +14,7 @@
 # Set standardized environment variables
 set -gx FEDPUNK_REPO_ROOT "{{ .chezmoi.workingTree }}"
 set -gx FEDPUNK_HOME_DIR "{{ .chezmoi.sourceDir }}"
-set -gx FEDPUNK_HELPERS "$FEDPUNK_REPO_ROOT/home/.install/lib/helpers.fish"
+set -gx FEDPUNK_HELPERS "$FEDPUNK_REPO_ROOT/home/install/lib/helpers.fish"
 set -gx FEDPUNK_MODE "{{ .mode.name }}"
 set -gx FEDPUNK_LOG_FILE "/tmp/fedpunk-install-"(date +%Y%m%d-%H%M%S)".log"
 

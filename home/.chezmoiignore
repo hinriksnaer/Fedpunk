@@ -4,6 +4,7 @@
 modules/**
 profiles/**
 lib/**
+install/**
 
 # Fish shell - stores runtime state
 .config/fish/fish_variables
