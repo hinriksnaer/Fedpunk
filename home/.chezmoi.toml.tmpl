@@ -4,23 +4,20 @@
 {{- if env "FEDPUNK_MODE" -}}
 {{-   $mode = env "FEDPUNK_MODE" -}}
 
-{{/* Priority 2: Auto-detect container mode (containers can't run gum interactively) */}}
+{{/* Priority 2: Auto-detect container mode (containers can't run prompts interactively) */}}
 {{- else if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
 {{-   $mode = "container" -}}
 
-{{/* Priority 3: Interactive selection with gum (if available and TTY present) */}}
-{{- else -}}
-{{-   $gumAvailable := lookPath "gum" -}}
-{{-   if $gumAvailable -}}
-{{-     $mode = output "sh" "-c" "gum choose --header='Select Fedpunk mode:' laptop desktop container 2>/dev/null || echo ''" | trim -}}
-{{-   end -}}
+{{/* Priority 3: Interactive selection (if TTY available) */}}
+{{- else if stdinIsATTY -}}
+{{-   $mode = promptChoice "Select Fedpunk mode" (list "laptop" "desktop" "container") -}}
 
-{{-   if eq $mode "" -}}
-{{-     if stat "/sys/class/power_supply/BAT0" -}}
-{{-       $mode = "laptop" -}}
-{{-     else -}}
-{{-       $mode = "desktop" -}}
-{{-     end -}}
+{{/* Priority 4: Fall back to auto-detection if not interactive */}}
+{{- else -}}
+{{-   if stat "/sys/class/power_supply/BAT0" -}}
+{{-     $mode = "laptop" -}}
+{{-   else -}}
+{{-     $mode = "desktop" -}}
 {{-   end -}}
 {{- end -}}
 
