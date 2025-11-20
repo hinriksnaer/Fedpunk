@@ -1,0 +1,27 @@
+{{- if .install.gh }}
+#!/usr/bin/env fish
+# Component: GitHub CLI
+# Description: Install gh (GitHub CLI)
+# Mode: {{ .mode.name }}
+
+if not set -q FEDPUNK_INSTALL_GH; or test "$FEDPUNK_INSTALL_GH" != "true"
+    exit 0
+end
+
+if not set -q FEDPUNK_PATH
+    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
+end
+source "$FEDPUNK_HELPERS"
+
+section "GitHub CLI Installation"
+
+if command -v gh >/dev/null 2>&1
+    success "GitHub CLI already installed"
+else
+    step "Adding GitHub CLI repo" "sudo dnf install -qy 'dnf-command(config-manager)'"
+    step "Enabling GitHub CLI repo" "sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo"
+    step "Installing GitHub CLI" "sudo dnf install -qy gh"
+end
+
+box "GitHub CLI Installation Complete!" $GUM_SUCCESS
+{{- end }}

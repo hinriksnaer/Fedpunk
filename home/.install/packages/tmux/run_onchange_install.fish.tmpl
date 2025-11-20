@@ -1,0 +1,44 @@
+{{- if .install.tmux }}
+#!/usr/bin/env fish
+# Component: Tmux
+# Description: Install tmux terminal multiplexer and TPM plugin manager
+# Mode: {{ .mode.name }}
+
+source "$FEDPUNK_HELPERS"
+
+section "Tmux Installation"
+
+# Install tmux
+if command -v tmux >/dev/null 2>&1
+    success "Tmux already installed: "(tmux -V)
+else
+    step "Installing tmux" "sudo dnf install -qy tmux"
+end
+
+# Install TPM (Tmux Plugin Manager)
+subsection "Setting up TPM"
+if not test -d "$HOME/.tmux/plugins/tpm"
+    step "Installing TPM" "git clone --quiet https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm"
+else
+    success "TPM already installed"
+end
+
+# Install tmux plugins
+if test -f "$HOME/.config/tmux/tmux.conf"
+    subsection "Installing tmux plugins"
+
+    # Try to install plugins via tmux
+    # Note: This may fail if no TTY available - plugins will install on first tmux launch
+    if tmux start-server \; set -g exit-empty off \; source-file ~/.config/tmux/tmux.conf \; run-shell '~/.tmux/plugins/tpm/scripts/install_plugins.sh' \; set -g exit-empty on 2>/dev/null
+        success "Tmux plugins installed"
+    else
+        info "Plugins will install automatically on first tmux launch"
+        info "Or manually with: tmux and then 'prefix + I'"
+    end
+else
+    warning "Tmux config not found (will be deployed by chezmoi)"
+end
+
+echo ""
+box "Tmux Installation Complete!" $GUM_SUCCESS
+{{- end }}

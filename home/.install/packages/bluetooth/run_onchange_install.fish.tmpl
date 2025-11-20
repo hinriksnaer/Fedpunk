@@ -1,0 +1,7 @@
+{{- if and .install.bluetooth (ne .mode.name "container") }}
+#!/usr/bin/env fish
+source "$FEDPUNK_HELPERS"
+section "Bluetooth Installation"
+install_packages bluez bluetui
+box "Bluetooth Installation Complete!" $GUM_SUCCESS
+{{- end }}

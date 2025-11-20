@@ -1,0 +1,16 @@
+{{- if and .install.firefox (ne .mode.name "container") }}
+#!/usr/bin/env fish
+# Install Firefox web browser
+
+
+source "$FEDPUNK_HELPERS"
+
+section "Firefox Installation"
+
+subsection "Installing Firefox"
+
+install_packages firefox
+
+echo ""
+success "Firefox installed successfully"
+{{- end }}

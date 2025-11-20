@@ -1,0 +1,40 @@
+#!/usr/bin/env fish
+# ============================================================================
+# MODE CONFIGURATION: Load mode settings
+# ============================================================================
+# Purpose:
+#   - Load mode YAML file (modes/$MODE.yaml)
+#   - Parse install flags → FEDPUNK_INSTALL_* environment variables
+#   - Make available to all subsequent scripts
+# Runs: Before file deployment (all modes)
+# ============================================================================
+
+# Environment variables already set by preflight
+# Source helpers
+source "$FEDPUNK_HELPERS"
+
+section "Mode Configuration"
+
+info "Mode: $FEDPUNK_MODE"
+info "Loading configuration from: modes/$FEDPUNK_MODE.yaml"
+
+# Load mode configuration
+load_mode_config
+
+if test $status -eq 0
+    success "Mode configuration loaded"
+else
+    error "Failed to load mode configuration"
+    exit 1
+end
+
+# Log all FEDPUNK_INSTALL_* variables
+echo "" >> $FEDPUNK_LOG_FILE
+echo "[MODE CONFIG] Loaded variables:" >> $FEDPUNK_LOG_FILE
+for var in (set -xg | grep FEDPUNK_INSTALL_)
+    echo "  $var" >> $FEDPUNK_LOG_FILE
+end
+echo "" >> $FEDPUNK_LOG_FILE
+
+echo ""
+box "Mode Configuration Complete!" $GUM_SUCCESS

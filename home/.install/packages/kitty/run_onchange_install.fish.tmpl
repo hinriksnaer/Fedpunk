@@ -1,0 +1,7 @@
+{{- if and .install.kitty (ne .mode.name "container") }}
+#!/usr/bin/env fish
+source "$FEDPUNK_HELPERS"
+section "Kitty Installation"
+install_if_missing kitty kitty
+box "Kitty Installation Complete!" $GUM_SUCCESS
+{{- end }}

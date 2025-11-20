@@ -1,7 +1,0 @@
-{{- if and .install.audio (ne .mode.name "container") }}
-#!/usr/bin/env fish
-source "$FEDPUNK_PATH/core/lib/helpers.fish"
-section "Audio Installation"
-install_packages pipewire pipewire-pulseaudio wireplumber pavucontrol
-box "Audio Installation Complete!" $GUM_SUCCESS
-{{- end }}

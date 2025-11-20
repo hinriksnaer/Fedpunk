@@ -1,0 +1,16 @@
+{{- if and .install.rofi (ne .mode.name "container") }}
+#!/usr/bin/env fish
+# Install Rofi application launcher
+
+
+source "$FEDPUNK_HELPERS"
+
+section "Rofi Installation"
+
+subsection "Installing Rofi"
+
+install_packages rofi-wayland
+
+echo ""
+success "Rofi installed successfully"
+{{- end }}
