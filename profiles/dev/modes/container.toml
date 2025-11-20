@@ -1,9 +1,0 @@
-# Development Profile - Container Mode
-# Minimal development environment for containers/devcontainers
-
-[mode]
-name = "container"
-description = "Minimal development environment for containers/devcontainers"
-
-[modules]
-enabled = ["fish", "neovim", "tmux", "lazygit", "yazi", "claude", "gh"]

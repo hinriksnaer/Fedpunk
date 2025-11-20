@@ -4,7 +4,7 @@
 
 # Source dependencies
 set -l script_dir (dirname (status -f))
-source "$script_dir/toml-parser.fish"
+source "$script_dir/yaml-parser.fish"
 
 # Global variable to track deployed modules (prevents redeployment in same session)
 if not set -q FEDPUNK_DEPLOYED_MODULES
@@ -15,15 +15,15 @@ end
 function fedpunk-module-resolve-dependencies
     set -l module_name $argv[1]
     set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
-    set -l module_toml "$module_dir/module.toml"
+    set -l module_yaml "$module_dir/module.yaml"
 
-    if not test -f "$module_toml"
+    if not test -f "$module_yaml"
         echo "Module not found: $module_name" >&2
         return 1
     end
 
     # Get dependencies
-    set -l dependencies (toml-get-array "$module_toml" "module" "dependencies")
+    set -l dependencies (yaml-get-list "$module_yaml" "module" "dependencies")
 
     if test -z "$dependencies"
         return 0  # No dependencies
@@ -107,17 +107,17 @@ function fedpunk-module-list
     for module_dir in $modules_dir/*
         if test -d "$module_dir"
             set -l module_name (basename "$module_dir")
-            set -l module_toml "$module_dir/module.toml"
+            set -l module_yaml "$module_dir/module.yaml"
 
-            if test -f "$module_toml"
-                set -l description (toml-get-value "$module_toml" "module" "description")
+            if test -f "$module_yaml"
+                set -l description (yaml-get-value "$module_yaml" "module" "description")
                 if test -n "$description"
                     echo "  $module_name - $description"
                 else
                     echo "  $module_name"
                 end
             else
-                echo "  $module_name (no module.toml)"
+                echo "  $module_name (no module.yaml)"
             end
         end
     end
@@ -132,18 +132,18 @@ function fedpunk-module-info
     end
 
     set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
-    set -l module_toml "$module_dir/module.toml"
+    set -l module_yaml "$module_dir/module.yaml"
 
-    if not test -f "$module_toml"
+    if not test -f "$module_yaml"
         echo "Module not found: $module_name" >&2
         return 1
     end
 
     echo "Module: $module_name"
-    echo "Description: "(toml-get-value "$module_toml" "module" "description")
-    echo "Priority: "(toml-get-value "$module_toml" "module" "priority")
+    echo "Description: "(yaml-get-value "$module_yaml" "module" "description")
+    echo "Priority: "(yaml-get-value "$module_yaml" "module" "priority")
 
-    set -l deps (toml-get-array "$module_toml" "module" "dependencies")
+    set -l deps (yaml-get-list "$module_yaml" "module" "dependencies")
     if test -n "$deps"
         echo "Dependencies: $deps"
     else
@@ -153,7 +153,7 @@ function fedpunk-module-info
     echo ""
     echo "Lifecycle hooks:"
     for hook in install update before after
-        set -l scripts (toml-get-array "$module_toml" "lifecycle" "$hook")
+        set -l scripts (yaml-get-list "$module_yaml" "lifecycle" "$hook")
         if test -n "$scripts"
             echo "  $hook: $scripts"
         end
@@ -162,7 +162,7 @@ function fedpunk-module-info
     echo ""
     echo "Packages:"
     for pkg_mgr in copr dnf cargo npm flatpak
-        set -l packages (toml-get-array "$module_toml" "packages" "$pkg_mgr")
+        set -l packages (yaml-get-list "$module_yaml" "packages" "$pkg_mgr")
         if test -n "$packages"
             echo "  $pkg_mgr: $packages"
         end
@@ -178,9 +178,9 @@ function fedpunk-module-install-packages
     end
 
     set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
-    set -l module_toml "$module_dir/module.toml"
+    set -l module_yaml "$module_dir/module.yaml"
 
-    if not test -f "$module_toml"
+    if not test -f "$module_yaml"
         echo "Module not found: $module_name" >&2
         return 1
     end
@@ -190,35 +190,35 @@ function fedpunk-module-install-packages
     # Install in order: copr -> dnf -> cargo -> npm -> flatpak
 
     # COPR repos
-    set -l copr_repos (toml-get-array "$module_toml" "packages" "copr")
+    set -l copr_repos (yaml-get-list "$module_yaml" "packages" "copr")
     for repo in $copr_repos
         echo "  Enabling COPR repo: $repo"
         sudo dnf copr enable -y $repo
     end
 
     # DNF packages
-    set -l dnf_packages (toml-get-array "$module_toml" "packages" "dnf")
+    set -l dnf_packages (yaml-get-list "$module_yaml" "packages" "dnf")
     if test -n "$dnf_packages"
         echo "  Installing DNF packages: $dnf_packages"
         sudo dnf install -y $dnf_packages
     end
 
     # Cargo packages
-    set -l cargo_packages (toml-get-array "$module_toml" "packages" "cargo")
+    set -l cargo_packages (yaml-get-list "$module_yaml" "packages" "cargo")
     for pkg in $cargo_packages
         echo "  Installing cargo package: $pkg"
         cargo install $pkg
     end
 
     # NPM packages
-    set -l npm_packages (toml-get-array "$module_toml" "packages" "npm")
+    set -l npm_packages (yaml-get-list "$module_yaml" "packages" "npm")
     for pkg in $npm_packages
         echo "  Installing npm package: $pkg"
         npm install -g $pkg
     end
 
     # Flatpak packages
-    set -l flatpak_packages (toml-get-array "$module_toml" "packages" "flatpak")
+    set -l flatpak_packages (yaml-get-list "$module_yaml" "packages" "flatpak")
     for pkg in $flatpak_packages
         echo "  Installing flatpak: $pkg"
         flatpak install -y $pkg
@@ -334,15 +334,15 @@ function fedpunk-module-run-lifecycle
     end
 
     set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
-    set -l module_toml "$module_dir/module.toml"
+    set -l module_yaml "$module_dir/module.yaml"
 
-    if not test -f "$module_toml"
+    if not test -f "$module_yaml"
         echo "Module not found: $module_name" >&2
         return 1
     end
 
     # Get scripts for this hook
-    set -l scripts (toml-get-array "$module_toml" "lifecycle" "$hook")
+    set -l scripts (yaml-get-list "$module_yaml" "lifecycle" "$hook")
 
     if test -z "$scripts"
         echo "No $hook lifecycle scripts for $module_name"

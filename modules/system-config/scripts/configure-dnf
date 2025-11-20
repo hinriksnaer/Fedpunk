@@ -1,0 +1,108 @@
+#!/usr/bin/env fish
+# Configure DNF for better performance and usability
+
+# Source UI functions
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-section "DNF Configuration"
+
+ui-info "Configuring DNF for optimal performance"
+
+# DNF configuration file
+set dnf_conf "/etc/dnf/dnf.conf"
+
+# Check if we need to add configurations
+set needs_update false
+
+# Check each setting
+if not grep -q "^fastestmirror=" "$dnf_conf" 2>/dev/null
+    set needs_update true
+end
+
+if not grep -q "^max_parallel_downloads=" "$dnf_conf" 2>/dev/null
+    set needs_update true
+end
+
+if not grep -q "^defaultyes=" "$dnf_conf" 2>/dev/null
+    set needs_update true
+end
+
+if test "$needs_update" = true
+    ui-info "Adding performance optimizations to $dnf_conf"
+
+    ui-spin --title "Configuring DNF settings..." -- fish -c '
+        # Backup original config
+        sudo cp '"$dnf_conf"' '"$dnf_conf"'.bak >/dev/null 2>&1
+
+        # Add settings if they don'"'"'t exist
+        if not grep -q "^fastestmirror=" '"$dnf_conf"' 2>/dev/null
+            echo "fastestmirror=True" | sudo tee -a '"$dnf_conf"' >/dev/null 2>&1
+        end
+
+        if not grep -q "^max_parallel_downloads=" '"$dnf_conf"' 2>/dev/null
+            echo "max_parallel_downloads=10" | sudo tee -a '"$dnf_conf"' >/dev/null 2>&1
+        end
+
+        if not grep -q "^defaultyes=" '"$dnf_conf"' 2>/dev/null
+            echo "defaultyes=True" | sudo tee -a '"$dnf_conf"' >/dev/null 2>&1
+        end
+    '
+
+    if test $status -eq 0
+        ui-success "DNF configuration updated"
+    else
+        ui-warning "Failed to update DNF configuration"
+    end
+
+    ui-info "DNF will now:"
+    ui-info "  • Use fastest mirrors automatically"
+    ui-info "  • Download up to 10 packages in parallel"
+    ui-info "  • Default to 'yes' for prompts"
+else
+    ui-success "DNF already configured with performance optimizations"
+end
+
+# Install Terra repository
+echo ""
+ui-info "Setting up Terra repository"
+
+if rpm -qa | grep -q "terra-release"
+    ui-success "Terra repository already installed"
+else
+    ui-spin --title "Installing Terra repository..." -- fish -c '
+        sudo dnf install -qy --nogpgcheck --repofrompath "terra,https://repos.fyralabs.com/terra\$releasever" terra-release >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "Terra repository installed"
+    else
+        ui-warning "Failed to install Terra repository"
+    end
+end
+
+# Install app-stream metadata
+echo ""
+ui-info "Installing app-stream metadata"
+
+ui-spin --title "Upgrading core group..." -- fish -c '
+    sudo dnf group upgrade -qy core >/dev/null 2>&1
+'
+
+if test $status -eq 0
+    ui-success "Core group upgraded"
+else
+    ui-warning "Core group may already be up to date"
+end
+
+ui-spin --title "Installing core group..." -- fish -c '
+    sudo dnf group install -qy core >/dev/null 2>&1
+'
+
+if test $status -eq 0
+    ui-success "Core group installed"
+else
+    ui-warning "Core group may already be installed"
+end
+
+echo ""
+ui-box "DNF Configuration Complete!"

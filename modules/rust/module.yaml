@@ -1,0 +1,22 @@
+module:
+  name: rust
+  description: Rust toolchain with cargo, rustup, and build optimizations for faster compilation
+  dependencies: []
+  priority: 10
+
+lifecycle:
+  before:
+    - install
+  after: []
+
+packages:
+  dnf:
+    - mold
+    - clang
+  cargo: []
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn
