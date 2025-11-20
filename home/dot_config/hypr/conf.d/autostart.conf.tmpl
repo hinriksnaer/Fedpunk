@@ -13,10 +13,9 @@ exec-once = hyprpolkitagent
 exec-once = gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 exec-once = gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 
-# Wallpaper with fallbacks
-# 1. Try current theme wallpaper
-# 2. Fall back to default solid color if theme fails
-exec-once = bash -c 'if [[ -f ~/.config/hypr/wallpapers/current ]]; then swaybg -i ~/.config/hypr/wallpapers/current -m fill; else fallback_wp=$(find ~/.local/share/fedpunk/themes/*/backgrounds -name "*.jpg" -o -name "*.png" | head -1 2>/dev/null); if [[ -f "$fallback_wp" ]]; then swaybg -i "$fallback_wp" -m fill; else swaybg -c "#1e1e1e"; fi; fi'
+# Wallpaper (hyprpaper reads from ~/.config/hypr/hyprpaper.conf)
+# Theme switcher manages ~/.config/hypr/wallpapers/current symlink
+exec-once = hyprpaper
 
 # Network management
 exec-once = nm-applet

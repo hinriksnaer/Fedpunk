@@ -6,14 +6,41 @@
 # Find script directory for calling other scripts
 set script_dir (dirname (status -f))
 
-# Source helper functions for consistent interface
+# Source helper functions for consistent interface (optional)
 set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
-set helpers_path "$FEDPUNK_PATH/profiles/base/lib/helpers.fish"
-if test -f "$helpers_path"
-    source "$helpers_path"
-else
-    echo "Error: Cannot find helper functions at $helpers_path"
-    exit 1
+
+# Define simple fallback functions if helpers not available
+function info
+    echo "→ $argv"
+end
+function success
+    echo "✓ $argv"
+end
+function warning
+    echo "⚠ $argv"
+end
+function error
+    echo "✗ $argv" >&2
+end
+function step
+    set description $argv[1]
+    set command $argv[2..-1]
+    eval $command >/dev/null 2>&1
+    set result $status
+    if test $result -eq 0
+        success "$description"
+        return 0
+    else
+        warning "$description failed"
+        return 1
+    end
+end
+function box
+    echo ""
+    echo "╭─────────────────────────────────╮"
+    echo "│ $argv[1]"
+    echo "╰─────────────────────────────────╯"
+    echo ""
 end
 
 if test (count $argv) -lt 1

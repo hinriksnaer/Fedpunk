@@ -4,13 +4,6 @@
 # Description: Install core CLI utilities (ripgrep, fd, bat, eza, fzf)
 # Mode: {{ .mode.name }}
 
-if not set -q FEDPUNK_INSTALL_CLI_TOOLS; or test "$FEDPUNK_INSTALL_CLI_TOOLS" != "true"
-    exit 0
-end
-
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "CLI Tools Installation"

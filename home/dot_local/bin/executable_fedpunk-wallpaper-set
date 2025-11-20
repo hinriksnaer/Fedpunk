@@ -2,7 +2,7 @@
 # Set wallpaper from current theme (uses first wallpaper found)
 # Usage: fedpunk-wallpaper-set [theme-name]
 # If no theme-name provided, uses current theme
-# Uses swaybg (like omarchy)
+# Uses hyprpaper
 
 set themes_dir "$HOME/.local/share/fedpunk/themes"
 set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
@@ -39,10 +39,6 @@ set first_wallpaper (find -L "$backgrounds_dir" -type f \( -iname "*.jpg" -o -in
 if test -z "$first_wallpaper"
     echo "⊘ No wallpaper images found in theme backgrounds"
     rm -f "$current_wallpaper_link"
-    # Set black background if no wallpaper
-    pkill -x swaybg 2>/dev/null
-    swaybg --color '#000000' >/dev/null 2>&1 &
-    disown
     return 0
 end
 
@@ -50,9 +46,11 @@ end
 mkdir -p (dirname "$current_wallpaper_link")
 ln -sf "$first_wallpaper" "$current_wallpaper_link"
 
-# Relaunch swaybg with new wallpaper (omarchy style)
-pkill -x swaybg 2>/dev/null
-swaybg -i "$current_wallpaper_link" -m fill >/dev/null 2>&1 &
+# Reload hyprpaper to apply new wallpaper
+# Kill and restart hyprpaper with new wallpaper (simple and reliable)
+pkill -x hyprpaper 2>/dev/null
+sleep 0.2
+hyprpaper >/dev/null 2>&1 &
 disown
 
 set wallpaper_name (basename "$first_wallpaper")

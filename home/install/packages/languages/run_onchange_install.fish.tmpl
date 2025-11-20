@@ -2,15 +2,8 @@
 #!/usr/bin/env fish
 # Component: Programming Languages
 # Description: Install language toolchains (Node.js, Python, Go)
-# Mode: All modes (if FEDPUNK_INSTALL_LANGUAGES=true)
+# Mode: {{ .mode.name }}
 
-if not set -q FEDPUNK_INSTALL_LANGUAGES; or test "$FEDPUNK_INSTALL_LANGUAGES" != "true"
-    exit 0
-end
-
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "Language Toolchains Installation"

@@ -4,13 +4,6 @@
 # Description: Install btop system monitor
 # Mode: {{ .mode.name }}
 
-if not set -q FEDPUNK_INSTALL_BTOP; or test "$FEDPUNK_INSTALL_BTOP" != "true"
-    exit 0
-end
-
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "Btop Installation"

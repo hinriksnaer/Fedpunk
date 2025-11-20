@@ -4,13 +4,6 @@
 # Description: Install gh (GitHub CLI)
 # Mode: {{ .mode.name }}
 
-if not set -q FEDPUNK_INSTALL_GH; or test "$FEDPUNK_INSTALL_GH" != "true"
-    exit 0
-end
-
-if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
-end
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "GitHub CLI Installation"
