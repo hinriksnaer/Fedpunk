@@ -205,7 +205,54 @@ function fedpunk-module-stow
 
     echo "Stowing module: $module_name"
     cd "$module_dir"
-    stow -t $HOME config
+
+    # First attempt: try stow with --restow (idempotent if already stowed)
+    set -l stow_output (stow --restow -t $HOME config 2>&1)
+    set -l stow_status $status
+
+    if test $stow_status -eq 0
+        return 0
+    end
+
+    # Check if failure was due to conflicts with existing files
+    if string match -q "*existing target is not owned by stow*" -- $stow_output
+        echo "Existing configuration detected. Backing up to ~/.fedpunk-backup/$module_name..."
+
+        set -l backup_dir "$HOME/.fedpunk-backup/$module_name-"(date +%Y%m%d-%H%M%S)
+        mkdir -p "$backup_dir"
+
+        # Find conflicting files from stow output and back them up
+        for line in $stow_output
+            if string match -q "*existing target is not owned by stow:*" -- $line
+                set -l conflict_file (string replace -r '.*existing target is not owned by stow: ' '' -- $line)
+                set -l full_path "$HOME/$conflict_file"
+
+                if test -e "$full_path"
+                    # Create parent directory in backup
+                    set -l parent_dir (dirname "$conflict_file")
+                    mkdir -p "$backup_dir/$parent_dir"
+
+                    # Move file to backup
+                    mv "$full_path" "$backup_dir/$conflict_file"
+                    echo "  Backed up: $conflict_file"
+                end
+            end
+        end
+
+        # Try stow again after backing up conflicts
+        stow --restow -t $HOME config
+        or begin
+            echo "Failed to stow after backing up conflicts" >&2
+            return 1
+        end
+
+        echo "Backup location: $backup_dir"
+        return 0
+    else
+        # Other stow error
+        echo $stow_output >&2
+        return 1
+    end
 end
 
 function fedpunk-module-unstow
