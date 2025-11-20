@@ -32,3 +32,9 @@ install:
 
   # Optional extras (disabled for containers)
   extra_apps: false        # No Discord/Spotify/etc. needed
+
+  # Setup/Configuration (disabled for containers - host tools)
+  podman: false            # Podman is for host, not inside container
+  devcontainer: false      # Devcontainer CLI is for host
+  nvim_mcp: false          # MCP server typically used on host
+  bitwarden: false         # Bitwarden setup typically on host

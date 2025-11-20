@@ -33,3 +33,9 @@ install:
 
   # Optional extras
   extra_apps: true         # Discord, Spotify, etc.
+
+  # Setup/Configuration (run once)
+  podman: true             # Podman container runtime
+  devcontainer: true       # Devcontainer CLI
+  nvim_mcp: true           # Neovim MCP server for Claude Code
+  bitwarden: true          # Bitwarden CLI configuration
