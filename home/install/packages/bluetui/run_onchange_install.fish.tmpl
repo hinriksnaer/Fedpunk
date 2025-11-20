@@ -39,7 +39,7 @@ if command -v bluetui >/dev/null 2>&1
 else
     # Fresh installation
     subsection "Installing bluetui dependencies"
-    install_packages dbus-devel
+    install_packages gcc dbus-devel
 
     subsection "Installing bluetui"
     step "Installing bluetui with cargo" "cargo install bluetui"
