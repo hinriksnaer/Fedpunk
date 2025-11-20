@@ -8,19 +8,36 @@ ui-info "Installing Rust toolchain (required for cargo-based tools)"
 
 if not command -v rustc >/dev/null 2>&1
     ui-spin --title "Installing Rust toolchain via rustup..." -- fish -c '
-        curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path >/dev/null 2>&1
+        curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path
     '
 
     # Add cargo to PATH for current session
     set -gx PATH $HOME/.cargo/bin $PATH
 
-    # Ensure default toolchain is set (in case --default-toolchain didn't work)
-    if not rustup default stable >/dev/null 2>&1
-        ui-error "Failed to set default Rust toolchain"
+    # Source cargo env if it exists
+    if test -f "$HOME/.cargo/env.fish"
+        source "$HOME/.cargo/env.fish"
+    end
+
+    # Verify rustup is accessible
+    if not command -v rustup >/dev/null 2>&1
+        ui-error "rustup not found in PATH after installation"
+        ui-error "PATH: $PATH"
         return 1
     end
 
-    ui-success "Rust toolchain installed"
+    # Set default toolchain explicitly (rustup installer doesn't always do this correctly)
+    ui-info "Configuring default Rust toolchain..."
+    set -l rustup_output (rustup default stable 2>&1)
+    set -l rustup_status $status
+
+    if test $rustup_status -ne 0
+        ui-error "Failed to set default Rust toolchain"
+        echo "rustup output: $rustup_output" >&2
+        return 1
+    end
+
+    ui-success "Rust toolchain installed and configured"
 else
     ui-success "Rust already installed: "(rustc --version)
 
