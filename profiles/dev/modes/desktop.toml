@@ -7,7 +7,8 @@ description = "Full desktop environment with all development tools"
 
 [modules]
 enabled = [
-    "fish",
+    "essentials",
+    "languages",
     "fonts",
     "neovim",
     "tmux",

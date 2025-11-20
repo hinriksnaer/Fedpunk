@@ -1,0 +1,77 @@
+#!/usr/bin/env fish
+# System setup: git submodules, SELinux configuration
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Configuring system"
+
+# Git submodules
+if test -d "$FEDPUNK_ROOT/.git"
+    ui-info "Initializing git submodules"
+
+    # Check if any submodules use git-lfs
+    if git -C "$FEDPUNK_ROOT" submodule foreach --quiet 'git lfs ls-files -s' 2>/dev/null | grep -q .
+        if not command -v git-lfs >/dev/null 2>&1
+            ui-spin --title "Installing git-lfs..." -- fish -c '
+                sudo dnf install -qy git-lfs >/dev/null 2>&1
+            '
+            git lfs install >/dev/null 2>&1
+        end
+    end
+
+    ui-spin --title "Syncing git submodules..." -- fish -c '
+        git -C '$FEDPUNK_ROOT' submodule sync --recursive >/dev/null 2>&1
+    '
+
+    ui-spin --title "Updating git submodules..." -- fish -c '
+        git -C '$FEDPUNK_ROOT' submodule update --init --recursive >/dev/null 2>&1
+    '
+
+    ui-success "Git submodules initialized"
+end
+
+# SELinux configuration
+echo ""
+ui-info "Checking SELinux configuration"
+
+if command -v getenforce >/dev/null 2>&1
+    set selinux_status (getenforce 2>/dev/null || echo "Disabled")
+else
+    set selinux_status "Not Available"
+end
+
+ui-info "SELinux status: $selinux_status"
+
+if test "$selinux_status" = "Enforcing"
+    # Enable user executable content in home directory
+    ui-spin --title "Enabling user_exec_content..." -- fish -c '
+        sudo setsebool -P user_exec_content on >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "user_exec_content enabled"
+    else
+        ui-warning "Failed to enable user_exec_content"
+    end
+
+    # Fix SELinux contexts for config directories
+    set home_dir (eval echo ~)
+
+    if test -d "$home_dir/.config"
+        ui-spin --title "Restoring SELinux context for .config..." -- fish -c '
+            sudo restorecon -R "'$home_dir'/.config" >/dev/null 2>&1
+        '
+    end
+
+    if test -d "$home_dir/.local"
+        ui-spin --title "Restoring SELinux context for .local..." -- fish -c '
+            sudo restorecon -R "'$home_dir'/.local" >/dev/null 2>&1
+        '
+    end
+
+    ui-success "SELinux configuration complete"
+else
+    ui-info "SELinux not enforcing, skipping SELinux setup"
+end
+
+ui-success "System configuration complete"

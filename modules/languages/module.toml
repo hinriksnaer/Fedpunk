@@ -1,0 +1,17 @@
+[module]
+name = "languages"
+description = "Programming language runtimes: Python3, Node.js, and Go for polyglot development"
+dependencies = []
+priority = 9
+
+[lifecycle]
+
+[packages]
+dnf = ["python3-devel", "python3-pip", "nodejs", "npm", "golang"]
+cargo = []
+npm = []
+flatpak = []
+
+[stow]
+target = "$HOME"
+conflicts = "warn"
