@@ -33,7 +33,7 @@ end
 function yaml-get-array
     # Get array values from YAML using a yq path
     # Usage: yaml-get-array <file> <path>
-    # Path should be in yq format (e.g., ".section.key[]")
+    # Path should be in yq format (e.g., ".modules[]")
     set -l file $argv[1]
     set -l path $argv[2]
 
@@ -48,17 +48,14 @@ function yaml-get-array
         return 1
     end
 
-    # Use yq to get array values, one per line
-    set -l result (yq "$path" "$file" 2>&1)
-    set -l yq_status $status
-
-    if test $yq_status -ne 0
-        echo "Error: yq failed to parse $file: $result" >&2
-        return 1
+    # Use yq with eval to get array values, one per line
+    # The -o=tsv ensures tab-separated output (one item per line for arrays)
+    yq eval "$path" "$file" 2>&1 | while read -l item
+        # Skip empty lines and null values
+        if test -n "$item" -a "$item" != "null"
+            echo $item
+        end
     end
-
-    # Filter out empty lines and null values
-    echo "$result" | grep -v '^$' | grep -v '^null$'
 end
 
 function yaml-get-list
