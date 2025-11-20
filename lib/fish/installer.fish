@@ -37,18 +37,18 @@ function installer-select-profile
     end
 
     # Interactive selection
-    ui-info "Available profiles:"
+    ui-info "Available profiles:" >&2
     for profile in $available_profiles
         set -l profile_toml "$profiles_dir/$profile/fedpunk.toml"
         if test -f "$profile_toml"
             set -l description (toml-get-value "$profile_toml" "profile" "description")
-            echo "  • $profile - $description"
+            echo "  • $profile - $description" >&2
         else
-            echo "  • $profile"
+            echo "  • $profile" >&2
         end
     end
 
-    echo ""
+    echo "" >&2
     set -l selected (ui-choose --header "Select profile:" $available_profiles)
 
     if test -z "$selected"
@@ -90,18 +90,18 @@ function installer-select-mode
     end
 
     # Interactive selection
-    ui-info "Available modes for profile '$profile':"
+    ui-info "Available modes for profile '$profile':" >&2
     for mode in $available_modes
         set -l mode_file "$modes_dir/$mode.toml"
         set -l description (toml-get-value "$mode_file" "mode" "description")
         if test -n "$description"
-            echo "  • $mode - $description"
+            echo "  • $mode - $description" >&2
         else
-            echo "  • $mode"
+            echo "  • $mode" >&2
         end
     end
 
-    echo ""
+    echo "" >&2
     set -l selected (ui-choose --header "Select mode:" $available_modes)
 
     if test -z "$selected"
