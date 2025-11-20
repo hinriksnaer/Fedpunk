@@ -19,7 +19,7 @@ if command -v claude >/dev/null 2>&1
     info "Current version: $current_version"
 
     # Always upgrade to latest version
-    step "Updating Claude Code to latest version" "sudo npm update -g @anthropic/claude"
+    step "Updating Claude Code to latest version" "sudo npm install -g @anthropic-ai/claude-code"
 
     set new_version (claude --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' | head -1)
     if test "$current_version" != "$new_version"
@@ -28,7 +28,7 @@ if command -v claude >/dev/null 2>&1
         success "Already on latest version: $new_version"
     end
 else
-    step "Installing Claude Code" "sudo npm install -g @anthropic/claude"
+    step "Installing Claude Code" "sudo npm install -g @anthropic-ai/claude-code"
     if command -v claude >/dev/null 2>&1
         success "Installed: "(claude --version)
     else
