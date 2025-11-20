@@ -40,8 +40,8 @@ echo -e "\n$ansi_art\n"
 echo "✅ Preflight checks passed"
 echo ""
 
-echo "→ Installing git, fish, chezmoi, and gum..."
-sudo dnf install -y git fish chezmoi gum
+echo "→ Installing git, fish, and gum..."
+sudo dnf install -y git fish gum
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
