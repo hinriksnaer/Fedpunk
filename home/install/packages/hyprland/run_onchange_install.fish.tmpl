@@ -7,13 +7,25 @@ source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "Hyprland Installation"
 
-subsection "Installing Hyprland and dependencies"
+# Enable Hyprland COPR repository
+subsection "Enabling Hyprland COPR repository"
+if not sudo dnf copr list 2>/dev/null | grep -q "solopasha/hyprland"
+    step "Enabling solopasha/hyprland COPR" "sudo dnf copr enable -y solopasha/hyprland"
+else
+    success "Hyprland COPR already enabled"
+end
 
-# Install Hyprland and core dependencies
+# Install core Hyprland packages
+subsection "Installing Hyprland core packages"
 install_packages hyprland hyprpaper waybar rofi-wayland mako grim slurp wl-clipboard xdg-desktop-portal-hyprland
 
-# Install additional utilities
-install_packages polkit-gnome wl-gammactl wlsunset brightnessctl playerctl
+# Install additional Wayland utilities (skip unavailable)
+subsection "Installing Wayland utilities"
+step "Installing optional utilities" "sudo dnf install -qy --skip-unavailable brightnessctl playerctl hyprpolkitagent wl-gammactl wlsunset"
+
+# Install Qt Wayland support
+subsection "Installing Qt Wayland support"
+step "Installing Qt6 Wayland" "sudo dnf install -qy --skip-unavailable qt6-qtwayland"
 
 echo ""
 box "Hyprland Installed!
