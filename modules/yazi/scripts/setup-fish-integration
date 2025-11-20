@@ -1,0 +1,34 @@
+#!/usr/bin/env fish
+# Setup Fish shell integration for Yazi
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Setting up Yazi Fish integration"
+
+# Create Fish function for Yazi with cd on quit
+mkdir -p ~/.config/fish/functions
+
+printf "%s\n" \
+    "function yy" \
+    "    # Yazi with cd on quit functionality" \
+    "    set tmp (mktemp -t \"yazi-cwd.XXXXXX\")" \
+    "    yazi \$argv --cwd-file=\"\$tmp\"" \
+    "    if set cwd (cat -- \"\$tmp\"); and [ -n \"\$cwd\" ]; and [ \"\$cwd\" != \"\$PWD\" ]" \
+    "        cd -- \"\$cwd\"" \
+    "    end" \
+    "    rm -f -- \"\$tmp\"" \
+    "end" > ~/.config/fish/functions/yy.fish
+
+ui-success "Fish function 'yy' created (cd on quit)"
+
+# Create Fish abbreviations
+mkdir -p ~/.config/fish/conf.d
+
+printf "%s\n" \
+    "# Yazi file manager abbreviations" \
+    "abbr -a y \"yazi\"" \
+    "abbr -a yy \"yy\"  # cd on quit" > ~/.config/fish/conf.d/yazi_abbr.fish
+
+ui-success "Fish abbreviations created"
+
+ui-info "Use 'y' for yazi or 'yy' to cd on quit"

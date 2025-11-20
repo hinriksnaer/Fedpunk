@@ -1,0 +1,46 @@
+#!/usr/bin/env fish
+# Setup tmux plugin manager (TPM) and install plugins
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Setting up tmux plugin manager"
+
+# Clone TPM if not already installed
+if not test -d $HOME/.tmux/plugins/tpm
+    ui-spin --title "Cloning tmux plugin manager..." -- fish -c '
+        git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "Tmux plugin manager cloned"
+    else
+        ui-error "Failed to clone tmux plugin manager"
+        return 1
+    end
+else
+    ui-success "Tmux plugin manager already installed"
+end
+
+# Install plugins if tmux config exists
+if test -f "$HOME/.config/tmux/tmux.conf"
+    ui-spin --title "Installing tmux plugins..." -- fish -c '
+        set token tpm_done
+        tmux start-server \; \
+          set -g exit-empty off \; \
+          source-file '$HOME'/.config/tmux/tmux.conf \; \
+          run-shell "'$HOME'/.tmux/plugins/tpm/scripts/install_plugins.sh && tmux wait-for -S '$token'" \; \
+          wait-for "'$token'" \; \
+          set -g exit-empty on >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "Tmux plugins installed"
+    else
+        ui-warning "Tmux plugin installation may have issues"
+    end
+else
+    ui-warning "Tmux config not found, skipping plugin installation"
+    ui-info "Plugins will be installed on first tmux launch"
+end
+
+ui-success "Tmux setup complete"

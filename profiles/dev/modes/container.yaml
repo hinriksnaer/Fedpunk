@@ -7,10 +7,10 @@ mode:
 
 modules:
   - essentials
+  - neovim
+  - tmux
+  - lazygit
+  - yazi
   # Phase 2 modules (not yet created):
-  # - neovim
-  # - tmux
-  # - lazygit
-  # - yazi
   # - claude
   # - gh

@@ -8,15 +8,16 @@ mode:
 modules:
   - essentials
   - languages
+  - neovim
+  - tmux
+  - lazygit
+  - btop
+  - yazi
   # Phase 2+ modules (not yet created):
-  # - fonts
-  # - neovim
-  # - tmux
-  # - lazygit
-  # - btop
-  # - yazi
   # - claude
   # - gh
+  # Phase 3+ modules (not yet created):
+  # - fonts
   # - audio
   # - kitty
   # - hyprland
