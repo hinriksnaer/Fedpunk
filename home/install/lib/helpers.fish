@@ -625,7 +625,7 @@ function load_mode_config
         return 1
     end
 
-    set mode_file "$FEDPUNK_REPO_ROOT/modes/$FEDPUNK_MODE.yaml"
+    set mode_file "$FEDPUNK_REPO_ROOT/home/.chezmoitemplates/$FEDPUNK_MODE.yaml"
     if not test -f "$mode_file"
         warning "Mode file not found: $mode_file"
         return 1
