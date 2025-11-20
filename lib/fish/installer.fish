@@ -191,11 +191,18 @@ function installer-run
         set i (math $i + 1)
     end
 
-    # Welcome
-    ui-box "Fedpunk Installation
-
-Modern, modular Fedora development environment
-with Hyprland compositor and Fish shell" $UI_INFO
+    # Welcome - ASCII art
+    echo ""
+    echo "███████╗███████╗██████╗ ██████╗ ██╗   ██╗███╗   ██╗██╗  ██╗"
+    echo "██╔════╝██╔════╝██╔══██╗██╔══██╗██║   ██║████╗  ██║██║ ██╔╝"
+    echo "█████╗  █████╗  ██║  ██║██████╔╝██║   ██║██╔██╗ ██║█████╔╝"
+    echo "██╔══╝  ██╔══╝  ██║  ██║██╔═══╝ ██║   ██║██║╚██╗██║██╔═██╗"
+    echo "██║     ███████╗██████╔╝██║     ╚██████╔╝██║ ╚████║██║  ██╗"
+    echo "╚═╝     ╚══════╝╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝"
+    echo ""
+    ui-info "Modern, modular Fedora development environment"
+    ui-info "with Hyprland compositor and Fish shell"
+    echo ""
 
     # Select profile
     if test -z "$profile"
