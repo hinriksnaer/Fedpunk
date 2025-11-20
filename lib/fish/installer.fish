@@ -263,19 +263,25 @@ function installer-run
     installer-deploy-modules $modules
 
     if test $status -eq 0
+        set -l log_location (ui-log-location)
         ui-box "Installation Complete! 🎉
 
 Profile: $profile
 Mode: $mode
 Modules deployed: "(count $modules)"
 
-Restart your shell or run: exec fish" $UI_SUCCESS
+Restart your shell or run: exec fish
+
+Log file: $log_location" $UI_SUCCESS
         return 0
     else
+        set -l log_location (ui-log-location)
         ui-box "Installation Failed
 
 Some modules failed to deploy.
-Check the output above for details." $UI_ERROR
+Check the output above for details.
+
+Log file: $log_location" $UI_ERROR
         return 1
     end
 end
