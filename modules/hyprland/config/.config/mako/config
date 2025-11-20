@@ -1,0 +1,31 @@
+# Mako notification daemon configuration
+# This is the base config. Theme-specific colors are loaded via theme.conf include
+
+# Layout and appearance
+width=420
+height=110
+padding=10
+border-size=2
+border-radius=8
+font=JetBrainsMono Nerd Font 11
+
+# Position
+anchor=top-right
+outer-margin=20
+
+# Behavior
+default-timeout=5000
+ignore-timeout=0
+max-visible=5
+sort=-time
+
+# Icons
+max-icon-size=48
+icon-path=/usr/share/icons/Adwaita
+
+# Grouping
+group-by=app-name
+
+# Include theme-specific colors
+# This file is symlinked by fedpunk-theme-set
+include=~/.config/mako/theme.conf

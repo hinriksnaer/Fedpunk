@@ -1,0 +1,20 @@
+module:
+  name: rofi
+  description: Application launcher and window switcher
+  dependencies: []
+  priority: 8
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  dnf:
+    - rofi
+  cargo: []
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn

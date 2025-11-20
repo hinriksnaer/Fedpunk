@@ -15,10 +15,10 @@ modules:
   - yazi
   - gh
   - claude
-  # Phase 3+ modules (not yet created):
-  # - fonts
+  - fonts
+  - kitty
+  - rofi
+  - hyprland
+  # Phase 4+ modules (not yet created):
   # - audio
-  # - kitty
-  # - hyprland
-  # - rofi
   # - firefox

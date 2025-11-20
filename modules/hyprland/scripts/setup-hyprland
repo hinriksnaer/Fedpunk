@@ -1,0 +1,55 @@
+#!/usr/bin/env fish
+# Setup Hyprland post-installation tasks
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Setting up Hyprland environment"
+
+# Update user directories
+ui-spin --title "Updating user directories..." -- fish -c '
+    xdg-user-dirs-update >/dev/null 2>&1
+'
+
+if test $status -eq 0
+    ui-success "User directories updated"
+else
+    ui-warning "User directories update may have issues"
+end
+
+# Fix SELinux contexts if restorecon is available
+if command -v restorecon >/dev/null 2>&1
+    ui-spin --title "Fixing SELinux contexts..." -- fish -c '
+        sudo restorecon -R '$HOME'/.config '$HOME'/.local >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "SELinux contexts fixed"
+    else
+        ui-warning "SELinux context fix may have issues"
+    end
+end
+
+# Enable mako notification service
+ui-spin --title "Enabling mako notification service..." -- fish -c '
+    systemctl --user enable mako.service >/dev/null 2>&1
+'
+
+if test $status -eq 0
+    ui-success "Mako notification service enabled"
+else
+    ui-warning "Mako service enablement may have issues"
+end
+
+# Update graphics stack
+ui-spin --title "Updating graphics stack..." -- fish -c '
+    sudo dnf upgrade -qy --skip-unavailable mesa-dri-drivers mesa-libGL mesa-libEGL libdrm >/dev/null 2>&1 || true
+'
+
+if test $status -eq 0
+    ui-success "Graphics stack updated"
+else
+    ui-warning "Graphics stack update may have issues"
+end
+
+ui-success "Hyprland setup complete"
+ui-info "Start Hyprland with: Hyprland (from TTY)"

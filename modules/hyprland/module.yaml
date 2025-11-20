@@ -1,0 +1,62 @@
+module:
+  name: hyprland
+  description: Wayland tiling compositor with full desktop environment
+  dependencies:
+    - kitty
+  priority: 9
+
+lifecycle:
+  before: []
+  after:
+    - setup-hyprland
+
+packages:
+  copr:
+    - solopasha/hyprland
+  dnf:
+    # Core Hyprland
+    - hyprland
+    - hyprpaper
+    - mako
+    - waybar
+    - wofi
+    - grim
+    - slurp
+    - wl-clipboard
+    - thunar
+    - pavucontrol
+    - playerctl
+    - wpctl
+    - hyprpolkitagent
+    - wdisplays
+    - xdg-desktop-portal-hyprland
+    - xdg-desktop-portal-gtk
+    - gvfs
+    - gvfs-mtp
+    - xdg-user-dirs
+    - xdg-utils
+    - pipewire-alsa
+    - pipewire-utils
+    - network-manager-applet
+    - policycoreutils
+    - swaybg
+    # Wayland dependencies
+    - wlr-randr
+    - wlogout
+    - xorg-x11-server-Xwayland
+    - qt5-qtwayland
+    - qt6-qtwayland
+    - mesa-dri-drivers
+    - wayland-devel
+    - libwayland-client
+    - libwayland-cursor
+    - libwayland-egl
+    - glfw-devel
+    - hyprland-qt-support
+  cargo: []
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn
