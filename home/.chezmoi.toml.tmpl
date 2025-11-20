@@ -14,7 +14,7 @@
 {{-   if $gumAvailable -}}
 {{-     $mode = output "sh" "-c" "gum choose --header='Select Fedpunk mode:' laptop desktop container 2>/dev/null || echo ''" | trim -}}
 {{-   end -}}
-{{-   /* Fallback: auto-detect if gum prompt failed or cancelled */ -}}
+
 {{-   if eq $mode "" -}}
 {{-     if stat "/sys/class/power_supply/BAT0" -}}
 {{-       $mode = "laptop" -}}
