@@ -10,7 +10,7 @@ after = ["setup-fisher"]
 
 [packages]
 copr = ["atim/starship"]
-dnf = ["fish", "util-linux-user", "starship"]
+dnf = ["fish", "util-linux-user", "starship", "procps-ng"]
 cargo = []
 npm = []
 flatpak = []
