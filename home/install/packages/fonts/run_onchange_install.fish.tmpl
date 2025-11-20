@@ -1,4 +1,4 @@
-{{- if and .install.fonts (ne .mode.name "container") }}
+{{- if and .install.fonts (ne .mode.name "container") -}}
 #!/usr/bin/env fish
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 section "Fonts Installation"

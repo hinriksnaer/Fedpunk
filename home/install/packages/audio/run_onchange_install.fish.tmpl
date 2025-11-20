@@ -1,4 +1,4 @@
-{{- if and .install.audio (ne .mode.name "container") }}
+{{- if and .install.audio (ne .mode.name "container") -}}
 #!/usr/bin/env fish
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 section "Audio Installation"
