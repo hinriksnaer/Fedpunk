@@ -13,6 +13,11 @@ function yaml-get-value
         return 1
     end
 
+    # Check if yq is available
+    if not command -v yq >/dev/null 2>&1
+        return 1
+    end
+
     # Build yq path
     set -l path ".$section.$key"
 
@@ -33,11 +38,27 @@ function yaml-get-array
     set -l path $argv[2]
 
     if not test -f "$file"
+        echo "Error: File not found: $file" >&2
+        return 1
+    end
+
+    # Check if yq is available
+    if not command -v yq >/dev/null 2>&1
+        echo "Error: yq command not found. Please install yq." >&2
         return 1
     end
 
     # Use yq to get array values, one per line
-    yq -r "$path // empty" "$file" 2>/dev/null | grep -v '^$'
+    set -l result (yq -r "$path // empty" "$file" 2>&1)
+    set -l yq_status $status
+
+    if test $yq_status -ne 0
+        echo "Error: yq failed to parse $file: $result" >&2
+        return 1
+    end
+
+    # Filter out empty lines and return
+    echo "$result" | grep -v '^$'
 end
 
 function yaml-get-list

@@ -239,8 +239,15 @@ function installer-run
     echo ""
     ui-info "Loading module configuration..."
     set -l modules (installer-load-modules $profile $mode)
+    set -l load_status $status
 
-    if test $status -ne 0
+    if test $load_status -ne 0
+        ui-error "Failed to load module configuration"
+        return 1
+    end
+
+    if test (count $modules) -eq 0
+        ui-error "No modules found in $profile/$mode configuration"
         return 1
     end
 
