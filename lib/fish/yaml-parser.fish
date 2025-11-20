@@ -22,7 +22,7 @@ function yaml-get-value
     set -l path ".$section.$key"
 
     # Use yq to get the value
-    set -l value (yq -r "$path // empty" "$file" 2>/dev/null)
+    set -l value (yq "$path" "$file" 2>/dev/null)
 
     # Only output if value exists and is not null
     if test -n "$value" -a "$value" != "null"
@@ -49,7 +49,7 @@ function yaml-get-array
     end
 
     # Use yq to get array values, one per line
-    set -l result (yq -r "$path // empty" "$file" 2>&1)
+    set -l result (yq "$path" "$file" 2>&1)
     set -l yq_status $status
 
     if test $yq_status -ne 0
@@ -57,8 +57,8 @@ function yaml-get-array
         return 1
     end
 
-    # Filter out empty lines and return
-    echo "$result" | grep -v '^$'
+    # Filter out empty lines and null values
+    echo "$result" | grep -v '^$' | grep -v '^null$'
 end
 
 function yaml-get-list
