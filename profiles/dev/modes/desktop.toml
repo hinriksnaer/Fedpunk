@@ -3,32 +3,22 @@
 
 [mode]
 name = "desktop"
+description = "Full desktop environment with all development tools"
 
-[install]
-# Terminal packages
-yazi = true
-claude = true
-gh = true
-
-# Terminal configuration
-tmux = true
-neovim = true
-btop = true
-lazygit = true
-
-# Development tools
-cli_tools = true
-languages = true
-
-# Desktop packages
-firefox = true
-fonts = true
-audio = true
-multimedia = true
-bluetooth = true
-extra_apps = true
-
-# Desktop configs
-kitty = true
-hyprland = true
-rofi = true
+[modules]
+enabled = [
+    "fish",
+    "fonts",
+    "neovim",
+    "tmux",
+    "lazygit",
+    "btop",
+    "yazi",
+    "claude",
+    "gh",
+    "audio",
+    "kitty",
+    "hyprland",
+    "rofi",
+    "firefox"
+]

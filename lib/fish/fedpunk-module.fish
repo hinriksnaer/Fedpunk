@@ -1,0 +1,327 @@
+#!/usr/bin/env fish
+# Fedpunk module management command
+# Usage: fedpunk module <subcommand> [args]
+
+# Source dependencies
+set -l script_dir (dirname (status -f))
+source "$script_dir/toml-parser.fish"
+
+function fedpunk-module
+    set -l subcommand $argv[1]
+
+    # Set FEDPUNK_ROOT if not set
+    if not set -q FEDPUNK_ROOT
+        if test -L ~/.local/share/fedpunk
+            set -gx FEDPUNK_ROOT (readlink -f ~/.local/share/fedpunk)
+        else if test -d ~/.local/share/fedpunk
+            set -gx FEDPUNK_ROOT ~/.local/share/fedpunk
+        else
+            echo "Error: FEDPUNK_ROOT not found" >&2
+            return 1
+        end
+    end
+
+    switch "$subcommand"
+        case list
+            fedpunk-module-list $argv[2..]
+        case info
+            fedpunk-module-info $argv[2..]
+        case install-packages
+            fedpunk-module-install-packages $argv[2..]
+        case stow
+            fedpunk-module-stow $argv[2..]
+        case unstow
+            fedpunk-module-unstow $argv[2..]
+        case deploy
+            fedpunk-module-deploy $argv[2..]
+        case run-lifecycle
+            fedpunk-module-run-lifecycle $argv[2..]
+        case '*'
+            echo "Usage: fedpunk module <subcommand> [args]"
+            echo ""
+            echo "Subcommands:"
+            echo "  list                    List all available modules"
+            echo "  info <module>           Show module information"
+            echo "  install-packages <mod>  Install system packages for module"
+            echo "  stow <module>           Deploy module config with stow"
+            echo "  unstow <module>         Remove module config symlinks"
+            echo "  deploy <module>         Full deployment (packages + lifecycle + stow)"
+            echo "  run-lifecycle <mod> <hook>  Run a specific lifecycle hook"
+            return 1
+    end
+end
+
+function fedpunk-module-list
+    set -l modules_dir "$FEDPUNK_ROOT/modules"
+
+    if not test -d "$modules_dir"
+        echo "No modules directory found at $modules_dir" >&2
+        return 1
+    end
+
+    echo "Available modules:"
+    for module_dir in $modules_dir/*
+        if test -d "$module_dir"
+            set -l module_name (basename "$module_dir")
+            set -l module_toml "$module_dir/module.toml"
+
+            if test -f "$module_toml"
+                set -l description (toml-get-value "$module_toml" "module" "description")
+                if test -n "$description"
+                    echo "  $module_name - $description"
+                else
+                    echo "  $module_name"
+                end
+            else
+                echo "  $module_name (no module.toml)"
+            end
+        end
+    end
+end
+
+function fedpunk-module-info
+    set -l module_name $argv[1]
+
+    if test -z "$module_name"
+        echo "Usage: fedpunk module info <module>" >&2
+        return 1
+    end
+
+    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_toml "$module_dir/module.toml"
+
+    if not test -f "$module_toml"
+        echo "Module not found: $module_name" >&2
+        return 1
+    end
+
+    echo "Module: $module_name"
+    echo "Description: "(toml-get-value "$module_toml" "module" "description")
+    echo "Priority: "(toml-get-value "$module_toml" "module" "priority")
+
+    set -l deps (toml-get-array "$module_toml" "module" "dependencies")
+    if test -n "$deps"
+        echo "Dependencies: $deps"
+    else
+        echo "Dependencies: none"
+    end
+
+    echo ""
+    echo "Lifecycle hooks:"
+    for hook in install update before after
+        set -l scripts (toml-get-array "$module_toml" "lifecycle" "$hook")
+        if test -n "$scripts"
+            echo "  $hook: $scripts"
+        end
+    end
+
+    echo ""
+    echo "Packages:"
+    for pkg_mgr in copr dnf cargo npm flatpak
+        set -l packages (toml-get-array "$module_toml" "packages" "$pkg_mgr")
+        if test -n "$packages"
+            echo "  $pkg_mgr: $packages"
+        end
+    end
+end
+
+function fedpunk-module-install-packages
+    set -l module_name $argv[1]
+
+    if test -z "$module_name"
+        echo "Usage: fedpunk module install-packages <module>" >&2
+        return 1
+    end
+
+    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_toml "$module_dir/module.toml"
+
+    if not test -f "$module_toml"
+        echo "Module not found: $module_name" >&2
+        return 1
+    end
+
+    echo "Installing packages for module: $module_name"
+
+    # Install in order: copr -> dnf -> cargo -> npm -> flatpak
+
+    # COPR repos
+    set -l copr_repos (toml-get-array "$module_toml" "packages" "copr")
+    for repo in $copr_repos
+        echo "  Enabling COPR repo: $repo"
+        sudo dnf copr enable -y $repo
+    end
+
+    # DNF packages
+    set -l dnf_packages (toml-get-array "$module_toml" "packages" "dnf")
+    if test -n "$dnf_packages"
+        echo "  Installing DNF packages: $dnf_packages"
+        sudo dnf install -y $dnf_packages
+    end
+
+    # Cargo packages
+    set -l cargo_packages (toml-get-array "$module_toml" "packages" "cargo")
+    for pkg in $cargo_packages
+        echo "  Installing cargo package: $pkg"
+        cargo install $pkg
+    end
+
+    # NPM packages
+    set -l npm_packages (toml-get-array "$module_toml" "packages" "npm")
+    for pkg in $npm_packages
+        echo "  Installing npm package: $pkg"
+        npm install -g $pkg
+    end
+
+    # Flatpak packages
+    set -l flatpak_packages (toml-get-array "$module_toml" "packages" "flatpak")
+    for pkg in $flatpak_packages
+        echo "  Installing flatpak: $pkg"
+        flatpak install -y $pkg
+    end
+
+    echo "Package installation complete for $module_name"
+end
+
+function fedpunk-module-stow
+    set -l module_name $argv[1]
+
+    if test -z "$module_name"
+        echo "Usage: fedpunk module stow <module>" >&2
+        return 1
+    end
+
+    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+
+    if not test -d "$module_dir"
+        echo "Module not found: $module_name" >&2
+        return 1
+    end
+
+    if not test -d "$module_dir/config"
+        echo "No config directory for module: $module_name" >&2
+        return 0
+    end
+
+    echo "Stowing module: $module_name"
+    cd "$module_dir"
+    stow -t $HOME config
+end
+
+function fedpunk-module-unstow
+    set -l module_name $argv[1]
+
+    if test -z "$module_name"
+        echo "Usage: fedpunk module unstow <module>" >&2
+        return 1
+    end
+
+    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+
+    if not test -d "$module_dir"
+        echo "Module not found: $module_name" >&2
+        return 1
+    end
+
+    if not test -d "$module_dir/config"
+        echo "No config directory for module: $module_name"
+        return 0
+    end
+
+    echo "Unstowing module: $module_name"
+    cd "$module_dir"
+    stow -D -t $HOME config
+end
+
+function fedpunk-module-run-lifecycle
+    set -l module_name $argv[1]
+    set -l hook $argv[2]
+
+    if test -z "$module_name" -o -z "$hook"
+        echo "Usage: fedpunk module run-lifecycle <module> <hook>" >&2
+        return 1
+    end
+
+    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_toml "$module_dir/module.toml"
+
+    if not test -f "$module_toml"
+        echo "Module not found: $module_name" >&2
+        return 1
+    end
+
+    # Get scripts for this hook
+    set -l scripts (toml-get-array "$module_toml" "lifecycle" "$hook")
+
+    if test -z "$scripts"
+        echo "No $hook lifecycle scripts for $module_name"
+        return 0
+    end
+
+    # Set up environment
+    set -lx MODULE_NAME $module_name
+    set -lx MODULE_DIR $module_dir
+    set -lx STOW_TARGET $HOME
+
+    # Run each script
+    for script in $scripts
+        set -l script_path "$module_dir/scripts/$script"
+
+        if not test -f "$script_path"
+            echo "Warning: Script not found: $script_path" >&2
+            continue
+        end
+
+        if not test -x "$script_path"
+            chmod +x "$script_path"
+        end
+
+        echo "  Running $hook/$script for $module_name..."
+        $script_path
+        if test $status -ne 0
+            echo "Error: $hook/$script failed" >&2
+            return 1
+        end
+    end
+end
+
+function fedpunk-module-deploy
+    set -l module_name $argv[1]
+
+    if test -z "$module_name"
+        echo "Usage: fedpunk module deploy <module>" >&2
+        return 1
+    end
+
+    echo "Deploying module: $module_name"
+    echo ""
+
+    # 1. Install packages
+    echo "==> Installing packages"
+    fedpunk-module-install-packages $module_name
+    or return 1
+
+    # 2. Run install lifecycle
+    echo ""
+    echo "==> Running install lifecycle"
+    fedpunk-module-run-lifecycle $module_name install
+
+    # 3. Run before lifecycle
+    echo ""
+    echo "==> Running before hook"
+    fedpunk-module-run-lifecycle $module_name before
+
+    # 4. Stow config
+    echo ""
+    echo "==> Deploying configuration"
+    fedpunk-module-stow $module_name
+    or return 1
+
+    # 5. Run after lifecycle
+    echo ""
+    echo "==> Running after hook"
+    fedpunk-module-run-lifecycle $module_name after
+
+    echo ""
+    echo "✓ Module $module_name deployed successfully"
+end

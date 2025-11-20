@@ -1,0 +1,32 @@
+#!/usr/bin/env fish
+# Fish module installation script
+# Handles: chezmoi installation, setting fish as default shell
+# Note: System packages (fish, starship, util-linux-user) are auto-installed from module.toml
+
+# Install chezmoi (needed for configuration management)
+mkdir -p $HOME/.local/bin
+echo "Installing chezmoi..."
+curl -sL https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-linux-amd64 -o $HOME/.local/bin/chezmoi
+chmod +x $HOME/.local/bin/chezmoi
+
+# Add ~/.local/bin to PATH immediately
+if not contains "$HOME/.local/bin" $PATH
+    set -gx PATH "$HOME/.local/bin" $PATH
+end
+
+# Initialize chezmoi with fedpunk as source
+if test ! -f "$HOME/.config/chezmoi/chezmoi.toml"
+    mkdir -p "$HOME/.config/chezmoi"
+    echo "sourceDir = \"$FEDPUNK_ROOT/home\"" > "$HOME/.config/chezmoi/chezmoi.toml"
+    echo "Chezmoi configured with sourceDir: $FEDPUNK_ROOT/home"
+end
+
+# Change shell to fish
+echo "Setting Fish as default shell..."
+if command -v sudo >/dev/null 2>&1
+    sudo chsh -s /usr/bin/fish (whoami)
+else
+    chsh -s /usr/bin/fish
+end
+
+echo "Fish installation complete"

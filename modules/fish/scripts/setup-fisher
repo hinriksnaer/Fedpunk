@@ -1,0 +1,25 @@
+#!/usr/bin/env fish
+# Fisher and plugin setup
+# Runs after fish config is stowed to ~/.config/fish
+
+# Install Fisher plugin manager
+if not test -f ~/.config/fish/functions/fisher.fish
+    echo "Installing Fisher plugin manager..."
+    set fisher_tmp (mktemp)
+    curl -fsSL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish -o "$fisher_tmp"
+    source "$fisher_tmp"
+    fisher install jorgebucaran/fisher
+    rm -f "$fisher_tmp"
+else
+    echo "Fisher already installed"
+end
+
+# Install fzf.fish plugin
+if not fisher list 2>/dev/null | grep -q "fzf.fish"
+    echo "Installing fzf.fish plugin..."
+    fisher install PatrickF1/fzf.fish
+else
+    echo "fzf.fish already installed"
+end
+
+echo "Fisher setup complete"

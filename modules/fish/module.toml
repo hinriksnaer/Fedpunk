@@ -1,0 +1,25 @@
+[module]
+name = "fish"
+description = "Fish shell setup for Fedpunk - includes Starship, Fisher, and base configuration"
+dependencies = []
+priority = 5
+
+[lifecycle]
+install = ["install"]
+after = ["setup-fisher"]
+
+[packages]
+copr = ["atim/starship"]
+dnf = ["fish", "util-linux-user", "starship"]
+cargo = []
+npm = []
+flatpak = []
+
+[profile]
+default = true
+desktop = true
+container = true
+
+[stow]
+target = "$HOME"
+conflicts = "warn"
