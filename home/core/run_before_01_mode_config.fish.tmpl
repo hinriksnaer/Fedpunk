@@ -9,9 +9,9 @@
 # Runs: Before file deployment (all modes)
 # ============================================================================
 
-# Initialize FEDPUNK_PATH if not set
+# Initialize FEDPUNK_PATH if not set (points to git repo root, not home/)
 if not set -q FEDPUNK_PATH
-    set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
+    set -gx FEDPUNK_PATH "{{ .chezmoi.workingTree }}"
 end
 
 # Set FEDPUNK_MODE from template data
@@ -29,7 +29,7 @@ if not set -q FEDPUNK_LOG_FILE
 end
 
 # Source helpers
-source "$FEDPUNK_PATH/core/lib/helpers.fish"
+source "$FEDPUNK_PATH/home/core/lib/helpers.fish"
 
 section "Mode Configuration"
 
