@@ -1,0 +1,39 @@
+#!/usr/bin/env fish
+# Rust/Cargo Setup - Install rustup and configure toolchain
+
+# Source UI functions
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Installing Rust toolchain (required for cargo-based tools)"
+
+if not command -v rustc >/dev/null 2>&1
+    ui-spin --title "Installing Rust toolchain via rustup..." -- fish -c '
+        curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path >/dev/null 2>&1
+    '
+
+    # Add cargo to PATH for current session
+    set -gx PATH $HOME/.cargo/bin $PATH
+
+    ui-success "Rust toolchain installed"
+else
+    ui-success "Rust already installed: "(rustc --version)
+
+    # Ensure cargo is in PATH for current session
+    set -gx PATH $HOME/.cargo/bin $PATH
+end
+
+# Update Rust to latest stable
+ui-info "Updating Rust to latest stable..."
+if rustup update stable >/dev/null 2>&1
+    ui-success "Rust updated to latest stable"
+else
+    ui-warning "Failed to update Rust (may already be latest)"
+end
+
+ui-info "Rust setup complete"
+echo ""
+echo "Installed tools:"
+echo "  🦀 rustc - "(rustc --version)
+echo "  📦 cargo - "(cargo --version)
+echo "  🔧 rustup - "(rustup --version)
+echo ""

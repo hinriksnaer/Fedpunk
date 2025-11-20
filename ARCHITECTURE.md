@@ -84,11 +84,6 @@ cargo = ["tool"]                 # Cargo packages
 npm = ["package"]                # NPM packages
 flatpak = ["app.id"]             # Flatpak packages
 
-[profile]
-default = true    # Available in default profile
-desktop = true    # Available in desktop mode
-container = true  # Available in container mode
-
 [stow]
 target = "$HOME"
 conflicts = "warn"  # warn, skip, or overwrite
@@ -96,24 +91,61 @@ conflicts = "warn"  # warn, skip, or overwrite
 
 ### Deployment Flow
 
-1. **Package Installation** (auto from module.toml)
+1. **Dependency Resolution** (automatic, recursive)
+   - Check module's `dependencies` array
+   - Deploy each dependency if not already deployed
+   - Prevents duplicate deployments in same session
+   - Handles transitive dependencies (dep of dep)
+
+2. **Package Installation** (auto from module.toml)
    - Enable COPR repos
    - Install DNF packages
    - Install cargo/npm/flatpak packages
 
-2. **Lifecycle: install**
+3. **Lifecycle: install**
    - Custom installation logic
    - System configuration
 
-3. **Lifecycle: before**
+4. **Lifecycle: before**
    - Pre-deployment setup
 
-4. **Stow Deployment**
+5. **Stow Deployment**
    - Symlink `config/` to `$HOME`
 
-5. **Lifecycle: after**
+6. **Lifecycle: after**
    - Post-deployment configuration
    - Plugin installation
+
+### Dependency Resolution
+
+Dependencies are declared in module.toml and automatically resolved:
+
+```toml
+[module]
+name = "fish"
+dependencies = ["rust"]  # Rust will be deployed before fish
+```
+
+**How it works:**
+- Before deploying a module, check its `dependencies` array
+- Deploy each dependency recursively (handling transitive deps)
+- Track deployed modules to prevent duplicates
+- Fail-fast if a dependency is missing or fails
+
+**Example dependency chain:**
+```
+User requests: fish
+  → fish depends on: rust
+    → rust depends on: (none)
+    → Deploy rust first
+  → Deploy fish second
+```
+
+**Benefits:**
+- No need to manually list dependencies in profile modes
+- Modules are self-documenting (declare what they need)
+- Prevents deployment order issues
+- Handles complex dependency trees automatically
 
 ---
 
@@ -268,10 +300,10 @@ modules/fish/
 
 ### Planned Features
 - Module validation command
-- Dependency resolution
 - Module marketplace/registry
 - Profile import/export
 - Migration helpers
+- Circular dependency detection
 
 ### Not Planned
 - Complex templating (use scripts instead)

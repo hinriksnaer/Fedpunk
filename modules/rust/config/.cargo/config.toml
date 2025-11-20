@@ -1,0 +1,30 @@
+# Cargo configuration for faster builds
+# This speeds up all cargo install commands in Fedpunk
+
+[build]
+# Use all CPU cores for parallel compilation
+jobs = 8
+
+[target.x86_64-unknown-linux-gnu]
+# Use mold linker (much faster than default ld)
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+[registries.crates-io]
+# Use sparse registry protocol (faster than git)
+protocol = "sparse"
+
+[profile.dev]
+# Skip optimization for faster dev builds
+opt-level = 0
+debug = true
+
+# But optimize dependencies (good balance)
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+# Full optimizations for release builds
+opt-level = 3
+lto = "thin"
+codegen-units = 1
