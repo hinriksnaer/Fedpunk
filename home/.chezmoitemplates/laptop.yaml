@@ -28,7 +28,8 @@ install:
   # System components
   audio: true              # PipeWire audio stack
   multimedia: true         # Codecs, hardware acceleration
-  bluetooth: true          # BlueZ + bluetui (important for laptops)
+  bluetooth: true          # BlueZ bluetooth stack (important for laptops)
+  bluetui: true            # Bluetooth TUI manager
   nvidia_drivers: false    # NVIDIA proprietary drivers (prompt if GPU detected)
 
   # Optional extras

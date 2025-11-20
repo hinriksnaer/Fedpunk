@@ -2,6 +2,6 @@
 #!/usr/bin/env fish
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 section "Bluetooth Installation"
-install_packages bluez bluetui
+install_packages bluez
 box "Bluetooth Installation Complete!" $GUM_SUCCESS
 {{- end }}
