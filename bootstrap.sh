@@ -58,8 +58,11 @@ echo "Launching Fedpunk installation..."
 echo ""
 
 # Initialize chezmoi (clones repo, runs templates)
-# Mode selection happens during init via .chezmoi.toml.tmpl
-# Uses FEDPUNK_MODE environment variable or prompts user
+# Mode is auto-detected:
+#   - Container: if CONTAINER env var, /.dockerenv, or /run/.containerenv exists
+#   - Laptop: if /sys/class/power_supply/BAT0 exists
+#   - Desktop: default
+# Override with: FEDPUNK_MODE=container (or laptop/desktop)
 fish -c "chezmoi init https://github.com/hinriksnaer/Fedpunk.git"
 
 # Apply dotfiles and run installation scripts
