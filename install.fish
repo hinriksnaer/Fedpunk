@@ -2,17 +2,19 @@
 # Fedpunk Installer
 # Orchestrates module deployment using profile/mode configuration
 
-# Ensure we're running from the correct directory
-if not test -f (status dirname)/lib/fish/installer.fish
-    echo "Error: Must run from Fedpunk repository root" >&2
+# Get the directory where this script is located (works regardless of cwd)
+set -l script_dir (dirname (status -f))
+set -gx FEDPUNK_ROOT (realpath "$script_dir")
+
+# Verify installer library exists
+if not test -f "$FEDPUNK_ROOT/lib/fish/installer.fish"
+    echo "Error: Could not find installer library at $FEDPUNK_ROOT/lib/fish/installer.fish" >&2
+    echo "Please ensure you're running from a complete Fedpunk installation" >&2
     exit 1
 end
 
-# Set FEDPUNK_ROOT to current directory
-set -gx FEDPUNK_ROOT (pwd)
-
-# Source installer library
-source lib/fish/installer.fish
+# Source installer library (use absolute path)
+source "$FEDPUNK_ROOT/lib/fish/installer.fish"
 
 # Run installer with arguments
 installer-run $argv
