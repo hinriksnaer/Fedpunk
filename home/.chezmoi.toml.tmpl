@@ -1,14 +1,10 @@
 {{- $mode := "" -}}
 
-{{/* Priority 1: Check for FEDPUNK_MODE environment variable (allows automation) */}}
+{{/* Check for FEDPUNK_MODE environment variable (allows automation) */}}
 {{- if env "FEDPUNK_MODE" -}}
 {{-   $mode = env "FEDPUNK_MODE" -}}
 
-{{/* Priority 2: Auto-detect container mode (containers can't run prompts interactively) */}}
-{{- else if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
-{{-   $mode = "container" -}}
-
-{{/* Priority 3: Interactive selection */}}
+{{/* Otherwise always prompt for mode selection */}}
 {{- else -}}
 {{-   $mode = promptChoice "Select Fedpunk mode" (list "laptop" "desktop" "container") -}}
 {{- end -}}
