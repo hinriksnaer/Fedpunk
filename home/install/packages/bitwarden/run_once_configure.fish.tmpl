@@ -4,7 +4,7 @@
 #
 # Usage: setup-bitwarden.fish [--force|--reinstall]
 
-source "$FEDPUNK_HELPERS"
+source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 # Parse arguments
 set -l force_reinstall false

@@ -11,7 +11,7 @@ end
 if not set -q FEDPUNK_PATH
     set -gx FEDPUNK_PATH "{{ .chezmoi.sourceDir }}"
 end
-source "$FEDPUNK_HELPERS"
+source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "Yazi Installation"
 

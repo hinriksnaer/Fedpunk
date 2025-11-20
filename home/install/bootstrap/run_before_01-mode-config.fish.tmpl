@@ -9,9 +9,11 @@
 # Runs: Before file deployment (all modes)
 # ============================================================================
 
-# Environment variables already set by preflight
-# Source helpers
-source "$FEDPUNK_HELPERS"
+# Source helpers (using chezmoi template path)
+source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
+
+# Set up environment variables for this script
+set -gx FEDPUNK_MODE "{{ .mode.name }}"
 
 section "Mode Configuration"
 

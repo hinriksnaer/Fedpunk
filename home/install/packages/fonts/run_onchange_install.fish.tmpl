@@ -1,6 +1,6 @@
 {{- if and .install.fonts (ne .mode.name "container") }}
 #!/usr/bin/env fish
-source "$FEDPUNK_HELPERS"
+source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 section "Fonts Installation"
 install_packages "google-noto-*fonts" fira-code-fonts jetbrains-mono-fonts-all
 box "Fonts Installation Complete!" $GUM_SUCCESS
