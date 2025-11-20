@@ -13,9 +13,8 @@ modules:
   - lazygit
   - btop
   - yazi
-  # Phase 2+ modules (not yet created):
-  # - claude
-  # - gh
+  - gh
+  - claude
   # Phase 3+ modules (not yet created):
   # - fonts
   # - audio
