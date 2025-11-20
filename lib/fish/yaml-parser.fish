@@ -71,7 +71,7 @@ function yaml-get-list
     end
 
     # Build yq path for array access
-    set -l path ".$section.$key\[]"
+    set -l path ".$section.$key"'[]'
 
     # Use yaml-get-array to get the values
     yaml-get-array "$file" "$path"
