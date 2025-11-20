@@ -214,7 +214,7 @@ function fedpunk-module-install-packages
     set -l npm_packages (yaml-get-list "$module_yaml" "packages" "npm")
     for pkg in $npm_packages
         echo "  Installing npm package: $pkg"
-        npm install -g $pkg
+        sudo npm install -g $pkg
     end
 
     # Flatpak packages
