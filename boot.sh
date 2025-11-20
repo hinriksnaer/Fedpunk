@@ -50,24 +50,22 @@ echo ""
 # Use custom repo if specified, otherwise default to your repo
 FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
 
+# Use custom branch if instructed, otherwise default to custom-dotmanage
+FEDPUNK_REF="${FEDPUNK_REF:-custom-dotmanage}"
+
 echo -e "\nCloning Fedpunk from: https://github.com/${FEDPUNK_REPO}.git"
+echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"
 
 # Clone to temporary location if directory exists
 FEDPUNK_PATH="$HOME/.local/share/fedpunk"
 if [[ -d "$FEDPUNK_PATH" ]]; then
     echo "⚠️  Existing installation found, cloning to temporary location..."
     TEMP_PATH="/tmp/fedpunk-install-$$"
-    git clone "https://github.com/${FEDPUNK_REPO}.git" "$TEMP_PATH"
+    git clone -b "${FEDPUNK_REF}" "https://github.com/${FEDPUNK_REPO}.git" "$TEMP_PATH"
     FEDPUNK_PATH="$TEMP_PATH"
 else
-    git clone "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
+    git clone -b "${FEDPUNK_REF}" "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
 fi
-
-# Use custom branch if instructed, otherwise default to custom-dotmanage
-FEDPUNK_REF="${FEDPUNK_REF:-custom-dotmanage}"
-echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"
-cd "$FEDPUNK_PATH"
-git fetch origin "${FEDPUNK_REF}" && git checkout "${FEDPUNK_REF}"
 
 echo -e "\nInstallation starting..."
 
