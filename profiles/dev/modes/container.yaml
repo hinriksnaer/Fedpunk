@@ -11,6 +11,5 @@ modules:
   - tmux
   - lazygit
   - yazi
-  # Phase 2 modules (not yet created):
-  # - claude
-  # - gh
+  - gh
+  - claude
