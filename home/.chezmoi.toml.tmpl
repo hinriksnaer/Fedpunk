@@ -17,7 +17,8 @@
 {{- if env "FEDPUNK_MODE" -}}
 {{-   $mode = env "FEDPUNK_MODE" -}}
 {{- else -}}
-{{-   $mode = promptChoice "mode" (list "desktop" "laptop" "container") $autoDetectedMode -}}
+{{-   /* Use promptChoiceOnce to avoid re-prompting on apply */}}
+{{-   $mode = promptChoiceOnce . "mode" "Select installation mode" (list "desktop" "laptop" "container") $autoDetectedMode -}}
 {{- end -}}
 
 [data]
