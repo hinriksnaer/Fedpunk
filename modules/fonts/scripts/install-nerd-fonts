@@ -1,0 +1,73 @@
+#!/usr/bin/env fish
+# Install Nerd Fonts and Victor Mono
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Installing Nerd Fonts"
+
+# Create fonts directory
+mkdir -p ~/.local/share/fonts
+
+# JetBrains Mono Nerd Font
+ui-spin --title "Downloading JetBrains Mono Nerd Font..." -- fish -c '
+    set TMPDIR (mktemp -d)
+    curl -fL --retry 3 -o "'$TMPDIR'/JetBrainsMono.tar.xz" \
+        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz" >/dev/null 2>&1
+
+    mkdir -p ~/.local/share/fonts/JetBrainsMonoNerd
+    tar -xf "'$TMPDIR'/JetBrainsMono.tar.xz" -C ~/.local/share/fonts/JetBrainsMonoNerd >/dev/null 2>&1
+    rm -rf "'$TMPDIR'"
+'
+
+if test $status -eq 0
+    ui-success "JetBrains Mono Nerd Font installed"
+else
+    ui-warning "JetBrains Mono Nerd Font installation may have issues"
+end
+
+# Fantasque Sans Mono Nerd Font
+ui-spin --title "Downloading Fantasque Sans Mono Nerd Font..." -- fish -c '
+    set TMPDIR (mktemp -d)
+    curl -fL --retry 3 -o "'$TMPDIR'/FantasqueSansMono.zip" \
+        "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FantasqueSansMono.zip" >/dev/null 2>&1
+
+    mkdir -p ~/.local/share/fonts/FantasqueSansMonoNerd
+    unzip -q "'$TMPDIR'/FantasqueSansMono.zip" -d ~/.local/share/fonts/FantasqueSansMonoNerd >/dev/null 2>&1
+    rm -rf "'$TMPDIR'"
+'
+
+if test $status -eq 0
+    ui-success "Fantasque Sans Mono Nerd Font installed"
+else
+    ui-warning "Fantasque Sans Mono Nerd Font installation may have issues"
+end
+
+# Victor Mono Font
+ui-spin --title "Downloading Victor Mono Font..." -- fish -c '
+    set TMPDIR (mktemp -d)
+    curl -fL --retry 3 -o "'$TMPDIR'/VictorMonoAll.zip" \
+        "https://rubjo.github.io/victor-mono/VictorMonoAll.zip" >/dev/null 2>&1
+
+    mkdir -p ~/.local/share/fonts/VictorMono
+    unzip -q "'$TMPDIR'/VictorMonoAll.zip" -d ~/.local/share/fonts/VictorMono >/dev/null 2>&1
+    rm -rf "'$TMPDIR'"
+'
+
+if test $status -eq 0
+    ui-success "Victor Mono Font installed"
+else
+    ui-warning "Victor Mono Font installation may have issues"
+end
+
+# Update font cache
+ui-spin --title "Updating font cache..." -- fish -c '
+    fc-cache -fv >/dev/null 2>&1
+'
+
+if test $status -eq 0
+    ui-success "Font cache updated"
+else
+    ui-warning "Font cache update may have issues"
+end
+
+ui-success "Nerd Fonts installation complete"

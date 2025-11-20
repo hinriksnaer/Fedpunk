@@ -1,0 +1,26 @@
+// Rofi Configuration
+// See `man rofi` for more options
+
+configuration {
+    // Display settings
+    show-icons: true;
+    icon-theme: "Papirus";
+    display-drun: "Applications";
+    display-run: "Run";
+    display-window: "Windows";
+    display-ssh: "SSH";
+    drun-display-format: "{name}";
+
+    // Behavior
+    modi: "drun,run,window";
+    sidebar-mode: true;
+    hover-select: true;
+    me-select-entry: "";
+    me-accept-entry: "MousePrimary";
+
+    // Wayland compatibility
+    show-match: false;
+}
+
+// Theme is symlinked by fedpunk-theme-set
+@theme "~/.config/rofi/theme.rasi"
