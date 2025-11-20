@@ -6,12 +6,11 @@ mode:
   description: Minimal container environment
 
 modules:
-  enabled:
-    - essentials
-    # Add your modules here
-    # - neovim
-    # - tmux
-    # - lazygit
-    # - yazi
-    # - claude
-    # - gh
+  - essentials
+  # Add your modules here
+  # - neovim
+  # - tmux
+  # - lazygit
+  # - yazi
+  # - claude
+  # - gh

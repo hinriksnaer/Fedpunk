@@ -123,7 +123,7 @@ function installer-load-modules
         return 1
     end
 
-    yaml-get-list "$mode_file" "modules" "enabled"
+    yaml-get-array "$mode_file" ".modules[]"
 end
 
 function installer-deploy-modules

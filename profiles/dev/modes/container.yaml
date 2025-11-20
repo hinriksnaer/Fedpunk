@@ -6,11 +6,11 @@ mode:
   description: Minimal development environment for containers/devcontainers
 
 modules:
-  enabled:
-    - essentials
-    - neovim
-    - tmux
-    - lazygit
-    - yazi
-    - claude
-    - gh
+  - essentials
+  # Phase 2 modules (not yet created):
+  # - neovim
+  # - tmux
+  # - lazygit
+  # - yazi
+  # - claude
+  # - gh

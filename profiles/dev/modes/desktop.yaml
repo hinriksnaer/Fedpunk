@@ -6,19 +6,19 @@ mode:
   description: Full desktop environment with all development tools
 
 modules:
-  enabled:
-    - essentials
-    - languages
-    - fonts
-    - neovim
-    - tmux
-    - lazygit
-    - btop
-    - yazi
-    - claude
-    - gh
-    - audio
-    - kitty
-    - hyprland
-    - rofi
-    - firefox
+  - essentials
+  - languages
+  # Phase 2+ modules (not yet created):
+  # - fonts
+  # - neovim
+  # - tmux
+  # - lazygit
+  # - btop
+  # - yazi
+  # - claude
+  # - gh
+  # - audio
+  # - kitty
+  # - hyprland
+  # - rofi
+  # - firefox
