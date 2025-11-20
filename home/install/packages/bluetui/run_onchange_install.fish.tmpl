@@ -1,0 +1,61 @@
+{{- if .install.bluetui -}}
+#!/usr/bin/env fish
+# Component: bluetui
+# Description: Bluetooth TUI manager
+# Mode: {{ .mode.name }}
+
+source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
+
+section "Bluetui Installation"
+
+# Check if cargo is available
+if not command -v cargo >/dev/null 2>&1
+    error "Cargo not found! Please install Rust first"
+    info "Run the languages/rust installation script or: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    exit 1
+end
+
+# Check if bluetui is already installed and get version
+if command -v bluetui >/dev/null 2>&1
+    set current_version (bluetui --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' | head -1)
+    if test -n "$current_version"
+        info "Current version: $current_version"
+    else
+        info "Bluetui is already installed"
+    end
+
+    # Always upgrade to latest version
+    subsection "Updating bluetui"
+    step "Updating bluetui with cargo" "cargo install bluetui"
+
+    set new_version (bluetui --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' | head -1)
+    if test -n "$current_version" -a -n "$new_version" -a "$current_version" != "$new_version"
+        success "Updated: $current_version → $new_version"
+    else if test -n "$new_version"
+        success "Already on latest version: $new_version"
+    else
+        success "Bluetui updated successfully"
+    end
+else
+    # Fresh installation
+    subsection "Installing bluetui dependencies"
+    install_packages dbus-devel
+
+    subsection "Installing bluetui"
+    step "Installing bluetui with cargo" "cargo install bluetui"
+
+    if command -v bluetui >/dev/null 2>&1
+        set version (bluetui --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' | head -1)
+        if test -n "$version"
+            success "Installed: $version"
+        else
+            success "Bluetui installed successfully"
+        end
+    else
+        error "Installation failed"
+        exit 1
+    end
+end
+
+box "Bluetui Installation Complete!" $GUM_SUCCESS
+{{- end }}
