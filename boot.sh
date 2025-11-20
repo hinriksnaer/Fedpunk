@@ -50,8 +50,8 @@ echo ""
 # Use custom repo if specified, otherwise default to your repo
 FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
 
-# Use custom branch if instructed, otherwise default to custom-dotmanage
-FEDPUNK_REF="${FEDPUNK_REF:-custom-dotmanage}"
+# Use custom branch if instructed, otherwise default to main
+FEDPUNK_REF="${FEDPUNK_REF:-main}"
 
 echo -e "\nCloning Fedpunk from: https://github.com/${FEDPUNK_REPO}.git"
 echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"

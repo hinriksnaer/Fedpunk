@@ -86,8 +86,8 @@ else
         rm -rf "$FEDPUNK_PATH"
     fi
 
-    # Use custom branch if instructed, otherwise default to custom-dotmanage
-    FEDPUNK_REF="${FEDPUNK_REF:-custom-dotmanage}"
+    # Use custom branch if instructed, otherwise default to main
+    FEDPUNK_REF="${FEDPUNK_REF:-main}"
     echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"
 
     git clone -b "${FEDPUNK_REF}" "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"

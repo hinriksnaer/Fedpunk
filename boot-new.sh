@@ -55,7 +55,7 @@ echo ""
 
 # Repository configuration
 FEDPUNK_REPO="${FEDPUNK_REPO:-hinriksnaer/Fedpunk}"
-FEDPUNK_REF="${FEDPUNK_REF:-custom-dotmanage}"
+FEDPUNK_REF="${FEDPUNK_REF:-main}"
 FEDPUNK_PATH="$HOME/.local/share/fedpunk"
 
 echo "→ Cloning from: https://github.com/${FEDPUNK_REPO}.git"

@@ -38,7 +38,7 @@ Fedpunk transforms Fedora into a productivity-focused workspace featuring tiling
 ### Interactive Install (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/custom-dotmanage/boot.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
 ```
 
 **You'll be prompted to choose:**
@@ -332,7 +332,7 @@ Perfect for:
 fish install.fish --terminal-only --non-interactive
 
 # Or use the boot script
-bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/custom-dotmanage/boot-terminal.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
 ```
 
 ### Layout Management
