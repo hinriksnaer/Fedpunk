@@ -6,4 +6,4 @@ name = "container"
 description = "Minimal development environment for containers/devcontainers"
 
 [modules]
-enabled = ["fish", "neovim", "tmux", "lazygit", "yazi", "claude", "gh"]
+enabled = ["essentials", "neovim", "tmux", "lazygit", "yazi", "claude", "gh"]
