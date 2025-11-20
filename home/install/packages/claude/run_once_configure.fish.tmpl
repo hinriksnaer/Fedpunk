@@ -6,20 +6,26 @@
 
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
-set config_file "$HOME/.config/fish/config.fish"
+set chezmoi_data "$HOME/.config/chezmoi/chezmoi.toml"
 
 section "Claude Code Authentication Setup"
 
 # Require TTY for interactive prompts (or environment variable override)
 require_tty "Claude Code Setup" "FEDPUNK_SETUP_CLAUDE=skip|apikey|vertex"
 
-# Check current status
-set current_status "disabled"
-if grep -q "^source.*claude-vertex.fish" "$config_file" 2>/dev/null
-    set current_status "enabled"
-end
-
-info "Current status: Claude Vertex AI is $current_status"
+# Check current configuration
+{{- if hasKey . "claude" }}
+{{-   if hasKey .claude "auth_method" }}
+set current_auth "{{ .claude.auth_method }}"
+info "Current authentication method: $current_auth"
+{{-   else }}
+set current_auth "none"
+info "No authentication configured yet"
+{{-   end }}
+{{- else }}
+set current_auth "none"
+info "No authentication configured yet"
+{{- end }}
 
 # Ask if user wants to configure
 echo ""
@@ -48,36 +54,101 @@ set auth_method (gum choose \
 echo ""
 
 if test "$auth_method" = "Google Vertex AI"
-    subsection "Enabling Google Vertex AI authentication"
+    subsection "Configuring Google Vertex AI authentication"
 
-    # Uncomment the source line
-    sed -i 's/^# source (dirname (status --current-filename))\/claude-vertex.fish/source (dirname (status --current-filename))\/claude-vertex.fish/' "$config_file"
+    # Prompt for Vertex AI configuration
+    set project_id (gum input \
+        --placeholder "Enter your GCP Project ID" \
+        --value "{{ if and (hasKey . \"claude\") (hasKey .claude \"vertex_project_id\") }}{{ .claude.vertex_project_id }}{{ end }}" \
+        </dev/tty)
 
-    success "Google Vertex AI authentication enabled"
     echo ""
-    box "Vertex AI Configuration
+    set region (gum input \
+        --placeholder "Enter Vertex AI region (e.g., us-east5)" \
+        --value "{{ if and (hasKey . \"claude\") (hasKey .claude \"vertex_region\") }}{{ .claude.vertex_region }}{{ else }}us-east5{{ end }}" \
+        </dev/tty)
 
-Environment variables:
-  CLAUDE_CODE_USE_VERTEX: 1
-  CLOUD_ML_REGION: us-east5
-  ANTHROPIC_VERTEX_PROJECT_ID: itpc-gcp-ai-eng-claude
+    echo ""
+    if gum confirm "Do you want to specify a service account key file?" </dev/tty
+        set key_file (gum input \
+            --placeholder "Path to service account key JSON file (optional)" \
+            --value "{{ if and (hasKey . \"claude\") (hasKey .claude \"vertex_key_file\") }}{{ .claude.vertex_key_file }}{{ end }}" \
+            </dev/tty)
+    else
+        set key_file ""
+    end
 
-⚠️  Restart your shell for changes to take effect:
-  exec fish" $GUM_INFO
+    # Validate inputs
+    if test -z "$project_id"
+        error "Project ID cannot be empty"
+        exit 1
+    end
+
+    if test -z "$region"
+        error "Region cannot be empty"
+        exit 1
+    end
+
+    # Update chezmoi data file
+    echo ""
+    subsection "Saving configuration"
+
+    # Create or update the [data.claude] section
+    if not grep -q "^\[data\.claude\]" "$chezmoi_data" 2>/dev/null
+        echo "" >> "$chezmoi_data"
+        echo "[data.claude]" >> "$chezmoi_data"
+    end
+
+    # Remove old claude settings if they exist
+    sed -i '/^\[data\.claude\]/,/^\[/{ /^\[data\.claude\]/!{ /^\[/!d; }; }' "$chezmoi_data"
+
+    # Add new settings after [data.claude] marker
+    sed -i "/^\[data\.claude\]/a\\  auth_method = \"vertex\"\\n  vertex_project_id = \"$project_id\"\\n  vertex_region = \"$region\"" "$chezmoi_data"
+
+    if test -n "$key_file"
+        sed -i "/vertex_region/a\\  vertex_key_file = \"$key_file\"" "$chezmoi_data"
+    end
+
+    success "Google Vertex AI configuration saved"
+    echo ""
+    box "Vertex AI Configuration Saved
+
+Project ID: $project_id
+Region: $region
+$(test -n "$key_file"; and echo "Key file: $key_file")
+
+⚠️  Run 'chezmoi apply' to apply the configuration:
+  chezmoi apply
+
+Then restart your shell:
+  exec fish" $GUM_SUCCESS
 else
-    subsection "Enabling standard API key authentication"
+    subsection "Configuring standard API key authentication"
 
-    # Comment out the source line
-    sed -i 's/^source (dirname (status --current-filename))\/claude-vertex.fish/# source (dirname (status --current-filename))\/claude-vertex.fish/' "$config_file"
+    # Update chezmoi data file
+    if not grep -q "^\[data\.claude\]" "$chezmoi_data" 2>/dev/null
+        echo "" >> "$chezmoi_data"
+        echo "[data.claude]" >> "$chezmoi_data"
+    end
 
-    success "Standard API key authentication enabled"
+    # Remove old claude settings if they exist
+    sed -i '/^\[data\.claude\]/,/^\[/{ /^\[data\.claude\]/!{ /^\[/!d; }; }' "$chezmoi_data"
+
+    # Add auth method
+    sed -i "/^\[data\.claude\]/a\\  auth_method = \"apikey\"" "$chezmoi_data"
+
+    success "Standard API key authentication configured"
     echo ""
-    box "API Key Configuration
+    box "API Key Configuration Saved
 
-Standard Claude API authentication is now enabled.
+⚠️  Run 'chezmoi apply' to apply the configuration:
+  chezmoi apply
 
-⚠️  Restart your shell for changes to take effect:
-  exec fish" $GUM_INFO
+Then authenticate with:
+  claude auth login
+
+Then restart your shell:
+  exec fish" $GUM_SUCCESS
 end
 
 echo ""
