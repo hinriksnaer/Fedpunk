@@ -1,17 +1,28 @@
-{{- $mode := "desktop" -}}
+{{- $mode := "" -}}
 
-{{/* Auto-detect mode based on environment */}}
-{{- if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
-{{-   $mode = "container" -}}
-{{- else if stat "/sys/class/power_supply/BAT0" -}}
-{{-   $mode = "laptop" -}}
-{{- else -}}
-{{-   $mode = "desktop" -}}
-{{- end -}}
-
-{{/* Allow override via FEDPUNK_MODE environment variable */}}
+{{/* Priority 1: Check for FEDPUNK_MODE environment variable (allows automation) */}}
 {{- if env "FEDPUNK_MODE" -}}
 {{-   $mode = env "FEDPUNK_MODE" -}}
+
+{{/* Priority 2: Auto-detect container mode (containers can't run gum interactively) */}}
+{{- else if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
+{{-   $mode = "container" -}}
+
+{{/* Priority 3: Interactive selection with gum (if available and TTY present) */}}
+{{- else -}}
+{{-   $gumAvailable := lookPath "gum" -}}
+{{-   if $gumAvailable -}}
+{{-     $mode = output "sh" "-c" "gum choose --header='Select Fedpunk mode:' laptop desktop container 2>/dev/null || echo ''" | trim -}}
+{{-   end -}}
+
+{{-   /* Priority 4: Fall back to auto-detection if gum prompt failed/cancelled */}}
+{{-   if eq $mode "" -}}
+{{-     if stat "/sys/class/power_supply/BAT0" -}}
+{{-       $mode = "laptop" -}}
+{{-     else -}}
+{{-       $mode = "desktop" -}}
+{{-     end -}}
+{{-   end -}}
 {{- end -}}
 
 {{/* Load mode configuration from YAML file */}}
