@@ -29,6 +29,7 @@ install:
   audio: false             # No audio stack needed
   multimedia: false        # No multimedia codecs needed
   bluetooth: false         # No Bluetooth needed
+  nvidia_drivers: false    # No GPU drivers needed in containers
 
   # Optional extras (disabled for containers)
   extra_apps: false        # No Discord/Spotify/etc. needed
