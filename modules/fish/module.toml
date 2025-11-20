@@ -1,7 +1,7 @@
 [module]
 name = "fish"
 description = "Fish shell setup for Fedpunk - includes Starship, Fisher, and base configuration"
-dependencies = []
+dependencies = ["rust"]
 priority = 5
 
 [lifecycle]
@@ -14,11 +14,6 @@ dnf = ["fish", "util-linux-user", "starship", "procps-ng"]
 cargo = []
 npm = []
 flatpak = []
-
-[profile]
-default = true
-desktop = true
-container = true
 
 [stow]
 target = "$HOME"

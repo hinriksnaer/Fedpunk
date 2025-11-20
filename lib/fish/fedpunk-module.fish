@@ -6,6 +6,50 @@
 set -l script_dir (dirname (status -f))
 source "$script_dir/toml-parser.fish"
 
+# Global variable to track deployed modules (prevents redeployment in same session)
+if not set -q FEDPUNK_DEPLOYED_MODULES
+    set -g FEDPUNK_DEPLOYED_MODULES
+end
+
+# Resolve and deploy dependencies recursively
+function fedpunk-module-resolve-dependencies
+    set -l module_name $argv[1]
+    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_toml "$module_dir/module.toml"
+
+    if not test -f "$module_toml"
+        echo "Module not found: $module_name" >&2
+        return 1
+    end
+
+    # Get dependencies
+    set -l dependencies (toml-get-array "$module_toml" "module" "dependencies")
+
+    if test -z "$dependencies"
+        return 0  # No dependencies
+    end
+
+    # Deploy each dependency if not already deployed
+    for dep in $dependencies
+        # Check if already deployed in this session
+        if contains $dep $FEDPUNK_DEPLOYED_MODULES
+            echo "  Dependency $dep already deployed, skipping"
+            continue
+        end
+
+        echo "  Resolving dependency: $dep (required by $module_name)"
+
+        # Recursively deploy dependency (which will resolve its dependencies)
+        fedpunk-module-deploy $dep
+        or begin
+            echo "Failed to deploy dependency: $dep" >&2
+            return 1
+        end
+    end
+
+    return 0
+end
+
 function fedpunk-module
     set -l subcommand $argv[1]
 
@@ -340,7 +384,19 @@ function fedpunk-module-deploy
         return 1
     end
 
+    # Check if already deployed in this session
+    if contains $module_name $FEDPUNK_DEPLOYED_MODULES
+        echo "Module $module_name already deployed in this session, skipping"
+        return 0
+    end
+
     echo "Deploying module: $module_name"
+    echo ""
+
+    # 0. Resolve dependencies first
+    echo "==> Checking dependencies"
+    fedpunk-module-resolve-dependencies $module_name
+    or return 1
     echo ""
 
     # 1. Install packages
@@ -371,4 +427,9 @@ function fedpunk-module-deploy
 
     echo ""
     echo "✓ Module $module_name deployed successfully"
+
+    # Mark as deployed
+    set -g FEDPUNK_DEPLOYED_MODULES $FEDPUNK_DEPLOYED_MODULES $module_name
+
+    return 0
 end
