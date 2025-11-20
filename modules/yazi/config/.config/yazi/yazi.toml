@@ -1,0 +1,109 @@
+# Yazi Configuration for Fedpunk
+# https://yazi-rs.github.io/docs/configuration/yazi
+
+[mgr]
+# Ratio of the three panes (parent, current, preview)
+ratio = [1, 4, 3]
+# Sort files and directories
+sort_by = "alphabetical"
+sort_sensitive = false
+sort_reverse = false
+sort_dir_first = true
+# Show hidden files
+show_hidden = true
+# Show symlink target
+show_symlink = true
+# Scroll offset
+scrolloff = 5
+
+[preview]
+# Preview image/video
+tab_size = 2
+max_width = 600
+max_height = 900
+# Image/video quality (High, Medium, Low)
+cache_dir = ""
+
+# Image preview adapter
+# "kitty" works in Kitty terminal (both standalone and inside Neovim)
+# "iterm2" works in iTerm2
+# "sixel" works in terminals with sixel support
+image_adapter = "auto"  # Auto-detect best protocol
+
+# Fallback settings for ueberzug (if auto-detection doesn't work)
+ueberzug_scale = 1
+ueberzug_offset = [0, 0, 0, 0]
+
+[opener]
+# Default opener for different file types
+edit = [
+    { run = 'nvim "$@"', block = true, for = "linux" },
+]
+open = [
+    { run = 'xdg-open "$@"', desc = "Open", orphan = true },
+]
+reveal = [
+    { run = 'yazi "$@"', desc = "Reveal in Yazi", for = "linux" },
+]
+play = [
+    { run = 'mpv "$@"', orphan = true, for = "linux", desc = "Play with mpv" },
+]
+archive = [
+    { run = 'ouch decompress "$@"', desc = "Extract here" },
+    { run = 'ouch decompress "$@" --yes', desc = "Extract (overwrite)" },
+]
+# Image viewer (for explicit image opening)
+image = [
+    { run = 'imv "$@"', orphan = true, desc = "View in imv" },
+    { run = 'xdg-open "$@"', orphan = true, desc = "Open with default" },
+]
+# PDF viewer
+pdf = [
+    { run = 'zathura "$@"', orphan = true, desc = "Open in Zathura" },
+    { run = 'xdg-open "$@"', orphan = true, desc = "Open with default" },
+]
+
+[open]
+# File associations
+rules = [
+    # Text files
+    { mime = "text/*", use = "edit" },
+    { mime = "application/json", use = "edit" },
+    { mime = "application/x-yaml", use = "edit" },
+    { mime = "application/toml", use = "edit" },
+    { mime = "*/javascript", use = "edit" },
+
+    # Images (preview works automatically in yazi)
+    { mime = "image/*", use = "image" },
+
+    # Videos and audio
+    { mime = "video/*", use = "play" },
+    { mime = "audio/*", use = "play" },
+
+    # Archives
+    { mime = "application/x-tar", use = "archive" },
+    { mime = "application/zip", use = "archive" },
+    { mime = "application/gzip", use = "archive" },
+    { mime = "application/x-7z-compressed", use = "archive" },
+    { mime = "application/x-rar", use = "archive" },
+
+    # PDFs
+    { mime = "application/pdf", use = "pdf" },
+
+    # Directories
+    { mime = "inode/directory", use = "open" },
+]
+
+[tasks]
+# Maximum number of concurrent tasks
+micro_workers = 10
+macro_workers = 25
+bizarre_retry = 5
+# Image decoding quality (50-100)
+image_alloc = 536870912  # 512MB
+image_bound = [0, 0]
+# Suppress task status messages
+suppress_preload = false
+
+[log]
+enabled = false
