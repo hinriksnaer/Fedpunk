@@ -8,12 +8,11 @@
 # Runs: After all files deployed and components installed
 # ============================================================================
 
-# Environment variables already set by preflight
-# Source helpers
 # Set up environment variables
 set -gx FEDPUNK_MODE "{{ .mode.name }}"
 
 # Source helpers
+source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "Post-Installation"
 
