@@ -8,6 +8,12 @@ source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "Claude Code Installation"
 
+# Ensure npm is available
+if not command -v npm >/dev/null 2>&1
+    subsection "Installing Node.js and npm"
+    install_packages nodejs npm
+end
+
 if command -v claude >/dev/null 2>&1
     set current_version (claude --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' | head -1)
     info "Current version: $current_version"
@@ -23,7 +29,12 @@ if command -v claude >/dev/null 2>&1
     end
 else
     step "Installing Claude Code" "sudo npm install -g @anthropics/claude-code"
-    success "Installed: "(claude --version)
+    if command -v claude >/dev/null 2>&1
+        success "Installed: "(claude --version)
+    else
+        error "Installation failed"
+        exit 1
+    end
 end
 
 box "Claude Code Installation Complete!" $GUM_SUCCESS
