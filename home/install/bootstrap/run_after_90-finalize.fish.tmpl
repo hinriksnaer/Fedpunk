@@ -10,7 +10,10 @@
 
 # Environment variables already set by preflight
 # Source helpers
-source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
+# Set up environment variables
+set -gx FEDPUNK_MODE "{{ .mode.name }}"
+
+# Source helpers
 
 section "Post-Installation"
 

@@ -17,6 +17,9 @@ if test "{{ .mode.name }}" = "container"
 end
 
 # Environment variables already set by preflight
+# Set up environment variables
+set -gx FEDPUNK_MODE "{{ .mode.name }}"
+
 # Source helpers
 source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 

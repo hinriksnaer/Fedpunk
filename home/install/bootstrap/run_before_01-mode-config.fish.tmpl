@@ -9,11 +9,13 @@
 # Runs: Before file deployment (all modes)
 # ============================================================================
 
-# Source helpers (using chezmoi template path)
-source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
-
-# Set up environment variables for this script
+# Set up environment variables (chezmoi templates)
+set -gx FEDPUNK_REPO_ROOT "{{ .chezmoi.workingTree }}"
+set -gx FEDPUNK_HOME_DIR "{{ .chezmoi.sourceDir }}"
 set -gx FEDPUNK_MODE "{{ .mode.name }}"
+
+# Source helpers
+source "{{ .chezmoi.workingTree }}/home/install/lib/helpers.fish"
 
 section "Mode Configuration"
 
