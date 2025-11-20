@@ -8,17 +8,9 @@
 {{- else if or (env "CONTAINER") (stat "/.dockerenv") (stat "/run/.containerenv") -}}
 {{-   $mode = "container" -}}
 
-{{/* Priority 3: Interactive selection (if TTY available) */}}
-{{- else if stdinIsATTY -}}
-{{-   $mode = promptChoice "Select Fedpunk mode" (list "laptop" "desktop" "container") -}}
-
-{{/* Priority 4: Fall back to auto-detection if not interactive */}}
+{{/* Priority 3: Interactive selection */}}
 {{- else -}}
-{{-   if stat "/sys/class/power_supply/BAT0" -}}
-{{-     $mode = "laptop" -}}
-{{-   else -}}
-{{-     $mode = "desktop" -}}
-{{-   end -}}
+{{-   $mode = promptChoice "Select Fedpunk mode" (list "laptop" "desktop" "container") -}}
 {{- end -}}
 
 {{/* Load mode configuration from YAML file */}}
