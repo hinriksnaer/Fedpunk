@@ -15,7 +15,7 @@
 {{- end -}}
 
 {{/* Load mode configuration from YAML file */}}
-{{- $modeFile := joinPath .chezmoi.sourceDir ".modes" (printf "%s.yaml" $mode) -}}
+{{- $modeFile := joinPath .chezmoi.sourceDir ".chezmoitemplates" (printf "%s.yaml" $mode) -}}
 {{- $modeConfig := dict -}}
 {{- if stat $modeFile -}}
 {{-   $modeConfig = include $modeFile | fromYaml -}}
