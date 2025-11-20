@@ -1,0 +1,12 @@
+{
+  "name": "fedpunk-test",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": [
+    "--name", "fed-test",
+    "--network", "host"
+  ],
+  "workspaceFolder": "/home/dev/workspace",
+  "remoteUser": "dev"
+}

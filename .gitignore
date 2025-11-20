@@ -47,7 +47,6 @@ profiles/*/
 !profiles/dev/
 
 # Development tools
-.devcontainer/
 .claude/
 
 # User-specific theme selections (symlinks managed by fedpunk theme system)

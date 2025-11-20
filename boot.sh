@@ -63,13 +63,11 @@ else
     git clone "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
 fi
 
-# Use custom branch if instructed, otherwise default to main
-FEDPUNK_REF="${FEDPUNK_REF:-main}"
-if [[ $FEDPUNK_REF != "main" ]]; then
-  echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"
-  cd "$FEDPUNK_PATH"
-  git fetch origin "${FEDPUNK_REF}" && git checkout "${FEDPUNK_REF}"
-fi
+# Use custom branch if instructed, otherwise default to custom-dotmanage
+FEDPUNK_REF="${FEDPUNK_REF:-custom-dotmanage}"
+echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"
+cd "$FEDPUNK_PATH"
+git fetch origin "${FEDPUNK_REF}" && git checkout "${FEDPUNK_REF}"
 
 echo -e "\nInstallation starting..."
 
