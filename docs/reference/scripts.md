@@ -37,7 +37,7 @@ Switch to a specific theme by name.
 # Examples
 fedpunk-theme-set osaka-jade
 fedpunk-theme-set "Osaka Jade"  # Also accepts spaces
-fedpunk-theme-set default
+fedpunk-theme-set ayu-mirage
 ```
 
 **Features:**

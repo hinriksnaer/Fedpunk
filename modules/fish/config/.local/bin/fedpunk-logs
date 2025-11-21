@@ -1,0 +1,67 @@
+#!/usr/bin/env fish
+# Show or tail Fedpunk installation/operation logs
+# Usage: fedpunk-logs [--tail] [--output]
+
+set -l tail_mode false
+set -l show_output false
+
+# Parse arguments
+for arg in $argv
+    switch $arg
+        case --tail -t
+            set tail_mode true
+        case --output -o
+            set show_output true
+        case --help -h
+            echo "Usage: fedpunk-logs [options]"
+            echo ""
+            echo "Options:"
+            echo "  --tail, -t      Follow the log file (tail -f)"
+            echo "  --output, -o    Show full output log instead of UI log"
+            echo "  --help, -h      Show this help"
+            echo ""
+            echo "Shows the most recent Fedpunk log file in /tmp"
+            exit 0
+        case '*'
+            echo "Unknown option: $arg"
+            echo "Use --help for usage information"
+            exit 1
+    end
+end
+
+# Find the most recent log file
+if test "$show_output" = "true"
+    set -l log_file (ls -t /tmp/fedpunk-output-*.log 2>/dev/null | head -1)
+
+    if test -z "$log_file"
+        echo "No output log files found in /tmp"
+        echo "Output logs are created automatically during installation"
+        exit 1
+    end
+
+    echo "Full output log: $log_file"
+    echo ""
+
+    if test "$tail_mode" = "true"
+        tail -f "$log_file"
+    else
+        less +G "$log_file"
+    end
+else
+    set -l log_file (ls -t /tmp/fedpunk-ui-*.log 2>/dev/null | head -1)
+
+    if test -z "$log_file"
+        echo "No UI log files found in /tmp"
+        echo "Logs are created automatically during installation"
+        exit 1
+    end
+
+    echo "UI event log: $log_file"
+    echo ""
+
+    if test "$tail_mode" = "true"
+        tail -f "$log_file"
+    else
+        less +G "$log_file"
+    end
+end

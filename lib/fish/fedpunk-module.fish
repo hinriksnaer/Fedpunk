@@ -432,15 +432,15 @@ function fedpunk-module-deploy
     or return 1
     echo ""
 
-    # 3. Run after lifecycle hook (post-install setup)
-    echo "==> Running after hook"
-    fedpunk-module-run-lifecycle $module_name after
+    # 3. Stow config
+    echo "==> Deploying configuration"
+    fedpunk-module-stow $module_name
     or return 1
     echo ""
 
-    # 4. Stow config (always last)
-    echo "==> Deploying configuration"
-    fedpunk-module-stow $module_name
+    # 4. Run after lifecycle hook (post-stow setup)
+    echo "==> Running after hook"
+    fedpunk-module-run-lifecycle $module_name after
     or return 1
 
     echo ""

@@ -224,7 +224,7 @@ nano profiles/dev/rofi.rasi
 
 **Reset to default?**
 ```bash
-fedpunk-theme-set default
+fedpunk-theme-set ayu-mirage
 ```
 
 ## Omarchy Compatibility

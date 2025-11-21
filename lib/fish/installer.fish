@@ -204,6 +204,27 @@ function installer-run
     ui-info "with Hyprland compositor and Fish shell"
     echo ""
 
+    # Show log locations
+    set -l output_log (ui-output-log-location)
+    if test -n "$output_log"
+        ui-info "Full output being captured to: $output_log"
+        echo ""
+    end
+
+    # Initial system update
+    ui-section "System Update"
+    ui-info "Updating system packages before installation"
+    ui-spin --title "Running DNF update..." -- fish -c '
+        sudo dnf update -y
+    '
+
+    if test $status -eq 0
+        ui-success "System updated successfully"
+    else
+        ui-warning "System update completed with warnings"
+    end
+    echo ""
+
     # Select profile
     if test -z "$profile"
         if test "$non_interactive" = "true"
@@ -270,7 +291,31 @@ function installer-run
     installer-deploy-modules $modules
 
     if test $status -eq 0
+        # Final system update after all modules
+        echo ""
+        ui-section "Final System Update"
+        ui-info "Updating all packages after module installation"
+        ui-spin --title "Running final DNF update..." -- fish -c '
+            sudo dnf update -y
+        '
+
+        if test $status -eq 0
+            ui-success "Final system update completed"
+        else
+            ui-warning "Final update completed with warnings"
+        end
+        echo ""
+
+        # Success message
         set -l log_location (ui-log-location)
+        set -l output_log (ui-output-log-location)
+
+        set -l log_info "UI log: $log_location"
+        if test -n "$output_log"
+            set log_info "$log_info
+Full output: $output_log"
+        end
+
         ui-box "Installation Complete! 🎉
 
 Profile: $profile
@@ -279,16 +324,24 @@ Modules deployed: "(count $modules)"
 
 Restart your shell or run: exec fish
 
-Log file: $log_location" $UI_SUCCESS
+$log_info" $UI_SUCCESS
         return 0
     else
         set -l log_location (ui-log-location)
+        set -l output_log (ui-output-log-location)
+
+        set -l log_info "UI log: $log_location"
+        if test -n "$output_log"
+            set log_info "$log_info
+Full output: $output_log"
+        end
+
         ui-box "Installation Failed
 
 Some modules failed to deploy.
 Check the output above for details.
 
-Log file: $log_location" $UI_ERROR
+$log_info" $UI_ERROR
         return 1
     end
 end

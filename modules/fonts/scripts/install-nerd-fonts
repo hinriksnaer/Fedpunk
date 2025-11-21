@@ -23,33 +23,33 @@ else
 end
 
 # Fantasque Sans Mono Nerd Font
-echo "Downloading Fantasque Sans Mono Nerd Font..."
-set TMPDIR (mktemp -d)
-if curl -fL --retry 3 -o "$TMPDIR/FantasqueSansMono.zip" \
-    "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FantasqueSansMono.zip" >/dev/null 2>&1
-    mkdir -p ~/.local/share/fonts/FantasqueSansMonoNerd
-    unzip -q "$TMPDIR/FantasqueSansMono.zip" -d ~/.local/share/fonts/FantasqueSansMonoNerd >/dev/null 2>&1
-    rm -rf "$TMPDIR"
-    ui-success "Fantasque Sans Mono Nerd Font installed"
-else
-    rm -rf "$TMPDIR"
-    ui-warning "Fantasque Sans Mono Nerd Font installation failed"
-end
-
+# echo "Downloading Fantasque Sans Mono Nerd Font..."
+# set TMPDIR (mktemp -d)
+# if curl -fL --retry 3 -o "$TMPDIR/FantasqueSansMono.zip" \
+#     "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FantasqueSansMono.zip" >/dev/null 2>&1
+#     mkdir -p ~/.local/share/fonts/FantasqueSansMonoNerd
+#     unzip -q "$TMPDIR/FantasqueSansMono.zip" -d ~/.local/share/fonts/FantasqueSansMonoNerd >/dev/null 2>&1
+#     rm -rf "$TMPDIR"
+#     ui-success "Fantasque Sans Mono Nerd Font installed"
+# else
+#     rm -rf "$TMPDIR"
+#     ui-warning "Fantasque Sans Mono Nerd Font installation failed"
+# end
+#
 # Victor Mono Font
-echo "Downloading Victor Mono Font..."
-set TMPDIR (mktemp -d)
-if curl -fL --retry 3 -o "$TMPDIR/VictorMonoAll.zip" \
-    "https://rubjo.github.io/victor-mono/VictorMonoAll.zip" >/dev/null 2>&1
-    mkdir -p ~/.local/share/fonts/VictorMono
-    unzip -q "$TMPDIR/VictorMonoAll.zip" -d ~/.local/share/fonts/VictorMono >/dev/null 2>&1
-    rm -rf "$TMPDIR"
-    ui-success "Victor Mono Font installed"
-else
-    rm -rf "$TMPDIR"
-    ui-warning "Victor Mono Font installation failed"
-end
-
+# echo "Downloading Victor Mono Font..."
+# set TMPDIR (mktemp -d)
+# if curl -fL --retry 3 -o "$TMPDIR/VictorMonoAll.zip" \
+#     "https://rubjo.github.io/victor-mono/VictorMonoAll.zip" >/dev/null 2>&1
+#     mkdir -p ~/.local/share/fonts/VictorMono
+#     unzip -q "$TMPDIR/VictorMonoAll.zip" -d ~/.local/share/fonts/VictorMono >/dev/null 2>&1
+#     rm -rf "$TMPDIR"
+#     ui-success "Victor Mono Font installed"
+# else
+#     rm -rf "$TMPDIR"
+#     ui-warning "Victor Mono Font installation failed"
+# end
+#
 # Update font cache
 echo "Updating font cache..."
 if fc-cache -fv >/dev/null 2>&1

@@ -56,3 +56,5 @@ if test -L "$active_config"; and test -f "$active_config/config.fish"
     source "$active_config/config.fish"
 end
 
+
+alias claude="/home/softmax/.claude/local/claude"

@@ -12,14 +12,23 @@ set -g UI_MUTED 245    # Gray
 # Logging configuration
 set -g UI_LOG_ENABLED true  # Enable logging during development
 set -g UI_DEBUG_MODE false  # Extra verbose output (set true for deep debugging)
+set -g UI_CAPTURE_OUTPUT true  # Capture all command output to log
 
-# Initialize log file
+# Initialize log files
 if test "$UI_LOG_ENABLED" = "true"
     if not set -q UI_LOG_FILE
-        set -gx UI_LOG_FILE "/tmp/fedpunk-ui-"(date +%Y%m%d-%H%M%S)".log"
+        set -l timestamp (date +%Y%m%d-%H%M%S)
+        set -gx UI_LOG_FILE "/tmp/fedpunk-ui-$timestamp.log"
+        set -gx UI_OUTPUT_LOG "/tmp/fedpunk-output-$timestamp.log"
+
         echo "=== Fedpunk UI Log ===" > "$UI_LOG_FILE"
         echo "Started: "(date) >> "$UI_LOG_FILE"
+        echo "Output log: $UI_OUTPUT_LOG" >> "$UI_LOG_FILE"
         echo "" >> "$UI_LOG_FILE"
+
+        echo "=== Fedpunk Full Output Log ===" > "$UI_OUTPUT_LOG"
+        echo "Started: "(date) >> "$UI_OUTPUT_LOG"
+        echo "" >> "$UI_OUTPUT_LOG"
     end
 end
 
@@ -54,7 +63,34 @@ function ui-spin
     ui-log SPIN "Starting: $argv"
 
     if ui-has-gum
-        gum spin $argv
+        if test "$UI_CAPTURE_OUTPUT" = "true" -a -n "$UI_OUTPUT_LOG"
+            # Capture output while still showing spinner
+            set -l title_arg ""
+            set -l cmd_start 0
+
+            for i in (seq (count $argv))
+                if test "$argv[$i]" = "--"
+                    set cmd_start (math $i + 1)
+                    break
+                else if test "$argv[$i]" = "--title"
+                    set title_arg $argv[(math $i + 1)]
+                end
+            end
+
+            # Log the command being run
+            echo "" >> "$UI_OUTPUT_LOG"
+            echo "["(date +%H:%M:%S)"] Running: $argv[$cmd_start..]" >> "$UI_OUTPUT_LOG"
+            echo "----------------------------------------" >> "$UI_OUTPUT_LOG"
+
+            # Run with gum spin and capture output
+            if test $cmd_start -gt 0
+                eval $argv[$cmd_start..] 2>&1 | tee -a "$UI_OUTPUT_LOG" | gum spin $argv[1..(math $cmd_start - 1)] --show-output --
+            else
+                gum spin $argv
+            end
+        else
+            gum spin $argv
+        end
     else
         # Fallback: just run the command
         set -l title_arg ""
@@ -74,7 +110,14 @@ function ui-spin
         end
 
         if test $cmd_start -gt 0
-            eval $argv[$cmd_start..]
+            if test "$UI_CAPTURE_OUTPUT" = "true" -a -n "$UI_OUTPUT_LOG"
+                echo "" >> "$UI_OUTPUT_LOG"
+                echo "["(date +%H:%M:%S)"] Running: $argv[$cmd_start..]" >> "$UI_OUTPUT_LOG"
+                echo "----------------------------------------" >> "$UI_OUTPUT_LOG"
+                eval $argv[$cmd_start..] 2>&1 | tee -a "$UI_OUTPUT_LOG"
+            else
+                eval $argv[$cmd_start..]
+            end
         end
     end
 
@@ -344,5 +387,23 @@ end
 function ui-log-location
     if test "$UI_LOG_ENABLED" = "true"
         echo $UI_LOG_FILE
+    end
+end
+
+# Full output log location
+function ui-output-log-location
+    if test "$UI_CAPTURE_OUTPUT" = "true" -a -n "$UI_OUTPUT_LOG"
+        echo $UI_OUTPUT_LOG
+    end
+end
+
+# Show log locations
+function ui-show-logs
+    echo "Log files:"
+    if test "$UI_LOG_ENABLED" = "true" -a -n "$UI_LOG_FILE"
+        echo "  UI events: $UI_LOG_FILE"
+    end
+    if test "$UI_CAPTURE_OUTPUT" = "true" -a -n "$UI_OUTPUT_LOG"
+        echo "  Full output: $UI_OUTPUT_LOG"
     end
 end

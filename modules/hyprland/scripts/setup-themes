@@ -1,0 +1,161 @@
+#!/usr/bin/env fish
+# Setup Fedpunk theme system
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Setting up Fedpunk themes"
+
+# Setup theme links
+ui-spin --title "Creating theme directories..." -- fish -c '
+    mkdir -p ~/.config/fedpunk/themes ~/.config/fedpunk/current
+    for f in "'$FEDPUNK_ROOT'/themes"/*
+        if test -d "$f"
+            ln -nfs "$f" ~/.config/fedpunk/themes/
+        end
+    end
+'
+
+if test $status -eq 0
+    ui-success "Theme directories created"
+else
+    ui-error "Failed to create theme directories"
+    exit 1
+end
+
+# Set initial theme to ayu-mirage (or first available theme)
+ui-spin --title "Setting default theme..." -- fish -c '
+    if test -d "'$FEDPUNK_ROOT'/themes/ayu-mirage"
+        ln -snf "'$FEDPUNK_ROOT'/themes/ayu-mirage" ~/.config/fedpunk/current/theme
+    else
+        # Use first available theme
+        set first_theme (find "'$FEDPUNK_ROOT'/themes" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1)
+        if test -n "$first_theme"
+            ln -snf "$first_theme" ~/.config/fedpunk/current/theme
+        else
+            echo "Error: No themes found" >&2
+            exit 1
+        end
+    end
+'
+
+if test $status -eq 0
+    ui-success "Default theme symlink created"
+else
+    ui-error "Failed to set default theme"
+    exit 1
+end
+
+# Get theme path
+set theme_path (readlink -f ~/.config/fedpunk/current/theme 2>/dev/null)
+if test -z "$theme_path"
+    ui-error "Failed to resolve theme path"
+    exit 1
+end
+
+# Setup terminal application themes
+ui-spin --title "Setting up terminal themes..." -- fish -c '
+    # btop theme
+    mkdir -p ~/.config/btop/themes
+    if test -f "'$theme_path'/btop.theme"
+        ln -snf "'$theme_path'/btop.theme" ~/.config/btop/themes/active.theme
+    end
+
+    # neovim theme (copy instead of symlink - Lua module loader breaks with symlinks)
+    if test -d ~/.config/nvim
+        mkdir -p ~/.config/nvim/lua/plugins
+        if test -f "'$theme_path'/neovim.lua"
+            cp -f "'$theme_path'/neovim.lua" ~/.config/nvim/lua/plugins/theme.lua
+        end
+    end
+'
+
+if test $status -eq 0
+    ui-success "Terminal themes configured"
+else
+    ui-warning "Terminal theme setup may have issues"
+end
+
+# Setup desktop application themes
+ui-spin --title "Setting up desktop themes..." -- fish -c '
+    # kitty theme
+    mkdir -p ~/.config/kitty
+    if test -f "'$theme_path'/kitty.conf"
+        ln -snf "'$theme_path'/kitty.conf" ~/.config/kitty/theme.conf
+    end
+
+    # waybar theme
+    mkdir -p ~/.config/waybar
+    if test -f "'$theme_path'/waybar.css"
+        ln -snf "'$theme_path'/waybar.css" ~/.config/waybar/theme.css
+    end
+
+    # mako theme
+    mkdir -p ~/.config/mako
+    if test -f "'$theme_path'/mako.ini"
+        ln -snf "'$theme_path'/mako.ini" ~/.config/mako/theme.conf
+    end
+
+    # rofi theme
+    mkdir -p ~/.config/rofi
+    if test -f "'$theme_path'/rofi.rasi"
+        ln -snf "'$theme_path'/rofi.rasi" ~/.config/rofi/theme.rasi
+    end
+
+    # foot theme (check for .fedpunk-foot.ini first, then foot.ini)
+    mkdir -p ~/.config/foot
+    if test -f "'$theme_path'/.fedpunk-foot.ini"
+        ln -snf "'$theme_path'/.fedpunk-foot.ini" ~/.config/foot/theme.ini
+    else if test -f "'$theme_path'/foot.ini"
+        ln -snf "'$theme_path'/foot.ini" ~/.config/foot/theme.ini
+    end
+
+    # hyprland active-theme
+    mkdir -p ~/.config/hypr
+    if test -f "'$theme_path'/hyprland.conf"
+        set theme_name (basename "'$theme_path'")
+        echo "# Active Hyprland Theme (runtime-generated, gitignored)
+# This file is managed by fedpunk-theme-set-desktop
+# Do not edit manually - use: fedpunk theme set <theme-name>
+
+source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf" > ~/.config/hypr/active-theme.conf
+    end
+'
+
+if test $status -eq 0
+    ui-success "Desktop themes configured"
+else
+    ui-warning "Desktop theme setup may have issues"
+end
+
+# Set initial wallpaper
+ui-spin --title "Configuring wallpaper..." -- fish -c '
+    if test -L ~/.config/fedpunk/current/theme
+        set first_bg (find ~/.config/fedpunk/current/theme/backgrounds -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) 2>/dev/null | sort | head -1)
+        if test -n "$first_bg"
+            mkdir -p ~/.config/hypr/wallpapers
+            ln -snf "$first_bg" ~/.config/fedpunk/current/background
+            ln -snf "$first_bg" ~/.config/hypr/wallpapers/current
+        end
+    end
+'
+
+if test $status -eq 0
+    ui-success "Wallpaper configured"
+else
+    ui-warning "Wallpaper setup may have issues"
+end
+
+# Setup browser policy directories for theme changes
+ui-spin --title "Setting up browser policies..." -- fish -c '
+    sudo mkdir -p /etc/chromium/policies/managed /etc/brave/policies/managed >/dev/null 2>&1
+    sudo chmod a+rw /etc/chromium/policies/managed /etc/brave/policies/managed >/dev/null 2>&1
+'
+
+if test $status -eq 0
+    ui-success "Browser policy directories configured"
+else
+    ui-warning "Browser policy setup may have issues (may not be needed)"
+end
+
+set current_theme (basename (readlink ~/.config/fedpunk/current/theme 2>/dev/null) 2>/dev/null; or echo "unknown")
+ui-success "Theme system ready! Current theme: $current_theme"

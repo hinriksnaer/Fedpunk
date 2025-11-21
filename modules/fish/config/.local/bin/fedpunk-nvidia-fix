@@ -1,0 +1,111 @@
+#!/usr/bin/env fish
+# Fix NVIDIA configuration for Hyprland/Wayland
+# Adds missing kernel parameters and regenerates boot config
+
+echo ""
+echo "NVIDIA Configuration Fix for Hyprland/Wayland"
+echo "=============================================="
+echo ""
+
+# Check if NVIDIA GPU exists
+if not lspci | grep -i nvidia >/dev/null
+    echo "✗ No NVIDIA GPU detected"
+    exit 1
+end
+
+echo "✓ NVIDIA GPU detected"
+echo ""
+
+# Check current kernel parameters
+set current_params (cat /proc/cmdline)
+echo "Current kernel parameters:"
+echo "  $current_params"
+echo ""
+
+# Check for missing parameters
+set needs_update false
+set missing_params ""
+
+if not string match -q "*nvidia-drm.modeset=1*" -- "$current_params"
+    set needs_update true
+    set missing_params "$missing_params nvidia-drm.modeset=1"
+end
+
+if not string match -q "*nvidia_drm.fbdev=1*" -- "$current_params"
+    set needs_update true
+    set missing_params "$missing_params nvidia_drm.fbdev=1"
+end
+
+if not string match -q "*rd.driver.blacklist=nouveau*" -- "$current_params"
+    set needs_update true
+    set missing_params "$missing_params rd.driver.blacklist=nouveau"
+end
+
+if not string match -q "*modprobe.blacklist=nouveau*" -- "$current_params"
+    set needs_update true
+    set missing_params "$missing_params modprobe.blacklist=nouveau"
+end
+
+if test "$needs_update" = "false"
+    echo "✓ All required NVIDIA kernel parameters are present"
+    echo ""
+    echo "If you're still having issues, try:"
+    echo "  1. Check: nvidia-smi"
+    echo "  2. Verify Hyprland config: cat ~/.config/hypr/conf.d/nvidia.conf"
+    echo "  3. Reboot if you haven't already"
+    exit 0
+end
+
+echo "⚠ Missing kernel parameters:$missing_params"
+echo ""
+echo "This will:"
+echo "  1. Backup /etc/default/grub"
+echo "  2. Add missing NVIDIA kernel parameters"
+echo "  3. Regenerate GRUB configuration"
+echo "  4. Regenerate initramfs"
+echo ""
+read -l -P "Continue? [y/N] " confirm
+
+if not string match -qi "y*" "$confirm"
+    echo "Cancelled"
+    exit 0
+end
+
+echo ""
+echo "→ Backing up GRUB configuration..."
+sudo cp /etc/default/grub /etc/default/grub.backup-(date +%Y%m%d-%H%M%S)
+
+echo "→ Updating GRUB kernel parameters..."
+set grub_file /etc/default/grub
+set nvidia_params "rd.driver.blacklist=nouveau modprobe.blacklist=nouveau nvidia-drm.modeset=1 nvidia_drm.fbdev=1"
+
+# Read current GRUB_CMDLINE_LINUX
+set current_cmdline (grep "^GRUB_CMDLINE_LINUX=" $grub_file | sed 's/GRUB_CMDLINE_LINUX="//' | sed 's/"$//')
+
+# Add nvidia parameters
+set new_cmdline "$current_cmdline $nvidia_params"
+
+# Update GRUB_CMDLINE_LINUX
+sudo sed -i "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"$new_cmdline\"|" $grub_file
+
+echo "→ Regenerating GRUB configuration..."
+if test -d /sys/firmware/efi
+    # UEFI system
+    sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
+else
+    # BIOS system
+    sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+end
+
+echo "→ Regenerating initramfs (this may take a minute)..."
+sudo dracut --force
+
+echo ""
+echo "✓ NVIDIA configuration updated!"
+echo ""
+echo "⚠ REBOOT REQUIRED for changes to take effect"
+echo ""
+echo "After reboot:"
+echo "  1. Verify with: nvidia-smi"
+echo "  2. Check kernel params: cat /proc/cmdline | grep nvidia"
+echo ""

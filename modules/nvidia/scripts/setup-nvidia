@@ -64,6 +64,51 @@ else
     ui-warning "Failed to add modules to initramfs"
 end
 
+# Update GRUB configuration with NVIDIA kernel parameters
+ui-spin --title "Configuring GRUB kernel parameters..." -- fish -c '
+    set grub_file /etc/default/grub
+    set nvidia_params "rd.driver.blacklist=nouveau modprobe.blacklist=nouveau nvidia-drm.modeset=1 nvidia_drm.fbdev=1"
+
+    # Read current GRUB_CMDLINE_LINUX
+    set current_cmdline (grep "^GRUB_CMDLINE_LINUX=" $grub_file | sed "s/GRUB_CMDLINE_LINUX=\"//" | sed "s/\"$//")
+
+    # Check if nvidia-drm.modeset=1 is already present
+    if not string match -q "*nvidia-drm.modeset=1*" -- "$current_cmdline"
+        # Add nvidia parameters if not present
+        set new_cmdline "$current_cmdline $nvidia_params"
+
+        # Backup original grub config
+        sudo cp $grub_file "$grub_file.backup-"(date +%Y%m%d-%H%M%S) 2>&1
+
+        # Update GRUB_CMDLINE_LINUX
+        sudo sed -i "s|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"$new_cmdline\"|" $grub_file 2>&1
+    end
+'
+
+if test $status -eq 0
+    ui-success "GRUB kernel parameters configured"
+else
+    ui-warning "Failed to update GRUB configuration"
+end
+
+# Regenerate GRUB configuration
+ui-spin --title "Regenerating GRUB configuration..." -- fish -c '
+    # Determine GRUB config location (UEFI vs BIOS)
+    if test -d /sys/firmware/efi
+        # UEFI system
+        sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg >/dev/null 2>&1
+    else
+        # BIOS system
+        sudo grub2-mkconfig -o /boot/grub2/grub.cfg >/dev/null 2>&1
+    end
+'
+
+if test $status -eq 0
+    ui-success "GRUB configuration regenerated"
+else
+    ui-warning "Failed to regenerate GRUB configuration"
+end
+
 # Regenerate initramfs
 ui-info "Regenerating initramfs (this may take a minute)"
 ui-spin --title "Regenerating initramfs..." -- fish -c '
