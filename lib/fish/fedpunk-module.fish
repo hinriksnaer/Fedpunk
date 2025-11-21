@@ -207,6 +207,17 @@ function fedpunk-module-install-packages
     set -l cargo_packages (yaml-get-list "$module_yaml" "packages" "cargo")
     for pkg in $cargo_packages
         echo "  Installing cargo package: $pkg"
+
+        # Ensure cargo is in PATH (in case it was just installed)
+        if not command -v cargo >/dev/null 2>&1
+            if test -f "$HOME/.cargo/bin/cargo"
+                set -gx PATH "$HOME/.cargo/bin" $PATH
+            else
+                echo "Error: cargo not found. Please ensure rust module is installed first." >&2
+                continue
+            end
+        end
+
         cargo install $pkg
     end
 
