@@ -1,0 +1,24 @@
+module:
+  name: multimedia
+  description: Multimedia codecs and hardware acceleration
+  dependencies:
+    - audio
+
+lifecycle:
+  before: []
+  after:
+    - setup-hardware-accel
+
+packages:
+  dnf:
+    # Base hardware acceleration
+    - ffmpeg-libs
+    - libva
+    - libva-utils
+  cargo: []
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn

@@ -1,0 +1,50 @@
+#!/usr/bin/env fish
+# Setup PipeWire audio system
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Setting up PipeWire audio system"
+
+# Enable user lingering so services persist without login session
+ui-spin --title "Enabling user lingering..." -- fish -c '
+    if not loginctl show-user '$USER' 2>/dev/null | grep -q "Linger=yes"
+        sudo loginctl enable-linger '$USER' >/dev/null 2>&1
+    end
+'
+
+if test $status -eq 0
+    ui-success "User lingering enabled"
+else
+    ui-warning "User lingering may already be enabled"
+end
+
+# Enable PipeWire services and sockets if user session is available
+if test -n "$XDG_RUNTIME_DIR" -a -S "$XDG_RUNTIME_DIR/bus"
+    ui-spin --title "Enabling PipeWire services..." -- fish -c '
+        systemctl --user enable pipewire.socket pipewire-pulse.socket pipewire.service pipewire-pulse.service >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "PipeWire services enabled"
+    else
+        ui-info "PipeWire services already enabled"
+    end
+else
+    ui-info "PipeWire will be enabled on next login"
+end
+
+# Ensure Bluetooth is enabled if hardware is present
+if command -v bluetoothctl >/dev/null 2>&1
+    ui-spin --title "Enabling Bluetooth service..." -- fish -c '
+        sudo systemctl enable --now bluetooth.service >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "Bluetooth service enabled"
+    else
+        ui-info "Bluetooth service already enabled or not available"
+    end
+end
+
+ui-success "PipeWire audio setup complete"
+ui-info "Audio will start automatically on login"

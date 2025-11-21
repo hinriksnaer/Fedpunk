@@ -19,6 +19,6 @@ modules:
   - kitty
   - rofi
   - hyprland
-  # Phase 4+ modules (not yet created):
-  # - audio
-  # - firefox
+  - audio
+  - multimedia
+  - firefox
