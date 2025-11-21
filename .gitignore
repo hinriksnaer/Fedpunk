@@ -57,3 +57,21 @@ dot_config/mako/theme.conf
 dot_config/kitty/theme.conf
 dot_config/rofi/theme.rasi
 dot_config/waybar/theme.css
+
+# Runtime-generated theme symlinks (managed by fedpunk-theme-set)
+modules/*/config/.config/*/theme.conf
+modules/*/config/.config/*/theme.css
+modules/btop/config/.config/btop/themes/active.theme
+modules/rofi/config/.config/rofi/theme.rasi
+
+# Wallpaper directory (runtime-generated)
+modules/hyprland/config/.config/hypr/wallpapers/
+
+# Tmux plugins (managed by tpm)
+modules/tmux/config/.config/tmux/plugins/
+
+# Fish variables (dynamically managed)
+modules/fish/config/.config/fish/fish_variables
+
+# Lazygit config (may contain user-specific settings)
+modules/lazygit/config/.config/lazygit/config.yml
