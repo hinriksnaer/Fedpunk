@@ -1,45 +1,107 @@
 # Profile Plugins
 
-This directory contains profile-specific modules (plugins) that extend the base system.
+Profile-specific modules that extend your Fedpunk installation with additional tools and applications.
 
 ## Structure
 
-Each plugin follows the same structure as regular modules:
+Each plugin follows the standard module structure:
 
 ```
-plugins/my-plugin/
-├── module.toml      # Module metadata
-├── config/          # Dotfiles (stowed to $HOME)
-│   └── .config/...
-└── scripts/         # Lifecycle scripts
-    ├── install
-    ├── update
-    ├── before
-    └── after
+plugins/dev-extras/
+└── module.yaml      # Module configuration
 ```
 
 ## How Plugins Work
 
-- Plugins are profile-scoped modules
-- They follow the exact same module.toml schema
-- They can depend on base modules
-- They are deployed when the profile is activated
+- **Profile-scoped**: Only deployed when the profile is active
+- **Standard modules**: Follow the same module.yaml schema as base modules
+- **Dependencies**: Can depend on base modules
+- **Auto-deployment**: Installed when profile modes reference them
 
-## Example: Custom Development Tools
+## Example: dev-extras Plugin
 
-```toml
-# plugins/dev-tools/module.toml
-[module]
-name = "dev-tools"
-description = "Custom development utilities for this profile"
-dependencies = ["fish"]
-priority = 50
+The dev-extras plugin in this profile installs:
+- **Spotify** - Music streaming (Flatpak)
+- **Discord** - Communication platform (Flatpak)
+- **Devcontainer CLI** - VS Code devcontainer tools (npm)
 
-[lifecycle]
-after = ["setup-aliases"]
+```yaml
+# profiles/dev/plugins/dev-extras/module.yaml
+module:
+  name: dev-extras
+  description: Extra development tools and applications
+  dependencies:
+    - fish
 
-[packages]
-cargo = ["cargo-watch", "cargo-edit"]
+packages:
+  npm:
+    - "@devcontainers/cli"
+  flatpak:
+    - com.spotify.Client
+    - com.discordapp.Discord
 ```
 
-Plugins allow you to customize your environment without modifying the base fedpunk modules.
+## Using Plugins
+
+### 1. Add plugin to profile mode
+
+Edit `profiles/dev/modes/desktop.yaml`:
+```yaml
+modules:
+  - essentials
+  - hyprland
+  - plugins/dev-extras  # Add plugin here
+```
+
+### 2. Deploy
+
+```bash
+fedpunk module deploy dev-extras
+```
+
+Or deploy all modules in the mode:
+```bash
+fish install.fish
+```
+
+## Creating Your Own Plugin
+
+1. **Create the plugin directory:**
+```bash
+mkdir -p profiles/dev/plugins/my-tools
+```
+
+2. **Create module.yaml:**
+```yaml
+module:
+  name: my-tools
+  description: My custom development tools
+  dependencies: []
+
+packages:
+  dnf:
+    - htop
+    - ncdu
+  cargo:
+    - ripgrep
+```
+
+3. **Add to your profile mode:**
+```yaml
+# profiles/dev/modes/desktop.yaml
+modules:
+  - essentials
+  - plugins/my-tools
+```
+
+4. **Deploy:**
+```bash
+fedpunk module deploy my-tools
+```
+
+## Plugin Best Practices
+
+- **Keep it focused**: One plugin per category (dev tools, media apps, etc.)
+- **Document dependencies**: List what the plugin needs
+- **Use descriptive names**: `dev-extras`, `media-apps`, `work-tools`
+- **Version control**: Commit your plugins to share across machines

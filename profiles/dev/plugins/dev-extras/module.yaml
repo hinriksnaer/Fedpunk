@@ -1,0 +1,22 @@
+module:
+  name: dev-extras
+  description: Extra development tools and applications - Spotify, Discord, and Devcontainer CLI
+  dependencies:
+    - fish
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  dnf: []
+  cargo: []
+  npm:
+    - "@devcontainers/cli"
+  flatpak:
+    - com.spotify.Client
+    - com.discordapp.Discord
+
+stow:
+  target: $HOME
+  conflicts: warn
