@@ -1,0 +1,15 @@
+#!/usr/bin/env fish
+# Check if NVIDIA GPU is present before installing drivers
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Checking for NVIDIA GPU"
+
+if lspci | grep -i nvidia >/dev/null
+    ui-success "NVIDIA GPU detected"
+    exit 0
+else
+    ui-warning "No NVIDIA GPU detected - skipping NVIDIA driver installation"
+    ui-info "If you have an NVIDIA GPU, ensure it's enabled in BIOS"
+    exit 1
+end
