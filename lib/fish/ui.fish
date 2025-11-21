@@ -63,34 +63,7 @@ function ui-spin
     ui-log SPIN "Starting: $argv"
 
     if ui-has-gum
-        if test "$UI_CAPTURE_OUTPUT" = "true" -a -n "$UI_OUTPUT_LOG"
-            # Capture output while still showing spinner
-            set -l title_arg ""
-            set -l cmd_start 0
-
-            for i in (seq (count $argv))
-                if test "$argv[$i]" = "--"
-                    set cmd_start (math $i + 1)
-                    break
-                else if test "$argv[$i]" = "--title"
-                    set title_arg $argv[(math $i + 1)]
-                end
-            end
-
-            # Log the command being run
-            echo "" >> "$UI_OUTPUT_LOG"
-            echo "["(date +%H:%M:%S)"] Running: $argv[$cmd_start..]" >> "$UI_OUTPUT_LOG"
-            echo "----------------------------------------" >> "$UI_OUTPUT_LOG"
-
-            # Run with gum spin and capture output
-            if test $cmd_start -gt 0
-                eval $argv[$cmd_start..] 2>&1 | tee -a "$UI_OUTPUT_LOG" | gum spin $argv[1..(math $cmd_start - 1)] --show-output --
-            else
-                gum spin $argv
-            end
-        else
-            gum spin $argv
-        end
+        gum spin $argv
     else
         # Fallback: just run the command
         set -l title_arg ""
@@ -110,14 +83,7 @@ function ui-spin
         end
 
         if test $cmd_start -gt 0
-            if test "$UI_CAPTURE_OUTPUT" = "true" -a -n "$UI_OUTPUT_LOG"
-                echo "" >> "$UI_OUTPUT_LOG"
-                echo "["(date +%H:%M:%S)"] Running: $argv[$cmd_start..]" >> "$UI_OUTPUT_LOG"
-                echo "----------------------------------------" >> "$UI_OUTPUT_LOG"
-                eval $argv[$cmd_start..] 2>&1 | tee -a "$UI_OUTPUT_LOG"
-            else
-                eval $argv[$cmd_start..]
-            end
+            eval $argv[$cmd_start..]
         end
     end
 
