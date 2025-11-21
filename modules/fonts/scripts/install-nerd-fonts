@@ -9,65 +9,53 @@ ui-info "Installing Nerd Fonts"
 mkdir -p ~/.local/share/fonts
 
 # JetBrains Mono Nerd Font
-ui-spin --title "Downloading JetBrains Mono Nerd Font..." -- fish -c '
-    set TMPDIR (mktemp -d)
-    curl -fL --retry 3 -o "'$TMPDIR'/JetBrainsMono.tar.xz" \
-        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz" >/dev/null 2>&1
-
+echo "Downloading JetBrains Mono Nerd Font..."
+set TMPDIR (mktemp -d)
+if curl -fL --retry 3 -o "$TMPDIR/JetBrainsMono.tar.xz" \
+    "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz" >/dev/null 2>&1
     mkdir -p ~/.local/share/fonts/JetBrainsMonoNerd
-    tar -xf "'$TMPDIR'/JetBrainsMono.tar.xz" -C ~/.local/share/fonts/JetBrainsMonoNerd >/dev/null 2>&1
-    rm -rf "'$TMPDIR'"
-'
-
-if test $status -eq 0
+    tar -xf "$TMPDIR/JetBrainsMono.tar.xz" -C ~/.local/share/fonts/JetBrainsMonoNerd >/dev/null 2>&1
+    rm -rf "$TMPDIR"
     ui-success "JetBrains Mono Nerd Font installed"
 else
-    ui-warning "JetBrains Mono Nerd Font installation may have issues"
+    rm -rf "$TMPDIR"
+    ui-warning "JetBrains Mono Nerd Font installation failed"
 end
 
 # Fantasque Sans Mono Nerd Font
-ui-spin --title "Downloading Fantasque Sans Mono Nerd Font..." -- fish -c '
-    set TMPDIR (mktemp -d)
-    curl -fL --retry 3 -o "'$TMPDIR'/FantasqueSansMono.zip" \
-        "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FantasqueSansMono.zip" >/dev/null 2>&1
-
+echo "Downloading Fantasque Sans Mono Nerd Font..."
+set TMPDIR (mktemp -d)
+if curl -fL --retry 3 -o "$TMPDIR/FantasqueSansMono.zip" \
+    "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FantasqueSansMono.zip" >/dev/null 2>&1
     mkdir -p ~/.local/share/fonts/FantasqueSansMonoNerd
-    unzip -q "'$TMPDIR'/FantasqueSansMono.zip" -d ~/.local/share/fonts/FantasqueSansMonoNerd >/dev/null 2>&1
-    rm -rf "'$TMPDIR'"
-'
-
-if test $status -eq 0
+    unzip -q "$TMPDIR/FantasqueSansMono.zip" -d ~/.local/share/fonts/FantasqueSansMonoNerd >/dev/null 2>&1
+    rm -rf "$TMPDIR"
     ui-success "Fantasque Sans Mono Nerd Font installed"
 else
-    ui-warning "Fantasque Sans Mono Nerd Font installation may have issues"
+    rm -rf "$TMPDIR"
+    ui-warning "Fantasque Sans Mono Nerd Font installation failed"
 end
 
 # Victor Mono Font
-ui-spin --title "Downloading Victor Mono Font..." -- fish -c '
-    set TMPDIR (mktemp -d)
-    curl -fL --retry 3 -o "'$TMPDIR'/VictorMonoAll.zip" \
-        "https://rubjo.github.io/victor-mono/VictorMonoAll.zip" >/dev/null 2>&1
-
+echo "Downloading Victor Mono Font..."
+set TMPDIR (mktemp -d)
+if curl -fL --retry 3 -o "$TMPDIR/VictorMonoAll.zip" \
+    "https://rubjo.github.io/victor-mono/VictorMonoAll.zip" >/dev/null 2>&1
     mkdir -p ~/.local/share/fonts/VictorMono
-    unzip -q "'$TMPDIR'/VictorMonoAll.zip" -d ~/.local/share/fonts/VictorMono >/dev/null 2>&1
-    rm -rf "'$TMPDIR'"
-'
-
-if test $status -eq 0
+    unzip -q "$TMPDIR/VictorMonoAll.zip" -d ~/.local/share/fonts/VictorMono >/dev/null 2>&1
+    rm -rf "$TMPDIR"
     ui-success "Victor Mono Font installed"
 else
-    ui-warning "Victor Mono Font installation may have issues"
+    rm -rf "$TMPDIR"
+    ui-warning "Victor Mono Font installation failed"
 end
 
 # Update font cache
-ui-spin --title "Updating font cache..." -- fish -c '
-    fc-cache -fv >/dev/null 2>&1
-'
-
-if test $status -eq 0
+echo "Updating font cache..."
+if fc-cache -fv >/dev/null 2>&1
     ui-success "Font cache updated"
 else
-    ui-warning "Font cache update may have issues"
+    ui-warning "Font cache update failed"
 end
 
 ui-success "Nerd Fonts installation complete"

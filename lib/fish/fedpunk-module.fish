@@ -362,6 +362,7 @@ function fedpunk-module-run-lifecycle
     set -lx MODULE_NAME $module_name
     set -lx MODULE_DIR $module_dir
     set -lx STOW_TARGET $HOME
+    set -lx FEDPUNK_ROOT $FEDPUNK_ROOT
 
     # Run each script
     for script in $scripts
@@ -408,23 +409,28 @@ function fedpunk-module-deploy
     or return 1
     echo ""
 
-    # 1. Install packages
+    # 1. Run before lifecycle hook (precondition checks)
+    echo "==> Running before hook"
+    fedpunk-module-run-lifecycle $module_name before
+    or begin
+        echo "Module $module_name skipped (before hook failed or returned non-zero)"
+        return 0  # Not an error - module is just skipped
+    end
+    echo ""
+
+    # 2. Install packages
     echo "==> Installing packages"
     fedpunk-module-install-packages $module_name
     or return 1
-
-    # 2. Run before lifecycle
     echo ""
-    echo "==> Running before hook"
-    fedpunk-module-run-lifecycle $module_name before
 
-    # 3. Run after lifecycle
-    echo ""
+    # 3. Run after lifecycle hook (post-install setup)
     echo "==> Running after hook"
     fedpunk-module-run-lifecycle $module_name after
+    or return 1
+    echo ""
 
     # 4. Stow config (always last)
-    echo ""
     echo "==> Deploying configuration"
     fedpunk-module-stow $module_name
     or return 1
