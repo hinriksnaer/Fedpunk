@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 # Fedpunk Reload Script
-# Applies chezmoi changes and reloads all services
+# Reloads Hyprland and related services after configuration changes
 
 set fedpunk_dir "$HOME/.local/share/fedpunk"
 
@@ -13,41 +13,6 @@ if test -n "$(git status --porcelain)"
     echo "⚠️  Warning: You have uncommitted changes in $fedpunk_dir"
     git status --short
     echo ""
-end
-
-# Check for merge conflicts
-set conflicts (chezmoi status | grep "^MM")
-if test -n "$conflicts"
-    echo "⚠️  Warning: Merge conflicts detected in the following files:"
-    for conflict in $conflicts
-        if test "$conflict" != "MM"
-            echo "  - $conflict"
-        end
-    end
-    echo ""
-    echo "These files have been modified both locally and in the repository."
-    echo "They will NOT be applied automatically to preserve your changes."
-    echo ""
-    echo "To resolve:"
-    echo "  - Keep your changes: chezmoi merge <file>"
-    echo "  - Use repository version: chezmoi apply --force <file>"
-    echo "  - See differences: chezmoi diff <file>"
-    echo ""
-end
-
-# Apply chezmoi changes
-echo "📦 Applying chezmoi..."
-if chezmoi apply --source $fedpunk_dir
-    # Check if any files were actually skipped
-    set skipped (chezmoi status | grep "^ M")
-    if test -n "$skipped"
-        echo "⚠️  Some files were not applied (see conflicts above)"
-    else
-        echo "✓ Chezmoi applied successfully"
-    end
-else
-    echo "✗ Chezmoi apply failed"
-    exit 1
 end
 
 echo ""
@@ -68,6 +33,33 @@ else
     echo "✗ Waybar reload failed (not running?)"
 end
 
+# Reload Mako (notification daemon)
+echo "🔔 Reloading Mako..."
+if pgrep -x mako >/dev/null 2>&1
+    if killall -SIGUSR2 mako
+        echo "✓ Mako reloaded"
+    else
+        echo "✗ Mako reload failed"
+    end
+else
+    echo "⊝ Mako not running"
+end
+
+# Reload Kitty (if running)
+echo "🐱 Reloading Kitty..."
+if pgrep -x kitty >/dev/null 2>&1
+    if killall -SIGUSR1 kitty
+        echo "✓ Kitty config reloaded"
+    else
+        echo "✗ Kitty reload failed"
+    end
+else
+    echo "⊝ Kitty not running"
+end
+
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✨ Reload complete!"
+echo ""
+echo "Note: Configuration changes are live via Stow symlinks."
+echo "This script only reloads running services to pick up changes."

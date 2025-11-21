@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "nvim": {
-      "command": "nvim-mcp",
-      "args": ["--connect", "/tmp/nvim.sock"]
-    }
-  }
-}

@@ -1,32 +1,19 @@
 #!/usr/bin/env fish
-# Fish module installation script
-# Handles: chezmoi installation, setting fish as default shell
-# Note: System packages (fish, starship, util-linux-user) are auto-installed from module.toml
+# Fish shell post-install setup
+# Handles: Setting fish as default shell
 
-# Install chezmoi (needed for configuration management)
-mkdir -p $HOME/.local/bin
-echo "Installing chezmoi..."
-curl -sL https://github.com/twpayne/chezmoi/releases/latest/download/chezmoi-linux-amd64 -o $HOME/.local/bin/chezmoi
-chmod +x $HOME/.local/bin/chezmoi
+# Set fish as default shell if not already
+if test "$SHELL" != (which fish)
+    echo "Setting fish as default shell..."
+    chsh -s (which fish)
 
-# Add ~/.local/bin to PATH immediately
-if not contains "$HOME/.local/bin" $PATH
-    set -gx PATH "$HOME/.local/bin" $PATH
-end
-
-# Initialize chezmoi with fedpunk as source
-if test ! -f "$HOME/.config/chezmoi/chezmoi.toml"
-    mkdir -p "$HOME/.config/chezmoi"
-    echo "sourceDir = \"$FEDPUNK_ROOT/home\"" > "$HOME/.config/chezmoi/chezmoi.toml"
-    echo "Chezmoi configured with sourceDir: $FEDPUNK_ROOT/home"
-end
-
-# Change shell to fish
-echo "Setting Fish as default shell..."
-if command -v sudo >/dev/null 2>&1
-    sudo chsh -s /usr/bin/fish (whoami)
+    if test $status -eq 0
+        echo "✓ Fish is now your default shell"
+        echo "  Please log out and back in for changes to take effect"
+    else
+        echo "✗ Failed to set fish as default shell"
+        echo "  You may need to run: chsh -s $(which fish)"
+    end
 else
-    chsh -s /usr/bin/fish
+    echo "✓ Fish is already your default shell"
 end
-
-echo "Fish installation complete"

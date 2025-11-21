@@ -7,7 +7,7 @@
 #   2. Reads profile's fedpunk.toml
 #   3. Installs extra packages
 #   4. Runs setup scripts
-#   5. Deploys configs using chezmoi (auto-detects desktop vs terminal)
+#   5. Profile configs are deployed via Stow when modules are deployed
 
 set FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 set PROFILES_DIR "$FEDPUNK_PATH/profiles"
@@ -43,7 +43,7 @@ function show_usage
     echo "  • Creating .active-config symlink"
     echo "  • Installing extra packages from fedpunk.toml"
     echo "  • Running setup scripts from fedpunk.toml"
-    echo "  • Deploying configs (auto-detects desktop vs terminal)"
+    echo "  • Note: Configs deployed via module system (Stow)"
     echo ""
     echo "Available profiles:"
     if test -d "$PROFILES_DIR"
@@ -233,16 +233,13 @@ if not test -d "$config_dir"
     exit 0
 end
 
-# TODO: Profile config deployment with chezmoi
-# Profile configs need to be integrated with chezmoi templates/data system
-# For now, base configs are deployed via chezmoi, profile-specific overrides TBD
-
+# Note: Profile-specific configs are handled through the plugin system
+# Plugins in profiles/<name>/plugins/ are deployed via the module system
 if test -d "$config_dir"
     set packages (find "$config_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
     if test (count $packages) -gt 0
         info "Profile has "(count $packages)" config package(s): $packages"
-        warning "Profile config deployment not yet integrated with chezmoi"
-        echo "  Base configs are deployed. Profile-specific overrides coming soon."
+        info "Deploy profile plugins via: fedpunk module deploy plugins/<name>"
     end
 end
 

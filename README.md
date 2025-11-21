@@ -253,7 +253,7 @@ Fedpunk uses a **modular installation system**:
 
 2. Terminal Components (install/terminal/)
    - btop, neovim, tmux, lazygit
-   - Configs deployed via chezmoi
+   - Configs deployed via GNU Stow
 
 3. Desktop Components (install/desktop/)
    - hyprland, kitty, rofi
@@ -451,7 +451,6 @@ The following issues are known in this release and will be addressed in future v
 **Installation:**
 - **Yazi file manager**: Installation may fail if `unzip` package is missing; cargo build can fail on minimal container systems
 - **Neovim configuration**: Git submodule deployment may require manual initialization with `git submodule update --init --recursive`
-- **Final chezmoi deployment**: May fail in some edge cases during installation; investigating root cause
 
 **Profile System:**
 - **Profile config deployment**: Profile-specific config deployment not fully implemented (see `fedpunk-activate-profile:236`)

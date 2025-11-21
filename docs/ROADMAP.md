@@ -8,7 +8,7 @@
 
 ## Vision
 
-Transform Fedpunk from a chezmoi-based system to a fully modular, stow-based architecture that is:
+Fedpunk is a fully modular, stow-based architecture that is:
 - **Modular:** Each package is self-contained
 - **Extensible:** Profiles can add custom plugins
 - **Transparent:** Clear lifecycle hooks, no hidden magic
@@ -175,52 +175,38 @@ Transform Fedpunk from a chezmoi-based system to a fully modular, stow-based arc
 
 ---
 
-## Phase 4: Chezmoi Migration 🔄 BLOCKED
+## Phase 4: Chezmoi Migration ✅ COMPLETE
 
-**Goal:** Remove or replace chezmoi dependency
+**Goal:** Remove chezmoi dependency
 
-**Status:** 0%
+**Status:** 100%
 
-**Blocked by:** Design decision needed
+**Completed:** 2025-01-20
 
-### Decision Point: What to do with Chezmoi?
+### Implementation
 
-**Option A: Remove Completely**
-- ✅ Simplifies system
-- ✅ One less dependency
-- ❌ Lose templating for machine-specific configs
-- ❌ Need to rewrite installer-managed.fish.tmpl logic
+**Decision:** Removed chezmoi completely (Option A)
+- Simplified system architecture
+- Eliminated dependency
+- Used lifecycle scripts for environment detection
+- Removed home/ directory entirely
 
-**Option B: Keep for Specific Use Cases**
-- ✅ Can still use templates where needed
-- ✅ Less rewriting needed
-- ❌ Extra dependency
-- ❌ Complexity of two systems
+### Completed Tasks
 
-**Option C: Replace with Custom Templating**
-- ✅ Remove dependency
-- ✅ Keep templating capability
-- ❌ Need to write custom solution
-- ❌ More code to maintain
+- [x] **4.1** Analyzed chezmoi usage patterns
+- [x] **4.2** Migrated configs from home/ to module system
+- [x] **4.3** Rewrote fedpunk-reload to remove chezmoi dependency
+- [x] **4.4** Removed chezmoi from fish install script
+- [x] **4.5** Updated fedpunk-activate-profile
+- [x] **4.6** Removed home/ directory (162 files, 1.6M)
+- [x] **4.7** Updated documentation to remove references
 
-**Recommendation:** Option A - Remove completely
-- Use lifecycle scripts for environment detection
-- Generate files in `scripts/install` or `scripts/after`
-- Simpler mental model
+### Results
 
-### Tasks (if removing)
-
-- [ ] **4.1** Analyze current chezmoi usage
-- [ ] **4.2** Replace templates with generation scripts
-- [ ] **4.3** Update fish module to remove chezmoi
-- [ ] **4.4** Test without chezmoi
-- [ ] **4.5** Update documentation
-
-### Acceptance Criteria
-
-✅ No references to chezmoi in codebase
-✅ All templating replaced with scripts
+✅ No references to chezmoi in active codebase (only in historical CHANGELOG)
+✅ All configs now managed via GNU Stow
 ✅ System works without chezmoi installed
+✅ Cleaner architecture with single deployment method
 
 ---
 

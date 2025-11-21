@@ -284,7 +284,7 @@ modules/fish/
 │       ├── conf.d/
 │       └── functions/
 └── scripts/
-    ├── install       # chezmoi, chsh
+    ├── install       # set default shell
     └── setup-fisher  # fisher + plugins
 ```
 
@@ -314,8 +314,8 @@ modules/fish/
 
 ## Migration Notes
 
-**From chezmoi-based system (main-chezmoi branch):**
-- Old system used chezmoi for all config deployment
+**Migration History:**
+- System fully migrated from chezmoi to GNU Stow for config deployment
 - New system uses modular approach with stow
 - Profiles changed from install-based to mode-based
 - See `docs/design/DOTFILE_MODULES.md` for detailed design
