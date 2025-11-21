@@ -1,0 +1,22 @@
+#!/usr/bin/env fish
+# Enable RPM Fusion repositories before installing NVIDIA packages
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Enabling RPM Fusion repositories for NVIDIA"
+
+# Get Fedora version for RPM Fusion
+set fedora_version (rpm -E %fedora)
+
+# Enable RPM Fusion repositories
+ui-spin --title "Enabling RPM Fusion repositories..." -- fish -c '
+    sudo dnf install -qy \
+        https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-'$fedora_version'.noarch.rpm \
+        https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-'$fedora_version'.noarch.rpm >/dev/null 2>&1
+'
+
+if test $status -eq 0
+    ui-success "RPM Fusion repositories enabled"
+else
+    ui-info "RPM Fusion may already be enabled"
+end

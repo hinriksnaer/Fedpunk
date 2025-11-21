@@ -6,10 +6,56 @@
 # Find script directory for calling other scripts
 set script_dir (dirname (status -f))
 
-# Source helper functions for consistent interface
-set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
-if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
-    source "$FEDPUNK_INSTALL/helpers/all.fish"
+# Helper functions for output formatting
+set C_RESET '\033[0m'
+set C_GREEN '\033[0;32m'
+set C_BLUE '\033[0;34m'
+set C_YELLOW '\033[0;33m'
+set C_RED '\033[0;31m'
+set GUM_INFO 39
+set GUM_SUCCESS 46
+set GUM_WARNING 214
+set GUM_ERROR 196
+
+function info
+    echo -e "$C_BLUE→$C_RESET $argv"
+end
+
+function success
+    echo -e "$C_GREEN✓$C_RESET $argv"
+end
+
+function warning
+    echo -e "$C_YELLOW⚠$C_RESET $argv"
+end
+
+function error
+    echo -e "$C_RED✗$C_RESET $argv"
+end
+
+function box
+    set message $argv[1]
+    echo ""
+    echo "╭────────────────────────────────────────╮"
+    for line in (echo $message | string split \n)
+        echo "│ $line"
+    end
+    echo "╰────────────────────────────────────────╯"
+    echo ""
+end
+
+function step
+    set description $argv[1]
+    set command $argv[2]
+    info $description
+    eval $command >/dev/null 2>&1
+    if test $status -eq 0
+        success $description
+        return 0
+    else
+        warning "$description (failed)"
+        return 1
+    end
 end
 
 if test (count $argv) -lt 1
@@ -63,9 +109,18 @@ set skipped_count 0
 # Update Hyprland active theme file to source the theme's hyprland.conf
 if test -f "$theme_path/hyprland.conf"
     set active_theme_conf "$HOME/.config/hypr/active-theme.conf"
-    set theme_source_line "source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf"
-    if step "Applying Hyprland theme" "echo '# Active Hyprland Theme (runtime-generated, gitignored)\n# This file is managed by fedpunk-theme-set-desktop\n# Do not edit manually - use: fedpunk theme set <theme-name>\n\n$theme_source_line' > $active_theme_conf"
+    printf '%s\n' \
+        '# Active Hyprland Theme (runtime-generated, gitignored)' \
+        '# This file is managed by fedpunk-theme-set-desktop' \
+        '# Do not edit manually - use: fedpunk theme set <theme-name>' \
+        '' \
+        "source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf" \
+        > $active_theme_conf
+    if test $status -eq 0
+        success "Applying Hyprland theme"
         set applied_count (math $applied_count + 1)
+    else
+        warning "Applying Hyprland theme (failed)"
     end
 else
     warning "Skipped hyprland.conf (not found in theme)"

@@ -35,20 +35,15 @@ end
 # Install plugins if tmux config exists
 if test -f "$HOME/.config/tmux/tmux.conf"
     ui-spin --title "Installing tmux plugins..." -- fish -c '
-        set token tpm_done
-        set tpm_install_path "'$HOME'/.config/tmux/plugins/tpm"
-        tmux start-server \; \
-          set -g exit-empty off \; \
-          source-file '$HOME'/.config/tmux/tmux.conf \; \
-          run-shell "$tpm_install_path/scripts/install_plugins.sh && tmux wait-for -S '$token'" \; \
-          wait-for "'$token'" \; \
-          set -g exit-empty on >/dev/null 2>&1
+        # Run the TPM install script directly - simpler and more reliable
+        bash '$HOME'/.config/tmux/plugins/tpm/scripts/install_plugins.sh >/dev/null 2>&1
     '
 
     if test $status -eq 0
         ui-success "Tmux plugins installed"
     else
         ui-warning "Tmux plugin installation may have issues"
+        ui-info "You can install manually with: bash ~/.config/tmux/plugins/tpm/scripts/install_plugins.sh"
     end
 else
     ui-warning "Tmux config not found, skipping plugin installation"
