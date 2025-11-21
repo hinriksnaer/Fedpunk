@@ -5,10 +5,14 @@ source "$FEDPUNK_ROOT/lib/fish/ui.fish"
 
 ui-info "Setting up tmux plugin manager"
 
+# Use XDG-compliant location
+set -l tpm_path "$HOME/.config/tmux/plugins/tpm"
+
 # Clone TPM if not already installed
-if not test -d $HOME/.tmux/plugins/tpm
+if not test -d "$tpm_path"
     ui-spin --title "Cloning tmux plugin manager..." -- fish -c '
-        git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm >/dev/null 2>&1
+        mkdir -p '$HOME'/.config/tmux/plugins
+        git clone https://github.com/tmux-plugins/tpm '$HOME'/.config/tmux/plugins/tpm >/dev/null 2>&1
     '
 
     if test $status -eq 0
@@ -21,14 +25,22 @@ else
     ui-success "Tmux plugin manager already installed"
 end
 
+# Create legacy symlink for compatibility
+if not test -e "$HOME/.tmux/plugins/tpm"
+    mkdir -p "$HOME/.tmux/plugins"
+    ln -sf "$tpm_path" "$HOME/.tmux/plugins/tpm"
+    ui-info "Created compatibility symlink at ~/.tmux/plugins/tpm"
+end
+
 # Install plugins if tmux config exists
 if test -f "$HOME/.config/tmux/tmux.conf"
     ui-spin --title "Installing tmux plugins..." -- fish -c '
         set token tpm_done
+        set tpm_install_path "'$HOME'/.config/tmux/plugins/tpm"
         tmux start-server \; \
           set -g exit-empty off \; \
           source-file '$HOME'/.config/tmux/tmux.conf \; \
-          run-shell "'$HOME'/.tmux/plugins/tpm/scripts/install_plugins.sh && tmux wait-for -S '$token'" \; \
+          run-shell "$tpm_install_path/scripts/install_plugins.sh && tmux wait-for -S '$token'" \; \
           wait-for "'$token'" \; \
           set -g exit-empty on >/dev/null 2>&1
     '
