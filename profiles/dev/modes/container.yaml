@@ -12,4 +12,5 @@ modules:
   - lazygit
   - yazi
   - gh
+  - bitwarden
   - claude
