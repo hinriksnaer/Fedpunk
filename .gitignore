@@ -63,6 +63,7 @@ modules/*/config/.config/*/theme.conf
 modules/*/config/.config/*/theme.css
 modules/btop/config/.config/btop/themes/active.theme
 modules/rofi/config/.config/rofi/theme.rasi
+modules/hyprland/config/.config/hypr/active-theme.conf
 
 # Wallpaper directory (runtime-generated)
 modules/hyprland/config/.config/hypr/wallpapers/

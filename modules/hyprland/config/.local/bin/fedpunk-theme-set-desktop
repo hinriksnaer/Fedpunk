@@ -60,9 +60,11 @@ echo ""
 set applied_count 0
 set skipped_count 0
 
-# Update Hyprland config to source the theme's hyprland.conf
+# Update Hyprland active theme file to source the theme's hyprland.conf
 if test -f "$theme_path/hyprland.conf"
-    if step "Applying Hyprland theme" "sed -i 's|^source = \$HOME/.*themes/.*/hyprland.conf|source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf|' $hyprland_conf"
+    set active_theme_conf "$HOME/.config/hypr/active-theme.conf"
+    set theme_source_line "source = \$HOME/.local/share/fedpunk/themes/$theme_name/hyprland.conf"
+    if step "Applying Hyprland theme" "echo '# Active Hyprland Theme (runtime-generated, gitignored)\n# This file is managed by fedpunk-theme-set-desktop\n# Do not edit manually - use: fedpunk theme set <theme-name>\n\n$theme_source_line' > $active_theme_conf"
         set applied_count (math $applied_count + 1)
     end
 else
