@@ -1,0 +1,48 @@
+#!/usr/bin/env fish
+# Interactive CLI theme selector using fzf
+# Perfect for terminal-only environments
+# Usage: fedpunk-theme-select-cli
+
+# Find script directory for calling other scripts
+set script_dir (dirname (status -f))
+
+# Get list of available themes
+set theme_list ($script_dir/fedpunk-theme-list)
+
+if test (count $theme_list) -eq 0
+    echo "No themes found"
+    exit 1
+end
+
+# Get current theme (may fail, that's ok)
+set current_theme ($script_dir/fedpunk-theme-current 2>/dev/null)
+
+# Prepare theme list with current indicator
+set display_list
+for theme in $theme_list
+    if test "$theme" = "$current_theme"
+        set -a display_list "● $theme (current)"
+    else
+        set -a display_list "  $theme"
+    end
+end
+
+# Show fzf selector with preview
+set selected (printf '%s\n' $display_list | \
+    fzf --height=40% \
+        --reverse \
+        --border=rounded \
+        --prompt="Select theme > " \
+        --header="Use ↑↓ to navigate, Enter to select, Esc to cancel" \
+        --preview="echo 'Theme: {}' | sed 's/^[● ]*//'")
+
+# Extract theme name from selection (remove indicator and "(current)")
+if test -n "$selected"
+    set theme_name (echo $selected | sed 's/^[● ]*//' | sed 's/ (current)$//')
+
+    echo ""
+    echo "Applying theme: $theme_name"
+    $script_dir/fedpunk-theme-set $theme_name
+else
+    echo "Theme selection cancelled"
+end

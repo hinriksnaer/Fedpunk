@@ -1,0 +1,58 @@
+#!/usr/bin/env fish
+# List all available themes in the themes directory
+# Usage: fedpunk-theme-list
+
+# Find themes directory - works both before and after deployment
+if test -n "$FEDPUNK_PATH"
+    set themes_dir "$FEDPUNK_PATH/themes"
+    set active_config_themes_dir "$FEDPUNK_PATH/.active-config/themes"
+else if test -d "$HOME/.local/share/fedpunk/themes"
+    set themes_dir "$HOME/.local/share/fedpunk/themes"
+    set active_config_themes_dir "$HOME/.local/share/fedpunk/.active-config/themes"
+else
+    # Try to find relative to script location (for running from repo)
+    set script_dir (dirname (status -f))
+    set themes_dir (realpath "$script_dir/../themes")
+    set active_config_themes_dir (realpath "$script_dir/../.active-config/themes")
+end
+
+# Check if themes directory exists
+if not test -d "$themes_dir"
+    echo "Error: Themes directory not found" >&2
+    exit 1
+end
+
+# Collect all unique theme names (active config themes override built-in ones)
+set -l all_themes
+
+# Get active config themes first (higher priority)
+if test -L (dirname "$active_config_themes_dir"); and test -d "$active_config_themes_dir"
+    for theme_dir in $active_config_themes_dir/*/
+        # Skip if not a directory
+        test -d "$theme_dir"; or continue
+
+        # Get basename
+        set theme_name (basename "$theme_dir")
+        set -a all_themes "$theme_name"
+    end
+end
+
+# Get built-in themes (skip if already in custom)
+for theme_dir in $themes_dir/*/
+    # Skip if not a directory
+    test -d "$theme_dir"; or continue
+
+    # Get basename
+    set theme_name (basename "$theme_dir")
+
+    # Only add if not already in custom themes
+    if not contains "$theme_name" $all_themes
+        set -a all_themes "$theme_name"
+    end
+end
+
+# Format and output sorted list
+for theme_name in $all_themes
+    # Convert dashes to spaces and capitalize words
+    echo $theme_name | sed 's/-/ /g; s/\b\(.\)/\u\1/g'
+end | sort

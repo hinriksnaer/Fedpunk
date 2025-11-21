@@ -1,0 +1,84 @@
+#!/usr/bin/env fish
+# Interactive theme selector with live preview using rofi
+# Applies theme as you navigate through options
+# ESC to cancel and revert, Enter to keep selected theme
+
+# Source helper functions
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
+
+# Find script directory
+set script_dir (dirname (status -f))
+
+# Get list of available themes
+set theme_list (fedpunk-theme-list)
+
+# Save current theme to restore on cancel
+set original_theme (fedpunk-theme-current 2>/dev/null)
+set last_previewed_theme $original_theme
+
+# Find index of current theme
+set current_index 0
+for i in (seq 1 (count $theme_list))
+    if test "$theme_list[$i]" = "$original_theme"
+        set current_index (math $i - 1)
+        break
+    end
+end
+
+# Mark current theme with indicator
+set display_list
+for theme in $theme_list
+    if test "$theme" = "$original_theme"
+        set display_list $display_list "● $theme"
+    else
+        set display_list $display_list "  $theme"
+    end
+end
+
+# Use a loop to continuously show rofi and preview on navigation
+set selected_index $current_index
+set keep_running true
+
+while test "$keep_running" = true
+    # Show rofi and get result with index
+    set result (printf '%s\n' $display_list | rofi -dmenu -i \
+        -p "🎨 Theme Preview (↑↓ to preview, Enter to apply, ESC to cancel)" \
+        -selected-row $selected_index \
+        -format 'i' \
+        -no-custom \
+        -theme-str 'window {width: 500px; height: 600px;}')
+
+    set exit_code $status
+
+    # User cancelled (ESC)
+    if test $exit_code -ne 0
+        # Revert to original theme
+        if test "$last_previewed_theme" != "$original_theme"
+            $script_dir/fedpunk-theme-set "$original_theme" >/dev/null 2>&1 &
+        end
+        exit 0
+    end
+
+    # User pressed Enter - apply current selection
+    if test -n "$result"
+        set selected_index $result
+        set theme_index (math "$selected_index + 1")
+
+        if test $theme_index -ge 1 -a $theme_index -le (count $theme_list)
+            set selected_theme $theme_list[$theme_index]
+            set pretty_name (echo $selected_theme | sed 's/-/ /g; s/\b\(.\)/\u\1/g')
+            set selected_theme (echo $selected_theme | string lower | string replace -a ' ' '-')
+
+            # Send notification
+            notify-send "Theme Switching" "Applying theme: $pretty_name" -t 2000
+
+            # Apply final theme
+            $script_dir/fedpunk-theme-set "$selected_theme" >/dev/null 2>&1 &
+        end
+
+        exit 0
+    end
+end

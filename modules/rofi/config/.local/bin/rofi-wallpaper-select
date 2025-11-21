@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Wallpaper selector with image previews using swaybg
+
+THEME_DIR="$HOME/.local/share/fedpunk/themes"
+CURRENT_THEME=$(fedpunk-theme-current 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+WALLPAPER_DIR="$THEME_DIR/$CURRENT_THEME/backgrounds"
+CURRENT_WALLPAPER=$(readlink -f "$HOME/.config/hypr/wallpapers/current" 2>/dev/null)
+
+# Check if wallpapers directory exists
+if [[ ! -d "$WALLPAPER_DIR" ]]; then
+    notify-send "Wallpaper Selector" "No wallpapers found for theme: $CURRENT_THEME"
+    exit 1
+fi
+
+# Get list of wallpapers
+mapfile -t WALLPAPERS < <(find "$WALLPAPER_DIR" -type f | grep -iE '\.(jpg|jpeg|png|webp)$' | sort)
+
+if [[ ${#WALLPAPERS[@]} -eq 0 ]]; then
+    notify-send "Wallpaper Selector" "No wallpapers found in $WALLPAPER_DIR"
+    exit 1
+fi
+
+# Create menu items with current indicator and preview on hover
+MENU_ITEMS=""
+for wp in "${WALLPAPERS[@]}"; do
+    basename_wp=$(basename "$wp")
+    if [[ "$wp" == "$CURRENT_WALLPAPER" ]]; then
+        MENU_ITEMS+="󰸞 $basename_wp\x00icon\x1f$wp\n"
+    else
+        MENU_ITEMS+="  $basename_wp\x00icon\x1f$wp\n"
+    fi
+done
+
+# Show rofi menu with icon support for previews in grid layout
+SELECTED=$(echo -e "$MENU_ITEMS" | rofi -dmenu \
+    -i \
+    -p "  Select Wallpaper" \
+    -theme-str 'window {width: 80%; height: 70%;}' \
+    -theme-str 'mainbox {padding: 20px;}' \
+    -theme-str 'listview {columns: 4; lines: 2; flow: horizontal; fixed-columns: true; fixed-lines: true; spacing: 20px;}' \
+    -theme-str 'element {orientation: vertical; padding: 0; spacing: 8px; border-radius: 10px;}' \
+    -theme-str 'element-icon {size: 20%; border-radius: 8px;}' \
+    -theme-str 'element-text {horizontal-align: 0.5; vertical-align: 0.5;}' \
+    -theme-str 'inputbar {padding: 12px; margin: 0 0 20px 0; border-radius: 8px;}' \
+    -theme-str 'prompt {font: "Inter Bold 12";}' \
+    -show-icons \
+    -mesg "Current: $CURRENT_THEME")
+
+if [[ -z "$SELECTED" ]]; then
+    exit 0
+fi
+
+# Remove the indicator and spaces, extract just the filename
+SELECTED_NAME=$(echo "$SELECTED" | sed 's/^[󰸞 ]*//' | xargs)
+
+# Find the full path
+SELECTED_PATH=""
+for wp in "${WALLPAPERS[@]}"; do
+    if [[ "$(basename "$wp")" == "$SELECTED_NAME" ]]; then
+        SELECTED_PATH="$wp"
+        break
+    fi
+done
+
+if [[ -n "$SELECTED_PATH" ]]; then
+    # Set wallpaper using swaybg directly
+    pkill -x swaybg 2>/dev/null
+    swaybg -i "$SELECTED_PATH" -m fill >/dev/null 2>&1 &
+
+    # Update the current wallpaper symlink
+    mkdir -p "$HOME/.config/hypr/wallpapers"
+    ln -sf "$SELECTED_PATH" "$HOME/.config/hypr/wallpapers/current"
+
+    notify-send "Wallpaper Changed" "Set to: $SELECTED_NAME"
+fi

@@ -1,0 +1,48 @@
+#!/usr/bin/env fish
+# Brightness control with OSD notification
+# Usage: brightness-control [up|down]
+
+set action $argv[1]
+
+# Apply brightness change
+switch $action
+    case up
+        brightnessctl set 5%+
+    case down
+        brightnessctl set 5%-
+    case '*'
+        echo "Usage: brightness-control [up|down]"
+        exit 1
+end
+
+# Get current brightness
+set brightness_info (brightnessctl get)
+set max_brightness (brightnessctl max)
+set brightness_percent (math "round(($brightness_info / $max_brightness) * 100)")
+
+# Determine icon based on brightness level
+if test $brightness_percent -eq 0
+    set icon "display-brightness-off-symbolic"
+else if test $brightness_percent -lt 33
+    set icon "display-brightness-low-symbolic"
+else if test $brightness_percent -lt 66
+    set icon "display-brightness-medium-symbolic"
+else
+    set icon "display-brightness-high-symbolic"
+end
+
+# Create visual bar
+set bar_length 20
+set filled_length (math "round($brightness_percent / 5)")
+set bar ""
+for i in (seq 1 $bar_length)
+    if test $i -le $filled_length
+        set bar "$bar█"
+    else
+        set bar "$bar░"
+    end
+end
+
+# Send notification with brightness bar
+set message "Brightness: $brightness_percent%"
+notify-send -t 1500 -h string:x-canonical-private-synchronous:brightness -u low "Brightness" "$message\n$bar"

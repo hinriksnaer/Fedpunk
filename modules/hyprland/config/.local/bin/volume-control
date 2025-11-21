@@ -1,0 +1,61 @@
+#!/usr/bin/env fish
+# Volume control with OSD notification
+# Usage: volume-control [up|down|mute]
+
+set action $argv[1]
+
+# Apply volume change
+switch $action
+    case up
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+    case down
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+    case mute
+        wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+    case '*'
+        echo "Usage: volume-control [up|down|mute]"
+        exit 1
+end
+
+# Get current volume and mute status
+set volume_info (wpctl get-volume @DEFAULT_AUDIO_SINK@)
+set volume_value (echo $volume_info | awk '{print $2}')
+set volume_percent (math "round($volume_value * 100)")
+set is_muted (echo $volume_info | grep -q "MUTED" && echo "yes" || echo "no")
+
+# Determine icon and message
+if test "$is_muted" = "yes"
+    set icon "audio-volume-muted"
+    set message "Muted"
+else if test $volume_percent -eq 0
+    set icon "audio-volume-muted"
+    set message "Volume: 0%"
+else if test $volume_percent -lt 33
+    set icon "audio-volume-low"
+    set message "Volume: $volume_percent%"
+else if test $volume_percent -lt 66
+    set icon "audio-volume-medium"
+    set message "Volume: $volume_percent%"
+else
+    set icon "audio-volume-high"
+    set message "Volume: $volume_percent%"
+end
+
+# Create visual bar
+set bar_length 20
+set filled_length (math "round($volume_percent / 5)")
+set bar ""
+for i in (seq 1 $bar_length)
+    if test $i -le $filled_length
+        set bar "$bar█"
+    else
+        set bar "$bar░"
+    end
+end
+
+# Send notification with volume bar
+if test "$is_muted" = "yes"
+    notify-send -t 1500 -h string:x-canonical-private-synchronous:volume -u low "Volume" "🔇 Muted"
+else
+    notify-send -t 1500 -h string:x-canonical-private-synchronous:volume -u low "Volume" "$message\n$bar"
+end

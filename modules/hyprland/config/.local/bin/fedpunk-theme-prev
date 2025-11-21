@@ -1,0 +1,56 @@
+#!/usr/bin/env fish
+# Cycle to the previous theme in the list
+# Usage: fedpunk-theme-prev
+
+set script_dir (dirname (status -f))
+set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
+
+# Get all available themes (sorted) from fedpunk-theme-list (includes custom themes)
+set available_themes
+for theme_name in ($script_dir/fedpunk-theme-list)
+    # Convert pretty name back to theme name (lowercase, spaces to dashes)
+    set theme_slug (echo $theme_name | string lower | string replace -a ' ' '-')
+    set -a available_themes $theme_slug
+end
+
+if test (count $available_themes) -eq 0
+    notify-send "Theme Error" "No themes found" -t 3000 -u critical
+    exit 1
+end
+
+# Extract current theme from hyprland.conf
+set current_line (grep "source.*themes.*hyprland.conf" $hyprland_conf 2>/dev/null)
+set current_theme ""
+
+if test -n "$current_line"
+    set current_theme (echo $current_line | sed 's|.*themes/\([^/]*\)/.*|\1|')
+end
+
+# If can't determine current, use second theme (so prev will be first)
+if test -z "$current_theme"
+    if test (count $available_themes) -gt 1
+        set current_theme $available_themes[2]
+    else
+        set current_theme $available_themes[1]
+    end
+end
+
+# Find current theme index
+set current_index 0
+for i in (seq (count $available_themes))
+    if test "$available_themes[$i]" = "$current_theme"
+        set current_index $i
+        break
+    end
+end
+
+# Get previous theme (wrap around)
+set prev_index (math $current_index - 1)
+if test $prev_index -lt 1
+    set prev_index (count $available_themes)
+end
+
+set prev_theme $available_themes[$prev_index]
+
+# Use fedpunk-theme-set to apply the theme
+fedpunk-theme-set $prev_theme

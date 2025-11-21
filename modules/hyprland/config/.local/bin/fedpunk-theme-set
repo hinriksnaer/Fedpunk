@@ -1,0 +1,45 @@
+#!/usr/bin/env fish
+# Set a specific theme by name
+# Automatically detects terminal-only vs desktop environment
+# Usage: fedpunk-theme-set <theme-name>
+
+# Find script directory for calling other scripts
+set script_dir (dirname (status -f))
+
+if test (count $argv) -lt 1
+    echo "Usage: fedpunk-theme-set <theme-name>"
+    echo ""
+    echo "Available themes:"
+    $script_dir/fedpunk-theme-list
+    exit 1
+end
+
+# Detect if we're in a desktop environment (Hyprland/Wayland)
+if command -v hyprctl >/dev/null 2>&1; and test -n "$WAYLAND_DISPLAY"
+    # Desktop environment - use desktop theme switcher
+    exec $script_dir/fedpunk-theme-set-desktop $argv
+else
+    # Terminal-only environment - use terminal theme switcher
+    set theme_name (echo $argv[1] | string lower | string replace -a ' ' '-')
+    set pretty_name (echo $theme_name | sed 's/-/ /g; s/\b\(.\)/\u\1/g')
+
+    echo ""
+    echo "Switching to theme: $pretty_name"
+    echo ""
+
+    set result ($script_dir/fedpunk-theme-set-terminal $theme_name)
+
+    if test $status -eq 0
+        set counts (string split ":" $result)
+        set applied $counts[1]
+        set skipped $counts[2]
+
+        echo ""
+        echo "✓ Theme switched to: $pretty_name"
+        echo "  Applied: $applied  •  Skipped: $skipped"
+        echo ""
+    else
+        echo "✗ Failed to switch theme"
+        exit 1
+    end
+end

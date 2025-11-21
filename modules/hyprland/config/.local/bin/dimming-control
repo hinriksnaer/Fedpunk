@@ -1,0 +1,69 @@
+#!/usr/bin/env fish
+# Dimming control with OSD notification
+# Usage: dimming-control [up|down|toggle]
+
+set action $argv[1]
+
+# Get current dimming settings
+set dim_inactive (hyprctl getoption decoration:dim_inactive -j | jq '.int')
+set dim_strength (hyprctl getoption decoration:dim_strength -j | jq '.float')
+
+# Apply dimming change
+switch $action
+    case up
+        # Increase dim strength by 0.05, max 0.5
+        set new_strength (math "min(0.5, $dim_strength + 0.05)")
+        hyprctl keyword decoration:dim_strength $new_strength
+        hyprctl keyword decoration:dim_inactive true
+    case down
+        # Decrease dim strength by 0.05, min 0.0
+        set new_strength (math "max(0.0, $dim_strength - 0.05)")
+        hyprctl keyword decoration:dim_strength $new_strength
+        # If strength reaches 0, disable dimming
+        if test (math "$new_strength == 0") -eq 1
+            hyprctl keyword decoration:dim_inactive false
+        end
+    case toggle
+        # Toggle dimming on/off
+        if test $dim_inactive -eq 1
+            hyprctl keyword decoration:dim_inactive false
+        else
+            hyprctl keyword decoration:dim_inactive true
+        end
+    case '*'
+        echo "Usage: dimming-control [up|down|toggle]"
+        exit 1
+end
+
+# Get updated values
+set dim_inactive (hyprctl getoption decoration:dim_inactive -j | jq '.int')
+set dim_strength (hyprctl getoption decoration:dim_strength -j | jq '.float')
+set dim_percent (math "round($dim_strength * 100)")
+
+# Determine message
+if test $dim_inactive -eq 0
+    set message "Dimming: Off"
+    set icon "weather-clear"
+else
+    set message "Dimming: $dim_percent%"
+    set icon "night-light-symbolic"
+end
+
+# Create visual bar
+set bar_length 20
+set filled_length (math "round($dim_percent / 5)")
+set bar ""
+for i in (seq 1 $bar_length)
+    if test $i -le $filled_length
+        set bar "$bar█"
+    else
+        set bar "$bar░"
+    end
+end
+
+# Send notification with dimming bar
+if test $dim_inactive -eq 0
+    notify-send -t 1500 -h string:x-canonical-private-synchronous:dimming -u low "Dimming" "☀️  Off"
+else
+    notify-send -t 1500 -h string:x-canonical-private-synchronous:dimming -u low "Dimming" "$message\n$bar"
+end

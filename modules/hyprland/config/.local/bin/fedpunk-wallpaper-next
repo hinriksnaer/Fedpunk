@@ -1,0 +1,74 @@
+#!/usr/bin/env fish
+# Cycle through wallpapers in the current theme
+# Usage: fedpunk-wallpaper-next
+# Uses swaybg (like omarchy)
+
+set themes_dir "$HOME/.local/share/fedpunk/themes"
+set hyprland_conf "$HOME/.config/hypr/hyprland.conf"
+set current_wallpaper_link "$HOME/.config/hypr/wallpapers/current"
+
+# Extract current theme from hyprland.conf
+set current_line (grep "source.*themes.*hyprland.conf" $hyprland_conf 2>/dev/null)
+
+if test -z "$current_line"
+    notify-send "Wallpaper Error" "No theme set" -t 3000 -u critical
+    exit 1
+end
+
+set theme_name (echo $current_line | sed 's|.*themes/\([^/]*\)/.*|\1|')
+set backgrounds_dir "$themes_dir/$theme_name/backgrounds"
+
+# Check if backgrounds directory exists
+if not test -d "$backgrounds_dir"
+    notify-send "No Wallpapers" "Theme '$theme_name' has no backgrounds" -t 3000
+    exit 1
+end
+
+# Get all background images (sorted)
+set backgrounds (find -L "$backgrounds_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" \) 2>/dev/null | sort)
+
+if test (count $backgrounds) -eq 0
+    notify-send "No Wallpapers" "No images found in theme backgrounds" -t 3000
+    # Set black background
+    pkill -x swaybg 2>/dev/null
+    swaybg --color '#000000' >/dev/null 2>&1 &
+    disown
+    exit 1
+end
+
+# Get current wallpaper from symlink
+set current_wallpaper ""
+if test -L "$current_wallpaper_link"
+    set current_wallpaper (readlink -f "$current_wallpaper_link")
+end
+
+# Find current wallpaper index
+set current_index 0
+for i in (seq (count $backgrounds))
+    if test "$backgrounds[$i]" = "$current_wallpaper"
+        set current_index $i
+        break
+    end
+end
+
+# Get next wallpaper (wrap around)
+set next_index (math $current_index + 1)
+if test $next_index -gt (count $backgrounds)
+    set next_index 1
+end
+
+set new_wallpaper $backgrounds[$next_index]
+
+# Create wallpapers directory if needed and set new wallpaper symlink
+mkdir -p (dirname "$current_wallpaper_link")
+ln -sf "$new_wallpaper" "$current_wallpaper_link"
+
+# Relaunch swaybg with new wallpaper (omarchy style)
+pkill -x swaybg 2>/dev/null
+swaybg -i "$current_wallpaper_link" -m fill >/dev/null 2>&1 &
+disown
+
+set wallpaper_name (basename "$new_wallpaper")
+notify-send "Wallpaper Changed" "$wallpaper_name" -t 2000
+
+echo "Wallpaper set to: $wallpaper_name"

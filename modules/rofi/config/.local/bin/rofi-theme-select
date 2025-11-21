@@ -1,0 +1,57 @@
+#!/usr/bin/env fish
+# Interactive theme selector using rofi dmenu
+# Usage: rofi-theme-select
+
+# Source helper functions for consistent interface
+set -gx FEDPUNK_INSTALL "$HOME/.local/share/fedpunk/install"
+if test -f "$FEDPUNK_INSTALL/helpers/all.fish"
+    source "$FEDPUNK_INSTALL/helpers/all.fish"
+end
+
+# Get list of available themes
+set theme_list (fedpunk-theme-list)
+
+# Get current theme (may be empty if theme was deleted)
+set current_theme (fedpunk-theme-current 2>/dev/null)
+
+# Mark current theme with indicator and track its index
+set display_list
+set current_index -1
+set index 0
+for theme in $theme_list
+    # Only mark if we have a valid current theme and it matches
+    if test -n "$current_theme" -a "$theme" = "$current_theme"
+        set display_list $display_list "● $theme"
+        set current_index $index
+    else
+        set display_list $display_list "  $theme"
+    end
+    set index (math "$index + 1")
+end
+
+# Show selection menu using rofi, pre-selecting current theme
+set rofi_args -dmenu -i -p "Select Theme" -no-custom -theme-str 'window {width: 400px; height: 500px;}'
+if test $current_index -ge 0
+    set rofi_args $rofi_args -selected-row $current_index
+end
+set selected (printf '%s\n' $display_list | rofi $rofi_args)
+
+# Exit if user cancelled
+if test -z "$selected"
+    exit 0
+end
+
+# Remove indicator and trim whitespace
+set selected_theme (echo $selected | sed 's/^[● ]*//; s/  */ /g' | string trim)
+
+# Convert to lowercase with dashes for theme name
+set theme_name (echo $selected_theme | string lower | string replace -a ' ' '-')
+
+# Get pretty name for notification
+set pretty_name (echo $selected_theme | string trim)
+
+# Send notification immediately
+notify-send "Theme Switching" "Applying theme: $pretty_name" -t 2000
+
+# Apply the theme silently in background
+nohup $HOME/.local/bin/fedpunk-theme-set "$theme_name" >/dev/null 2>&1 &
