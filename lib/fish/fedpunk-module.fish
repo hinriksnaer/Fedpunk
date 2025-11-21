@@ -207,6 +207,17 @@ function fedpunk-module-install-packages
     set -l cargo_packages (yaml-get-list "$module_yaml" "packages" "cargo")
     for pkg in $cargo_packages
         echo "  Installing cargo package: $pkg"
+
+        # Ensure cargo is in PATH (in case it was just installed)
+        if not command -v cargo >/dev/null 2>&1
+            if test -f "$HOME/.cargo/bin/cargo"
+                set -gx PATH "$HOME/.cargo/bin" $PATH
+            else
+                echo "Error: cargo not found. Please ensure rust module is installed first." >&2
+                continue
+            end
+        end
+
         cargo install $pkg
     end
 
@@ -219,9 +230,24 @@ function fedpunk-module-install-packages
 
     # Flatpak packages
     set -l flatpak_packages (yaml-get-list "$module_yaml" "packages" "flatpak")
-    for pkg in $flatpak_packages
-        echo "  Installing flatpak: $pkg"
-        flatpak install -y $pkg
+    if test -n "$flatpak_packages"
+        # Ensure flatpak is installed
+        if not command -v flatpak >/dev/null 2>&1
+            echo "  Installing flatpak..."
+            sudo dnf install -y flatpak
+        end
+
+        # Ensure Flathub repository is added
+        if not flatpak remotes | grep -q flathub
+            echo "  Adding Flathub repository..."
+            flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        end
+
+        # Install flatpak packages
+        for pkg in $flatpak_packages
+            echo "  Installing flatpak: $pkg"
+            flatpak install -y flathub $pkg
+        end
     end
 
     echo "Package installation complete for $module_name"

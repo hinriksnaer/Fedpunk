@@ -22,3 +22,6 @@ modules:
   - audio
   - multimedia
   - firefox
+  - nvidia
+  - bluetui
+  - extra-apps

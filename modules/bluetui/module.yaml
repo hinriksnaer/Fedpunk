@@ -1,0 +1,21 @@
+module:
+  name: bluetui
+  description: Bluetooth TUI manager
+  dependencies:
+    - rust
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  dnf:
+    - dbus-devel
+  cargo:
+    - bluetui
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn
