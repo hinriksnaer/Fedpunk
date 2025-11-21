@@ -5,6 +5,7 @@
 # Source dependencies
 set -l script_dir (dirname (status -f))
 source "$script_dir/yaml-parser.fish"
+source "$script_dir/module-resolver.fish"
 
 # Global variable to track deployed modules (prevents redeployment in same session)
 if not set -q FEDPUNK_DEPLOYED_MODULES
@@ -14,11 +15,13 @@ end
 # Resolve and deploy dependencies recursively
 function fedpunk-module-resolve-dependencies
     set -l module_name $argv[1]
-    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_dir (module-resolve-path $module_name)
+    or return 1
+
     set -l module_yaml "$module_dir/module.yaml"
 
     if not test -f "$module_yaml"
-        echo "Module not found: $module_name" >&2
+        echo "Module configuration not found: $module_yaml" >&2
         return 1
     end
 
@@ -131,7 +134,8 @@ function fedpunk-module-info
         return 1
     end
 
-    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_dir (module-resolve-path $module_name)
+    or return 1
     set -l module_yaml "$module_dir/module.yaml"
 
     if not test -f "$module_yaml"
@@ -177,7 +181,8 @@ function fedpunk-module-install-packages
         return 1
     end
 
-    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_dir (module-resolve-path $module_name)
+    or return 1
     set -l module_yaml "$module_dir/module.yaml"
 
     if not test -f "$module_yaml"
@@ -261,7 +266,8 @@ function fedpunk-module-stow
         return 1
     end
 
-    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_dir (module-resolve-path $module_name)
+    or return 1
 
     if not test -d "$module_dir"
         echo "Module not found: $module_name" >&2
@@ -316,7 +322,8 @@ function fedpunk-module-unstow
         return 1
     end
 
-    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_dir (module-resolve-path $module_name)
+    or return 1
 
     if not test -d "$module_dir"
         echo "Module not found: $module_name" >&2
@@ -342,7 +349,8 @@ function fedpunk-module-run-lifecycle
         return 1
     end
 
-    set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+    set -l module_dir (module-resolve-path $module_name)
+    or return 1
     set -l module_yaml "$module_dir/module.yaml"
 
     if not test -f "$module_yaml"
