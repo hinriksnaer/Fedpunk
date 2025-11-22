@@ -17,7 +17,6 @@ modules:
   - bitwarden
   - claude
   - plugins/dev-extras
-  - plugins/fan-control
   - fonts
   - kitty
   - rofi
