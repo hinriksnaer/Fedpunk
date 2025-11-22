@@ -1,0 +1,30 @@
+#!/bin/bash
+# Display fan speeds and PWM settings from Aquacomputer Octo
+
+HWMON="/sys/class/hwmon/hwmon5"
+
+echo "=== Fan Speeds ==="
+for i in {1..9}; do
+    label=$(cat "$HWMON/fan${i}_label" 2>/dev/null || echo "Fan $i")
+    speed=$(cat "$HWMON/fan${i}_input" 2>/dev/null || echo "N/A")
+    echo "$label: $speed RPM"
+done
+
+echo ""
+echo "=== PWM Settings (0-255, where 255=100%) ==="
+for i in {1..8}; do
+    pwm=$(cat "$HWMON/pwm${i}" 2>/dev/null || echo "N/A")
+    percent=$((pwm * 100 / 255))
+    echo "PWM $i: $pwm ($percent%)"
+done
+
+echo ""
+echo "=== Temperatures ==="
+for i in {1..4}; do
+    label=$(cat "$HWMON/temp${i}_label" 2>/dev/null || echo "Temp $i")
+    temp=$(cat "$HWMON/temp${i}_input" 2>/dev/null || echo "N/A")
+    if [ "$temp" != "N/A" ]; then
+        temp_c=$(echo "scale=1; $temp / 1000" | bc)
+        echo "$label: ${temp_c}°C"
+    fi
+done

@@ -1,0 +1,17 @@
+module:
+  name: fan-control
+  description: Automatic fan speed control for Aquacomputer Octo controller
+  dependencies: []
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  dnf: []
+  cargo: []
+  npm: []
+
+stow:
+  target: $HOME
+  conflicts: warn

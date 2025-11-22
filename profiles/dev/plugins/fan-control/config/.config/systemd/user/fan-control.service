@@ -1,0 +1,15 @@
+[Unit]
+Description=Automatic Fan Speed Control for Aquacomputer Octo
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/softmax/.local/bin/fan-curve --daemon
+Restart=on-failure
+RestartSec=10s
+
+# Run with elevated privileges (requires passwordless sudo or polkit rule)
+# Alternatively, install this as a system service in /etc/systemd/system/
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,89 @@
+#!/bin/bash
+# Automatic fan control based on CPU temperature
+# Can be run as a daemon or via cron/systemd timer
+
+HWMON="/sys/class/hwmon/hwmon5"
+CPU_TEMP_FILE="/sys/class/hwmon/hwmon3/temp1_input"
+UPDATE_INTERVAL=5  # seconds between updates
+
+# Fan curve configuration (temperature in °C -> PWM %)
+# Adjust these values to your preference
+declare -A FAN_CURVE=(
+    [0]=30      # Below 40°C: 30% (quiet)
+    [40]=35     # 40°C: 35%
+    [50]=45     # 50°C: 45%
+    [60]=60     # 60°C: 60%
+    [70]=75     # 70°C: 75%
+    [80]=90     # 80°C: 90%
+    [85]=100    # 85°C+: 100% (full blast)
+)
+
+get_pwm_for_temp() {
+    local temp=$1
+    local pwm=30  # minimum speed
+
+    # Find the appropriate PWM value based on temperature
+    for temp_threshold in $(echo "${!FAN_CURVE[@]}" | tr ' ' '\n' | sort -n); do
+        if [ "$temp" -ge "$temp_threshold" ]; then
+            pwm=${FAN_CURVE[$temp_threshold]}
+        fi
+    done
+
+    echo "$pwm"
+}
+
+set_all_fans() {
+    local percent=$1
+    local pwm_value=$((percent * 255 / 100))
+
+    for i in {1..8}; do
+        echo "$pwm_value" > "$HWMON/pwm${i}" 2>/dev/null
+    done
+}
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Error: This script must be run as root (use sudo)"
+    echo "Usage: sudo $0 [--daemon]"
+    exit 1
+fi
+
+DAEMON=false
+if [ "$1" = "--daemon" ]; then
+    DAEMON=true
+    echo "Starting fan control daemon (Ctrl+C to stop)"
+fi
+
+echo "Temperature-based fan control active"
+echo "Fan curve:"
+for temp in $(echo "${!FAN_CURVE[@]}" | tr ' ' '\n' | sort -n); do
+    echo "  ${temp}°C -> ${FAN_CURVE[$temp]}%"
+done
+echo ""
+
+LAST_PWM=-1
+
+while true; do
+    # Read CPU temperature
+    temp_millidegrees=$(cat "$CPU_TEMP_FILE")
+    temp=$((temp_millidegrees / 1000))
+
+    # Calculate target PWM
+    target_pwm=$(get_pwm_for_temp "$temp")
+
+    # Only update if PWM changed (reduce wear on controller)
+    if [ "$target_pwm" != "$LAST_PWM" ]; then
+        set_all_fans "$target_pwm"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU: ${temp}°C -> Setting fans to ${target_pwm}%"
+        LAST_PWM=$target_pwm
+    elif ! $DAEMON; then
+        echo "CPU: ${temp}°C -> Fans at ${target_pwm}% (no change needed)"
+    fi
+
+    # Exit if not in daemon mode
+    if ! $DAEMON; then
+        break
+    fi
+
+    sleep "$UPDATE_INTERVAL"
+done
