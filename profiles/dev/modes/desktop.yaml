@@ -27,3 +27,4 @@ modules:
   - nvidia
   - bluetui
   - extra-apps
+  - plugins/fancontrol

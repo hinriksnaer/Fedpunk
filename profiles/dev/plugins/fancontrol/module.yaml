@@ -1,0 +1,12 @@
+module:
+  name: fancontrol
+  description: Aquacomputer Octo fan control with CPU temperature-based curves
+  dependencies: []
+
+packages:
+  dnf:
+    - lm_sensors
+
+stow:
+  target: $HOME
+  conflicts: warn

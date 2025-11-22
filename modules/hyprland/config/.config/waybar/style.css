@@ -47,13 +47,21 @@ window#waybar {
 #memory,
 #temperature,
 #custom-gpu,
+#custom-gpu-usage,
+#custom-gpu-temp,
+#custom-gpu-vram,
+#custom-cpu-freq,
+#custom-swap,
 #network,
 #pulseaudio,
 #bluetooth,
 #tray,
-#custom-expand-icon {
-  padding: 0 12px;
-  margin: 0 4px;
+#custom-expand-icon,
+#custom-cpu-icon,
+#custom-gpu-icon,
+#custom-ram-icon {
+  padding: 0 8px;
+  margin: 0 2px;
   color: @foreground;
 }
 
@@ -129,4 +137,62 @@ tooltip {
 tooltip label {
   color: @foreground;
   padding: 4px;
+}
+
+/* Hardware monitoring groups */
+#group-hardware-cpu,
+#group-hardware-gpu,
+#group-hardware-ram {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  margin: 0 4px;
+  padding: 0 4px;
+}
+
+.hardware-group-item {
+  padding: 0 6px;
+  margin: 0 2px;
+}
+
+/* Hardware icons */
+#custom-cpu-icon {
+  color: #62a0ea;
+  font-size: 13px;
+  padding: 0 8px 0 10px;
+  margin: 0;
+}
+
+#custom-gpu-icon {
+  color: #57e389;
+  font-size: 13px;
+  padding: 0 8px 0 10px;
+  margin: 0;
+}
+
+#custom-ram-icon {
+  color: #f6d32d;
+  font-size: 13px;
+  padding: 0 8px 0 10px;
+  margin: 0;
+}
+
+/* Compact hardware stats */
+#cpu,
+#custom-gpu-usage,
+#memory {
+  font-weight: bold;
+}
+
+/* Temperature colors - only warn when critical */
+#temperature.critical,
+#custom-gpu-temp.critical {
+  color: #ff6b6b;
+  animation: blink 1s linear infinite;
+}
+
+#custom-cpu-freq,
+#custom-gpu-vram,
+#custom-swap {
+  font-size: 10px;
+  opacity: 0.9;
 }
