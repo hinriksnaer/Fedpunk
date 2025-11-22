@@ -1,11 +1,13 @@
 module:
   name: fan-control
   description: Automatic fan speed control for Aquacomputer Octo controller
-  dependencies: []
+  dependencies:
+    - fish
 
 lifecycle:
   before: []
-  after: []
+  after:
+    - install
 
 packages:
   dnf: []

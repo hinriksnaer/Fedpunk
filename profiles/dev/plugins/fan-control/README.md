@@ -22,10 +22,12 @@ echo "  - plugins/fan-control" >> profiles/dev/modes/desktop.yaml
 fish install.fish --mode desktop
 ```
 
-This will stow the scripts to `~/.local/bin/`:
+This will install the scripts to `~/.local/bin/` via symlinks:
 - `fan-status` - View fan speeds and temps
 - `fan-set` - Manually control fan speeds
 - `fan-curve` - Temperature-based automatic control
+
+And stow the systemd service to `~/.config/systemd/user/`
 
 ## Usage
 
