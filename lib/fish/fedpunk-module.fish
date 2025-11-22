@@ -6,6 +6,7 @@
 set -l script_dir (dirname (status -f))
 source "$script_dir/yaml-parser.fish"
 source "$script_dir/module-resolver.fish"
+source "$script_dir/package-manager.fish"
 
 # Global variable to track deployed modules (prevents redeployment in same session)
 if not set -q FEDPUNK_DEPLOYED_MODULES
@@ -201,11 +202,10 @@ function fedpunk-module-install-packages
         sudo dnf copr enable -y $repo
     end
 
-    # DNF packages
+    # DNF packages (uses rpm-ostree on atomic desktops)
     set -l dnf_packages (yaml-get-list "$module_yaml" "packages" "dnf")
     if test -n "$dnf_packages"
-        echo "  Installing DNF packages: $dnf_packages"
-        sudo dnf install -y $dnf_packages
+        install-system-packages $dnf_packages
     end
 
     # Cargo packages
@@ -239,7 +239,7 @@ function fedpunk-module-install-packages
         # Ensure flatpak is installed
         if not command -v flatpak >/dev/null 2>&1
             echo "  Installing flatpak..."
-            sudo dnf install -y flatpak
+            install-system-packages flatpak
         end
 
         # Ensure Flathub repository is added
@@ -448,6 +448,9 @@ function fedpunk-module-deploy
 
     # Mark as deployed
     set -g FEDPUNK_DEPLOYED_MODULES $FEDPUNK_DEPLOYED_MODULES $module_name
+
+    # Show reboot warning if on atomic desktop and packages were layered
+    show-reboot-warning
 
     return 0
 end

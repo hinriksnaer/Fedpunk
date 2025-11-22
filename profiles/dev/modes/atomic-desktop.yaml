@@ -1,0 +1,40 @@
+# Development Profile - Atomic Desktop Mode
+# Optimized for Fedora Silverblue/Kinoite with minimal system package layering
+
+mode:
+  name: atomic-desktop
+  description: Atomic desktop with minimal layers, maximum Flatpaks
+
+# Strategy: Minimize rpm-ostree layers, maximize Flatpaks and user-space tools
+modules:
+  # Core system (user-space only, no dnf packages)
+  - essentials
+  - languages        # Rust/Node via rustup/volta (user-space)
+
+  # Terminal tools (cargo installs, no system packages)
+  - neovim
+  - tmux
+  - lazygit
+  - btop
+  - yazi
+  - gh
+  - bitwarden
+  - claude
+
+  # Desktop - ONLY packages that MUST be layered
+  - fonts            # System fonts
+  - kitty            # Terminal (could use Flatpak too)
+  - hyprland         # Compositor (must be layered)
+  - rofi             # Launcher
+  - waybar           # Status bar (must be layered for Hyprland)
+  - audio            # Pipewire/Wireplumber
+  - multimedia       # Codecs
+
+  # Applications - Prefer Flatpaks
+  - firefox          # Browser (Flatpak if available)
+  - plugins/dev-extras  # Spotify, Discord via Flatpak
+
+  # Hardware-specific (conditional layering)
+  - nvidia           # Only if NVIDIA GPU detected
+  - bluetui
+  - plugins/fancontrol  # Hardware monitoring
