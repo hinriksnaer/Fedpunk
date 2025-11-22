@@ -5,14 +5,14 @@
 # Set fish as default shell if not already
 if test "$SHELL" != (which fish)
     echo "Setting fish as default shell..."
-    chsh -s (which fish)
+    sudo chsh -s (which fish) $USER
 
     if test $status -eq 0
         echo "✓ Fish is now your default shell"
         echo "  Please log out and back in for changes to take effect"
     else
         echo "✗ Failed to set fish as default shell"
-        echo "  You may need to run: chsh -s $(which fish)"
+        echo "  You may need to run: sudo chsh -s $(which fish) $USER"
     end
 else
     echo "✓ Fish is already your default shell"

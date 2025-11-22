@@ -1,0 +1,27 @@
+#!/usr/bin/env fish
+# Claude Code post-install setup
+# Handles: Migration and cleanup
+
+# Migrate Claude Code installer if claude is installed
+if command -v claude >/dev/null 2>&1
+    echo "Migrating Claude Code installer..."
+    claude --migrate-installer
+
+    if test $status -eq 0
+        echo "✓ Claude Code installer migrated successfully"
+    else
+        echo "⚠ Claude Code migration failed or not needed"
+    end
+
+    # Clean up npm global installation
+    echo "Cleaning up npm global claude installation..."
+    sudo npm uninstall -g @anthropic-ai/claude-code 2>/dev/null
+
+    if test $status -eq 0
+        echo "✓ NPM global claude package removed"
+    else
+        echo "⚠ No npm global claude package found or removal failed"
+    end
+else
+    echo "⚠ Claude command not found, skipping migration"
+end
