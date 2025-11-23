@@ -1,0 +1,330 @@
+#!/usr/bin/env fish
+# Fedpunk Configuration Linker
+# Replaces GNU Stow with state-tracked symlink management
+
+# State file location
+set -g LINKER_STATE_FILE "$FEDPUNK_ROOT/.linker-state.json"
+
+# Initialize state file if it doesn't exist
+function linker-init
+    if not test -f "$LINKER_STATE_FILE"
+        echo '{
+  "version": "1.0",
+  "files": {},
+  "conflicts": {}
+}' > "$LINKER_STATE_FILE"
+    end
+end
+
+# Add file to state
+function linker-state-add
+    set -l target $argv[1]
+    set -l source $argv[2]
+    set -l module $argv[3]
+    set -l timestamp (date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    linker-init
+
+    # Use jq to update state
+    set -l temp_file (mktemp)
+    jq --arg target "$target" \
+       --arg source "$source" \
+       --arg module "$module" \
+       --arg timestamp "$timestamp" \
+       '.files[$target] = {
+           "source": $source,
+           "module": $module,
+           "deployed_at": $timestamp
+       }' "$LINKER_STATE_FILE" > "$temp_file"
+    and mv "$temp_file" "$LINKER_STATE_FILE"
+end
+
+# Remove file from state
+function linker-state-remove
+    set -l target $argv[1]
+
+    if not test -f "$LINKER_STATE_FILE"
+        return 0
+    end
+
+    set -l temp_file (mktemp)
+    jq --arg target "$target" \
+       'del(.files[$target])' "$LINKER_STATE_FILE" > "$temp_file"
+    and mv "$temp_file" "$LINKER_STATE_FILE"
+end
+
+# Add conflict to state
+function linker-state-add-conflict
+    set -l target $argv[1]
+    set -l module $argv[2]
+    set -l action $argv[3]
+    set -l timestamp (date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    linker-init
+
+    set -l temp_file (mktemp)
+    jq --arg target "$target" \
+       --arg module "$module" \
+       --arg action "$action" \
+       --arg timestamp "$timestamp" \
+       '.conflicts[$target] = {
+           "module": $module,
+           "action": $action,
+           "timestamp": $timestamp
+       }' "$LINKER_STATE_FILE" > "$temp_file"
+    and mv "$temp_file" "$LINKER_STATE_FILE"
+end
+
+# Get owner module of a file
+function linker-get-owner
+    set -l target $argv[1]
+
+    if not test -f "$LINKER_STATE_FILE"
+        return 1
+    end
+
+    jq -r --arg target "$target" \
+       '.files[$target].module // empty' "$LINKER_STATE_FILE"
+end
+
+# Handle conflict interactively
+function linker-handle-conflict
+    set -l target $argv[1]
+    set -l source $argv[2]
+    set -l module $argv[3]
+    set -l rel_path (string replace "$HOME/" "" "$target")
+
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "⚠️  CONFLICT DETECTED"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "File: $rel_path"
+    echo "Module: $module"
+    echo ""
+
+    # Check if it's owned by another module
+    if test -L "$target"
+        set -l current_target (readlink -f "$target" 2>/dev/null; or echo "")
+        set -l owner (linker-get-owner "$target")
+        if test -n "$owner"
+            echo "Currently owned by module: $owner"
+        end
+    else
+        echo "Existing file (not a symlink)"
+    end
+
+    echo ""
+    echo "Options:"
+    echo "  [k] Keep existing file (skip this module file)"
+    echo "  [r] Replace with module file (backup existing)"
+    echo "  [d] Show diff"
+    echo "  [a] Abort deployment"
+    echo ""
+
+    while true
+        read -P "Choose action [k/r/d/a]: " -n 1 choice
+        echo ""
+
+        switch "$choice"
+            case k K
+                echo "  → Keeping existing file"
+                linker-state-add-conflict "$target" "$module" "skipped"
+                return 0
+
+            case r R
+                # Backup existing
+                set -l backup "$target.backup."(date +%Y%m%d-%H%M%S)
+                if test -L "$target"
+                    # Remove old symlink
+                    rm "$target"
+                else
+                    # Backup regular file
+                    mv "$target" "$backup"
+                    echo "  → Backed up to: "(string replace "$HOME/" "" "$backup")
+                end
+
+                # Create new symlink
+                ln -s "$source" "$target"
+                echo "  → Replaced with module file"
+                linker-state-add "$target" "$source" "$module"
+                return 0
+
+            case d D
+                echo ""
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                if test -f "$target" -a -f "$source"
+                    diff -u "$target" "$source" | head -50; or true
+                else
+                    echo "Cannot diff: one or both files don't exist"
+                end
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo ""
+                # Ask again
+                continue
+
+            case a A
+                echo "  → Aborting deployment"
+                return 1
+
+            case '*'
+                echo "Invalid choice, try again"
+                continue
+        end
+    end
+end
+
+# Deploy module configuration
+function linker-deploy
+    set -l module_name $argv[1]
+    set -l module_dir $argv[2]
+    set -l config_dir "$module_dir/config"
+
+    if not test -d "$config_dir"
+        echo "  → No config directory, skipping symlinks"
+        return 0
+    end
+
+    echo "  → Deploying configuration files"
+    linker-init
+
+    # Find all files in config directory
+    set -l file_count 0
+    set -l skipped_count 0
+
+    for src_file in (find "$config_dir" -type f)
+        # Calculate relative path (remove config_dir prefix)
+        set -l rel_path (string replace "$config_dir/" "" "$src_file")
+        set -l target "$HOME/$rel_path"
+
+        # Check for conflicts
+        if test -e "$target"; and not test -L "$target"
+            # File exists and is NOT a symlink
+            if not linker-handle-conflict "$target" "$src_file" "$module_name"
+                return 1
+            end
+            set skipped_count (math $skipped_count + 1)
+            continue
+        end
+
+        if test -L "$target"
+            # Symlink exists - check if it's ours
+            set -l current_target (readlink -f "$target" 2>/dev/null; or echo "")
+            set -l expected_target (readlink -f "$src_file")
+
+            if test "$current_target" != "$expected_target"
+                # Owned by different module
+                if not linker-handle-conflict "$target" "$src_file" "$module_name"
+                    return 1
+                end
+                set skipped_count (math $skipped_count + 1)
+                continue
+            else
+                # Already correctly linked
+                set file_count (math $file_count + 1)
+                continue
+            end
+        end
+
+        # Create parent directory
+        mkdir -p (dirname "$target")
+
+        # Create symlink
+        ln -s "$src_file" "$target"
+        linker-state-add "$target" "$src_file" "$module_name"
+        set file_count (math $file_count + 1)
+    end
+
+    if test $file_count -gt 0
+        echo "  ✓ Linked $file_count files"
+    end
+    if test $skipped_count -gt 0
+        echo "  ⚠️  Skipped $skipped_count conflicts"
+    end
+end
+
+# Remove module configuration
+function linker-remove
+    set -l module_name $argv[1]
+
+    if not test -f "$LINKER_STATE_FILE"
+        echo "  → No deployment state found"
+        return 0
+    end
+
+    echo "  → Removing configuration files"
+
+    # Get all files owned by this module
+    set -l files (jq -r --arg module "$module_name" \
+        '.files | to_entries[] | select(.value.module == $module) | .key' \
+        "$LINKER_STATE_FILE")
+
+    if test -z "$files"
+        echo "  → No files deployed by this module"
+        return 0
+    end
+
+    set -l count 0
+    for target in $files
+        if test -L "$target"
+            rm "$target"
+            linker-state-remove "$target"
+            set count (math $count + 1)
+        else if test -e "$target"
+            echo "  ⚠️  Not a symlink (manual intervention needed): "(string replace "$HOME/" "" "$target")
+        end
+    end
+
+    if test $count -gt 0
+        echo "  ✓ Removed $count files"
+    end
+end
+
+# Show deployment status
+function linker-status
+    if not test -f "$LINKER_STATE_FILE"
+        echo "No modules deployed"
+        return 0
+    end
+
+    echo "Deployed Configuration:"
+    echo ""
+
+    # Group by module
+    jq -r '.files | to_entries | group_by(.value.module)[] |
+           "\(.[0].value.module): \(length) files"' \
+        "$LINKER_STATE_FILE" | sort
+
+    # Show conflicts if any
+    set -l conflict_count (jq '.conflicts | length' "$LINKER_STATE_FILE")
+    if test $conflict_count -gt 0
+        echo ""
+        echo "Conflicts:"
+        jq -r '.conflicts | to_entries[] |
+               "  \(.key) → \(.value.action) (module: \(.value.module))"' \
+            "$LINKER_STATE_FILE"
+    end
+end
+
+# Show files owned by a module
+function linker-list-files
+    set -l module_name $argv[1]
+
+    if not test -f "$LINKER_STATE_FILE"
+        echo "No modules deployed"
+        return 0
+    end
+
+    set -l files (jq -r --arg module "$module_name" \
+        '.files | to_entries[] | select(.value.module == $module) | .key' \
+        "$LINKER_STATE_FILE")
+
+    if test -z "$files"
+        echo "No files deployed by module: $module_name"
+        return 0
+    end
+
+    echo "Files deployed by $module_name:"
+    for target in $files
+        echo "  "(string replace "$HOME/" "" "$target")
+    end
+end

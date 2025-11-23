@@ -6,6 +6,7 @@
 set -l script_dir (dirname (status -f))
 source "$script_dir/yaml-parser.fish"
 source "$script_dir/module-resolver.fish"
+source "$script_dir/linker.fish"
 
 # Global variable to track deployed modules (prevents redeployment in same session)
 if not set -q FEDPUNK_DEPLOYED_MODULES
@@ -274,44 +275,10 @@ function fedpunk-module-stow
         return 1
     end
 
-    if not test -d "$module_dir/config"
-        echo "No config directory for module: $module_name" >&2
-        return 0
-    end
+    echo "Deploying configuration: $module_name"
 
-    echo "Stowing module: $module_name"
-    cd "$module_dir"
-
-    # First attempt: try stow with --restow (idempotent if already stowed)
-    set -l stow_output (stow --restow -t $HOME config 2>&1)
-    set -l stow_status $status
-
-    if test $stow_status -eq 0
-        return 0
-    end
-
-    # Check if failure was due to conflicts with existing files
-    if string match -q "*existing target*" -- $stow_output; or string match -q "*cannot stow*" -- $stow_output
-        echo "Existing configuration detected. Using --adopt to preserve existing files..."
-
-        # Use --adopt to take ownership of existing files
-        # This will update the stowed files to match what's in $HOME
-        stow --adopt -t $HOME config
-        set -l adopt_status $status
-
-        if test $adopt_status -eq 0
-            echo "Successfully adopted existing configuration"
-            return 0
-        else
-            echo "Failed to adopt existing configuration" >&2
-            echo $stow_output >&2
-            return 1
-        end
-    else
-        # Other stow error
-        echo $stow_output >&2
-        return 1
-    end
+    # Use new linker instead of stow
+    linker-deploy $module_name $module_dir
 end
 
 function fedpunk-module-unstow
@@ -330,14 +297,10 @@ function fedpunk-module-unstow
         return 1
     end
 
-    if not test -d "$module_dir/config"
-        echo "No config directory for module: $module_name"
-        return 0
-    end
+    echo "Removing configuration: $module_name"
 
-    echo "Unstowing module: $module_name"
-    cd "$module_dir"
-    stow -D -t $HOME config
+    # Use new linker instead of stow
+    linker-remove $module_name
 end
 
 function fedpunk-module-run-lifecycle
