@@ -29,6 +29,13 @@ function show_help
     echo "  theme prev             Switch to previous theme"
     echo "  theme refresh          Refresh current theme"
     echo ""
+    echo "Module Management:"
+    echo "  module list            List available modules"
+    echo "  module info <name>     Show module details"
+    echo "  module deploy <name>   Deploy a module"
+    echo "  module remove <name>   Remove a module"
+    echo "  module status          Show deployed modules"
+    echo ""
     echo "Wallpaper Management (Desktop):"
     echo "  wallpaper set <theme>  Set wallpaper from theme"
     echo "  wallpaper next         Switch to next wallpaper"
@@ -374,6 +381,82 @@ switch $command
             case '*'
                 echo "Unknown wallpaper subcommand: $wallpaper_cmd"
                 echo "Run 'fedpunk wallpaper' for help"
+                exit 1
+        end
+
+    case module
+        # Module management
+        if test (count $args) -eq 0
+            echo "Usage: fedpunk module <subcommand> [args...]"
+            echo ""
+            echo "Subcommands:"
+            echo "  list              List available modules"
+            echo "  info <name>       Show module information"
+            echo "  deploy <name>     Deploy a module (packages + config + lifecycle)"
+            echo "  remove <name>     Remove a module (unstow config)"
+            echo "  status            Show deployed modules"
+            echo ""
+            echo "Examples:"
+            echo "  fedpunk module list"
+            echo "  fedpunk module info fish"
+            echo "  fedpunk module deploy hyprland"
+            exit 1
+        end
+
+        set module_cmd $args[1]
+        set module_args $args[2..-1]
+
+        # Set FEDPUNK_ROOT if not set
+        if not set -q FEDPUNK_ROOT
+            if test -L ~/.local/share/fedpunk
+                set -gx FEDPUNK_ROOT (readlink -f ~/.local/share/fedpunk)
+            else if test -d ~/.local/share/fedpunk
+                set -gx FEDPUNK_ROOT ~/.local/share/fedpunk
+            else
+                echo "Error: FEDPUNK_ROOT not found" >&2
+                exit 1
+            end
+        end
+
+        # Source module library
+        source "$FEDPUNK_ROOT/lib/fish/fedpunk-module.fish"
+
+        switch $module_cmd
+            case list
+                fedpunk-module list
+            case info
+                if test (count $module_args) -eq 0
+                    echo "Error: module name required"
+                    echo "Usage: fedpunk module info <name>"
+                    exit 1
+                end
+                fedpunk-module info $module_args
+            case deploy
+                if test (count $module_args) -eq 0
+                    echo "Error: module name required"
+                    echo "Usage: fedpunk module deploy <name>"
+                    exit 1
+                end
+                fedpunk-module deploy $module_args
+            case remove unstow
+                if test (count $module_args) -eq 0
+                    echo "Error: module name required"
+                    echo "Usage: fedpunk module remove <name>"
+                    exit 1
+                end
+                fedpunk-module unstow $module_args
+            case status
+                # Show deployed modules from linker state
+                if test -f "$FEDPUNK_ROOT/.linker-state.json"
+                    source "$FEDPUNK_ROOT/lib/fish/linker.fish"
+                    linker-status
+                else
+                    echo "No deployment state found (using stow)"
+                    echo "Module status tracking requires the new linker"
+                end
+            case '*'
+                echo "Unknown module subcommand: $module_cmd"
+                echo "Run 'fedpunk module' for help"
                 exit 1
         end
 

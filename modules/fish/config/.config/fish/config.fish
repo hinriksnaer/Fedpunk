@@ -1,5 +1,6 @@
 # Environment variables
 fish_add_path -g $HOME/.local/bin
+fish_add_path -g $HOME/go/bin
 # Note: Rust/Cargo PATH is managed in conf.d/installer-managed.fish
 # Note: Claude Code auth is managed in active profile's claude-vertex.fish (if enabled)
 
