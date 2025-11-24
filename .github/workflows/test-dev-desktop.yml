@@ -20,7 +20,9 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          path: /root/.local/share/fedpunk
 
-      - name: Run boot.sh installer
+      - name: Run fedpunk installer
         run: |
-          bash boot.sh
+          fish /root/.local/share/fedpunk/install.fish
