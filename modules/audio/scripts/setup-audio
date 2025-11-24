@@ -33,18 +33,6 @@ else
     ui-info "PipeWire will be enabled on next login"
 end
 
-# Ensure Bluetooth is enabled if hardware is present
-if command -v bluetoothctl >/dev/null 2>&1
-    ui-spin --title "Enabling Bluetooth service..." -- fish -c '
-        sudo systemctl enable --now bluetooth.service >/dev/null 2>&1
-    '
-
-    if test $status -eq 0
-        ui-success "Bluetooth service enabled"
-    else
-        ui-info "Bluetooth service already enabled or not available"
-    end
-end
-
 ui-success "PipeWire audio setup complete"
 ui-info "Audio will start automatically on login"
+ui-info "Bluetooth audio support provided via bluetooth module"

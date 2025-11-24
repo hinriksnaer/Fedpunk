@@ -1,7 +1,8 @@
 module:
   name: audio
-  description: PipeWire audio stack with codecs and Bluetooth support
-  dependencies: []
+  description: PipeWire audio stack with codecs and Bluetooth audio support
+  dependencies:
+    - bluetooth
 
 lifecycle:
   before: []
@@ -33,9 +34,7 @@ packages:
     - wpctl
     - alsa-utils
     - pulseaudio-utils
-    # Bluetooth audio
-    - bluez
-    - bluez-tools
+    # Bluetooth audio plugin (core Bluetooth via bluetooth module)
     - pipewire-plugin-libcamera
   cargo: []
   npm: []
