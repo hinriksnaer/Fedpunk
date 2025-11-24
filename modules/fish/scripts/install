@@ -4,12 +4,12 @@
 
 echo "[fish/install] Script started" >&2
 echo "[fish/install] Current SHELL env: $SHELL" >&2
-echo "[fish/install] Fish path: "(which fish) >&2
+echo "[fish/install] Fish path: "(type -p fish) >&2
 echo "[fish/install] Current USER: $USER" >&2
 
 # Get the actual default shell from /etc/passwd (not the env var which might be empty)
 set -l current_shell (getent passwd $USER | cut -d: -f7)
-set -l fish_path (which fish)
+set -l fish_path (type -p fish)
 
 echo "[fish/install] Configured shell in /etc/passwd: $current_shell" >&2
 echo "[fish/install] Fish location: $fish_path" >&2
