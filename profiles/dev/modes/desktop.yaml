@@ -16,7 +16,7 @@ modules:
   - gh
   - bitwarden
   - claude
-  # - plugins/dev-extras  # Disabled for VM testing (npm/flatpak issues)
+  - plugins/dev-extras
   - fonts
   - kitty
   - rofi
@@ -27,4 +27,4 @@ modules:
   - nvidia
   - bluetui
   - extra-apps
-  # - plugins/fancontrol  # Disabled for testing - plugins are broken
+  - plugins/fancontrol
