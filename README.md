@@ -27,9 +27,11 @@
 
 ## 🎬 See It In Action
 
-https://github.com/hinriksnaer/Fedpunk/raw/main/demo.mp4
+[![Fedpunk Demo](https://vumbnail.com/1140211449.jpg)](https://vimeo.com/1140211449)
 
 *Watch Fedpunk in action: Live theme switching, keyboard-driven workflow, and seamless module deployment*
+
+[**▶️ Watch Demo Video**](https://vimeo.com/1140211449)
 
 </div>
 
