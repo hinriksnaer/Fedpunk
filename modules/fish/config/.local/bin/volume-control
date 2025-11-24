@@ -4,21 +4,24 @@
 
 set action $argv[1]
 
+# Use the default audio sink (this is what pipewire volume controls should affect)
+set active_sink "@DEFAULT_AUDIO_SINK@"
+
 # Apply volume change
 switch $action
     case up
-        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+        wpctl set-volume $active_sink 5%+
     case down
-        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+        wpctl set-volume $active_sink 5%-
     case mute
-        wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+        wpctl set-mute $active_sink toggle
     case '*'
         echo "Usage: volume-control [up|down|mute]"
         exit 1
 end
 
 # Get current volume and mute status
-set volume_info (wpctl get-volume @DEFAULT_AUDIO_SINK@)
+set volume_info (wpctl get-volume $active_sink)
 set volume_value (echo $volume_info | awk '{print $2}')
 set volume_percent (math "round($volume_value * 100)")
 set is_muted (echo $volume_info | grep -q "MUTED" && echo "yes" || echo "no")

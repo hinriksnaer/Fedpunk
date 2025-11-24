@@ -1,0 +1,58 @@
+#!/usr/bin/env fish
+# Set Yazi flavor based on Fedpunk theme
+# Usage: set-yazi-theme <theme-name>
+
+if test (count $argv) -lt 1
+    echo "Usage: set-yazi-theme <theme-name>"
+    exit 1
+end
+
+set theme_name $argv[1]
+
+# Find the theme map file
+if test -f "$HOME/.config/yazi/theme-map.conf"
+    set theme_map "$HOME/.config/yazi/theme-map.conf"
+else if test -f "$HOME/.local/share/fedpunk/modules/yazi/config/.config/yazi/theme-map.conf"
+    set theme_map "$HOME/.local/share/fedpunk/modules/yazi/config/.config/yazi/theme-map.conf"
+else
+    echo "Error: theme-map.conf not found"
+    exit 1
+end
+
+# Look up the yazi flavor for this theme
+set yazi_flavor ""
+for line in (cat $theme_map | grep -v '^#' | grep -v '^$')
+    set parts (string split "=" $line)
+    if test "$parts[1]" = "$theme_name"
+        set yazi_flavor $parts[2]
+        break
+    end
+end
+
+if test -z "$yazi_flavor"
+    echo "Warning: No yazi flavor mapping found for theme '$theme_name', using catppuccin-mocha as fallback"
+    set yazi_flavor "catppuccin-mocha"
+end
+
+# Update theme.toml with the flavor configuration
+set theme_file "$HOME/.config/yazi/theme.toml"
+
+# Create or update the flavor section in theme.toml
+# We'll create a minimal theme.toml that just sets the flavor
+printf '%s\n' \
+    '# Yazi Theme for Fedpunk' \
+    '# Managed by fedpunk-theme-set - Do not edit manually' \
+    '# This file automatically switches flavors based on the active Fedpunk theme' \
+    '' \
+    '[flavor]' \
+    "use = \"$yazi_flavor\"" \
+    > $theme_file
+
+if test $status -eq 0
+    # Success - return flavor name for logging
+    echo "$yazi_flavor"
+    exit 0
+else
+    echo "Error: Failed to update $theme_file"
+    exit 1
+end

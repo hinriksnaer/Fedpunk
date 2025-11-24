@@ -1,0 +1,48 @@
+#!/usr/bin/env fish
+# Install Yazi flavors and plugins for Fedpunk
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Installing Yazi flavors for Fedpunk themes"
+
+# Install flavors using ya pack
+set flavors \
+    "yazi-rs/flavors:catppuccin-mocha" \
+    "yazi-rs/flavors:catppuccin-latte" \
+    "BennyOe/tokyo-night" \
+    "Mintass/rose-pine" \
+    "Mintass/rose-pine-moon" \
+    "AdithyanA2005/nord" \
+    "kmlupreti/ayu-dark"
+
+for flavor in $flavors
+    ui-info "Installing $flavor"
+    ya pack -a $flavor >/dev/null 2>&1
+    if test $status -eq 0
+        ui-success "Installed $flavor"
+    else
+        ui-warning "Failed to install $flavor (may already be installed)"
+    end
+end
+
+ui-success "Yazi flavors installation complete"
+
+ui-info "Installing useful Yazi plugins"
+
+# Install minimal, useful plugins
+set plugins \
+    "yazi-rs/plugins:smart-enter" \
+    "yazi-rs/plugins:smart-filter" \
+    "yazi-rs/plugins:chmod"
+
+for plugin in $plugins
+    ui-info "Installing $plugin"
+    ya pack -a $plugin >/dev/null 2>&1
+    if test $status -eq 0
+        ui-success "Installed $plugin"
+    else
+        ui-warning "Failed to install $plugin (may already be installed)"
+    end
+end
+
+ui-success "Yazi plugins installation complete"
