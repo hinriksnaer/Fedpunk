@@ -246,13 +246,13 @@ function fedpunk-module-install-packages
         # Ensure Flathub repository is added
         if not flatpak remotes | grep -q flathub
             echo "  Adding Flathub repository..."
-            flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+            sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
         end
 
         # Install flatpak packages
         for pkg in $flatpak_packages
             echo "  Installing flatpak: $pkg"
-            flatpak install -y flathub $pkg
+            sudo flatpak install -y flathub $pkg
         end
     end
 
