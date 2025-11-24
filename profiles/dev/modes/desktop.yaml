@@ -16,7 +16,7 @@ modules:
   - gh
   - bitwarden
   - claude
-  - plugins/dev-extras
+  # - plugins/dev-extras  # Disabled for VM testing (npm/flatpak issues)
   - fonts
   - kitty
   - rofi
