@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Install fresh Fedora system dependencies
         run: |
-          dnf install -y git fish sudo stow gum yq
+          dnf install -y git fish sudo stow gum yq jq
 
       - name: Checkout repository
         uses: actions/checkout@v4
