@@ -20,9 +20,10 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          path: /root/.local/share/fedpunk
 
-      - name: Run fedpunk installer
+      - name: Move to installation directory and run installer
         run: |
-          fish /root/.local/share/fedpunk/install.fish
+          mkdir -p /root/.local/share
+          cp -r $PWD /root/.local/share/fedpunk
+          cd /root/.local/share/fedpunk
+          fish install.fish
