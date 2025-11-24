@@ -22,7 +22,7 @@ sudo usermod -aG libvirt $USER
 
 ```bash
 cd tools/vm
-./create-test-vm.sh
+./create-test-vm.fish
 ```
 
 This creates a VM with:
@@ -36,7 +36,7 @@ This creates a VM with:
 
 **Customize settings:**
 ```bash
-VM_MEMORY=16384 VM_CPUS=6 VM_DISK_SIZE=50 ./create-test-vm.sh my-demo-vm
+VM_MEMORY=16384 VM_CPUS=6 VM_DISK_SIZE=50 ./create-test-vm.fish my-demo-vm
 ```
 
 ### 2. Install Fedora
@@ -63,14 +63,14 @@ After Fedora installation completes:
 
 ```bash
 # Eject installation media
-./manage-vm.sh eject-iso fedpunk-test
+./manage-vm.fish eject-iso fedpunk-test
 
 # Reboot to fresh install
-./manage-vm.sh kill fedpunk-test
-./manage-vm.sh start fedpunk-test
+./manage-vm.fish kill fedpunk-test
+./manage-vm.fish start fedpunk-test
 
 # Create snapshot of clean install
-./manage-vm.sh snapshot fedpunk-test fresh-install
+./manage-vm.fish snapshot fedpunk-test fresh-install
 ```
 
 ### 4. Test Fedpunk Installation
@@ -91,7 +91,7 @@ git clone <your-fedpunk-repo>
 cd fedpunk
 
 # Run installer
-./install.sh
+./install.fish
 ```
 
 ### 5. Revert and Test Again
@@ -99,7 +99,7 @@ cd fedpunk
 If something breaks or you want to test from scratch:
 
 ```bash
-./manage-vm.sh revert fedpunk-test fresh-install
+./manage-vm.fish revert fedpunk-test fresh-install
 ```
 
 This instantly restores the VM to the clean Fedora state!
@@ -110,32 +110,32 @@ This instantly restores the VM to the clean Fedora state!
 
 ```bash
 # Start VM
-./manage-vm.sh start fedpunk-test
+./manage-vm.fish start fedpunk-test
 
 # Stop VM (graceful shutdown)
-./manage-vm.sh stop fedpunk-test
+./manage-vm.fish stop fedpunk-test
 
 # Force stop
-./manage-vm.sh kill fedpunk-test
+./manage-vm.fish kill fedpunk-test
 
 # Connect to console
-./manage-vm.sh console fedpunk-test
+./manage-vm.fish console fedpunk-test
 
 # Check status
-./manage-vm.sh status fedpunk-test
+./manage-vm.fish status fedpunk-test
 ```
 
 ### Snapshot Management
 
 ```bash
 # Create snapshot
-./manage-vm.sh snapshot fedpunk-test <snapshot-name>
+./manage-vm.fish snapshot fedpunk-test <snapshot-name>
 
 # List snapshots
-./manage-vm.sh list-snapshots fedpunk-test
+./manage-vm.fish list-snapshots fedpunk-test
 
 # Revert to snapshot
-./manage-vm.sh revert fedpunk-test <snapshot-name>
+./manage-vm.fish revert fedpunk-test <snapshot-name>
 ```
 
 ### Common Snapshots
@@ -149,23 +149,23 @@ Recommended snapshot workflow:
 Example:
 ```bash
 # Baseline
-./manage-vm.sh snapshot fedpunk-test fresh-install
+./manage-vm.fish snapshot fedpunk-test fresh-install
 
 # After fedpunk installs
-./manage-vm.sh snapshot fedpunk-test fedpunk-installed
+./manage-vm.fish snapshot fedpunk-test fedpunk-installed
 
 # Test profile
-./manage-vm.sh snapshot fedpunk-test before-profile-test
+./manage-vm.fish snapshot fedpunk-test before-profile-test
 
 # Revert if something breaks
-./manage-vm.sh revert fedpunk-test fedpunk-installed
+./manage-vm.fish revert fedpunk-test fedpunk-installed
 ```
 
 ### Cleanup
 
 ```bash
 # Delete VM and all data
-./manage-vm.sh destroy fedpunk-test
+./manage-vm.fish destroy fedpunk-test
 ```
 
 ## Testing Workflow
@@ -193,16 +193,16 @@ Example:
 
 The Fedora installation wasn't completed. Re-attach ISO:
 ```bash
-./manage-vm.sh kill fedpunk-test
+./manage-vm.fish kill fedpunk-test
 virsh change-media fedpunk-test sda --insert ~/VMs/iso/Fedora-*.iso --config
-./manage-vm.sh start fedpunk-test
+./manage-vm.fish start fedpunk-test
 ```
 
 ### VM boots into installer after installation
 
 Installation media wasn't ejected:
 ```bash
-./manage-vm.sh eject-iso fedpunk-test
+./manage-vm.fish eject-iso fedpunk-test
 ```
 
 ### KVM not available
@@ -238,7 +238,7 @@ FEDORA_VERSION=43       # Fedora version (default: 43)
 
 Example:
 ```bash
-VM_MEMORY=8192 VM_CPUS=4 ./create-test-vm.sh powerful-test
+VM_MEMORY=8192 VM_CPUS=4 ./create-test-vm.fish powerful-test
 ```
 
 ## Performance Tips
@@ -265,12 +265,12 @@ This gives you:
 ### Optimizing for Your Hardware
 If you have plenty of resources:
 ```bash
-VM_MEMORY=16384 VM_CPUS=8 ./create-test-vm.sh demo-vm
+VM_MEMORY=16384 VM_CPUS=8 ./create-test-vm.fish demo-vm
 ```
 
 If resources are limited:
 ```bash
-VM_MEMORY=4096 VM_CPUS=2 ./create-test-vm.sh minimal-vm
+VM_MEMORY=4096 VM_CPUS=2 ./create-test-vm.fish minimal-vm
 ```
 
 ## General Tips
