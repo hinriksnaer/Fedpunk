@@ -27,7 +27,7 @@
 
 ## 🎬 See It In Action
 
-https://github.com/user-attachments/assets/demo.mp4
+https://github.com/hinriksnaer/Fedpunk/raw/main/demo.mp4
 
 *Watch Fedpunk in action: Live theme switching, keyboard-driven workflow, and seamless module deployment*
 
