@@ -20,21 +20,26 @@ show_help() {
     echo "Usage: $0 <command> [vm-name] [args...]"
     echo ""
     echo "Commands:"
-    echo "  start <vm>              Start the VM"
-    echo "  stop <vm>               Stop the VM (graceful)"
-    echo "  kill <vm>               Force stop the VM"
-    echo "  console <vm>            Connect to VM console"
-    echo "  snapshot <vm> <name>    Create a snapshot"
-    echo "  list-snapshots <vm>     List all snapshots"
-    echo "  revert <vm> <snapshot>  Revert to a snapshot"
-    echo "  destroy <vm>            Delete VM and all data"
-    echo "  eject-iso <vm>          Eject installation media"
-    echo "  status [vm]             Show VM status"
+    echo "  start <vm>                  Start the VM"
+    echo "  stop <vm>                   Stop the VM (graceful)"
+    echo "  kill <vm>                   Force stop the VM"
+    echo "  open <vm>                   Open GUI viewer (virt-viewer)"
+    echo "  console <vm>                Connect to serial console"
+    echo "  snapshot-save <vm> <name>   Save a snapshot"
+    echo "  snapshot-load <vm> <name>   Load/restore a snapshot"
+    echo "  snapshot-list <vm>          List all snapshots"
+    echo "  destroy <vm>                Delete VM and all data"
+    echo "  eject-iso <vm>              Eject installation media"
+    echo "  status [vm]                 Show VM status"
+    echo ""
+    echo "Legacy aliases (still supported):"
+    echo "  snapshot, revert, list-snapshots"
     echo ""
     echo "Examples:"
     echo "  $0 start fedpunk-test"
-    echo "  $0 snapshot fedpunk-test fresh-install"
-    echo "  $0 revert fedpunk-test fresh-install"
+    echo "  $0 open fedpunk-test"
+    echo "  $0 snapshot-save fedpunk-test fresh-install"
+    echo "  $0 snapshot-load fedpunk-test fresh-install"
     echo ""
 }
 
@@ -68,6 +73,18 @@ case "$COMMAND" in
         echo -e "${GREEN}✓${NC} VM stopped"
         ;;
 
+    open|gui)
+        check_vm_exists
+        echo -e "${YELLOW}→${NC} Opening GUI viewer for: $VM_NAME"
+        if ! command -v virt-viewer &> /dev/null; then
+            echo -e "${RED}Error: virt-viewer not installed${NC}"
+            echo "Install with: sudo dnf install virt-viewer"
+            exit 1
+        fi
+        virt-viewer "$VM_NAME" &
+        echo -e "${GREEN}✓${NC} GUI viewer launched"
+        ;;
+
     console)
         check_vm_exists
         echo "Connecting to $VM_NAME console..."
@@ -76,7 +93,7 @@ case "$COMMAND" in
         virsh console "$VM_NAME"
         ;;
 
-    snapshot)
+    snapshot-save|snapshot)
         SNAPSHOT_NAME="${3:-}"
         if [ -z "$SNAPSHOT_NAME" ]; then
             echo -e "${RED}Error: Snapshot name required${NC}"
@@ -90,13 +107,13 @@ case "$COMMAND" in
         echo -e "${GREEN}✓${NC} Snapshot created"
         ;;
 
-    list-snapshots)
+    snapshot-list|list-snapshots)
         check_vm_exists
         echo "Snapshots for $VM_NAME:"
         virsh snapshot-list "$VM_NAME"
         ;;
 
-    revert)
+    snapshot-load|revert)
         SNAPSHOT_NAME="${3:-}"
         if [ -z "$SNAPSHOT_NAME" ]; then
             echo -e "${RED}Error: Snapshot name required${NC}"
