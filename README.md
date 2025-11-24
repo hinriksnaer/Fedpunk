@@ -27,7 +27,7 @@
 
 ## 🎬 See It In Action
 
-[![Watch the demo](https://i.vimeocdn.com/video/1960467227-8c8b5d5e2e8e3a5b5e8e3a5b5e8e3a5b5e8e3a5b_640.jpg)](https://vimeo.com/1140211449)
+[![Watch the demo](https://i.vimeocdn.com/video/2087154164-42913e946a9b98dc351ec6bb62ab47f5e651606ce934b35e2038324747d7cbfd-d_640)](https://vimeo.com/1140211449)
 
 *Click to watch: Live theme switching, keyboard-driven workflow, and seamless module deployment*
 
