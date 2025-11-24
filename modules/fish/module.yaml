@@ -6,9 +6,9 @@ module:
   priority: 5
 
 lifecycle:
-  before:
-    - install
+  before: []
   after:
+    - install
     - setup-fisher
 
 packages:
