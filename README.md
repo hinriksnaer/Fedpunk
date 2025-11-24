@@ -23,6 +23,14 @@
 
 [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Features](#-why-fedpunk) • [Themes](#-themes) • [Documentation](#-documentation)
 
+---
+
+## 🎬 See It In Action
+
+https://github.com/user-attachments/assets/demo.mp4
+
+*Watch Fedpunk in action: Live theme switching, keyboard-driven workflow, and seamless module deployment*
+
 </div>
 
 ---
