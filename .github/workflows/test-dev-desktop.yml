@@ -27,3 +27,20 @@ jobs:
           cp -r $PWD /root/.local/share/fedpunk
           cd /root/.local/share/fedpunk
           fish install.fish --profile dev --mode desktop --non-interactive
+
+      - name: Verify fish is set as default shell
+        run: |
+          CURRENT_SHELL=$(getent passwd root | cut -d: -f7)
+          FISH_PATH=$(which fish)
+
+          echo "Current default shell: $CURRENT_SHELL"
+          echo "Fish path: $FISH_PATH"
+
+          if [ "$CURRENT_SHELL" != "$FISH_PATH" ]; then
+            echo "❌ FAIL: Fish is not the default shell!"
+            echo "Expected: $FISH_PATH"
+            echo "Got: $CURRENT_SHELL"
+            exit 1
+          fi
+
+          echo "✅ PASS: Fish is correctly set as default shell"
