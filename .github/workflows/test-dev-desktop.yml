@@ -16,8 +16,11 @@ jobs:
     steps:
       - name: Install fresh Fedora system dependencies
         run: |
-          dnf install -y git wget fish sudo
+          dnf install -y git fish sudo
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Run boot.sh installer
         run: |
-          wget -O- https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
+          bash boot.sh
