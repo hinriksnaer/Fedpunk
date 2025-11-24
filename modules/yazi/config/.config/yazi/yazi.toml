@@ -3,7 +3,8 @@
 
 [mgr]
 # Ratio of the three panes (parent, current, preview)
-ratio = [1, 4, 3]
+# Minimalist: less parent, more current directory focus
+ratio = [1, 5, 4]
 # Sort files and directories
 sort_by = "alphabetical"
 sort_sensitive = false
@@ -15,22 +16,22 @@ show_hidden = true
 show_symlink = true
 # Scroll offset
 scrolloff = 5
+# Minimal linemode - cleaner file list without extra info
+linemode = "size"
 
 [preview]
-# Preview image/video
+# Preview settings - keep useful but minimal
 tab_size = 2
 max_width = 600
 max_height = 900
-# Image/video quality (High, Medium, Low)
 cache_dir = ""
+# Reduce preview wrapping for cleaner look
+wrap = "no"
 
 # Image preview adapter
-# "kitty" works in Kitty terminal (both standalone and inside Neovim)
-# "iterm2" works in iTerm2
-# "sixel" works in terminals with sixel support
 image_adapter = "auto"  # Auto-detect best protocol
 
-# Fallback settings for ueberzug (if auto-detection doesn't work)
+# Fallback settings for ueberzug
 ueberzug_scale = 1
 ueberzug_offset = [0, 0, 0, 0]
 

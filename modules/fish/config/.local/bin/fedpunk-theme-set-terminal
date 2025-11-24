@@ -59,6 +59,19 @@ else
     set skipped_count (math $skipped_count + 1)
 end
 
+# Apply yazi theme (use flavor system)
+if command -v yazi >/dev/null 2>&1
+    set yazi_theme_script "$HOME/.local/share/fedpunk/modules/yazi/scripts/set-yazi-theme"
+    if test -x "$yazi_theme_script"
+        set yazi_result ($yazi_theme_script $theme_name 2>/dev/null)
+        if test $status -eq 0
+            set applied_count (math $applied_count + 1)
+        else
+            set skipped_count (math $skipped_count + 1)
+        end
+    end
+end
+
 # Reload btop if running
 if pgrep -x btop >/dev/null 2>&1
     pkill -SIGUSR2 btop 2>/dev/null

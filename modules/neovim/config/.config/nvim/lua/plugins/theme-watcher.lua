@@ -63,6 +63,18 @@ return {
                           end
                         end
                       end
+
+                      -- Close yazi buffers so they can be manually reopened with new theme
+                      -- Yazi doesn't support dynamic theme reloading
+                      for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+                        if vim.api.nvim_buf_is_valid(bufnr) then
+                          local bufname = vim.api.nvim_buf_get_name(bufnr)
+                          if bufname:match('yazi') then
+                            vim.api.nvim_buf_delete(bufnr, { force = true })
+                          end
+                        end
+                      end
+
                       -- Update our tracked stats after successful reload
                       local stat = vim.loop.fs_stat(theme_file)
                       if stat then
