@@ -167,7 +167,9 @@ else if test -e "$active_config_link"
     exit 1
 end
 
-ln -s "$profile_path" "$active_config_link"
+# Create relative symlink (user-agnostic)
+cd "$FEDPUNK_PATH"
+ln -s "profiles/$profile_name" ".active-config"
 success "Created .active-config → profiles/$profile_name"
 echo ""
 
