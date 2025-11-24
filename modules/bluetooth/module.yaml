@@ -1,0 +1,27 @@
+module:
+  name: bluetooth
+  description: Bluetooth support for keyboards, mice, headsets, and other devices
+  dependencies: []
+  priority: 10
+
+lifecycle:
+  before: []
+  after:
+    - setup-bluetooth
+
+packages:
+  dnf:
+    # Core Bluetooth stack
+    - bluez
+    - bluez-tools
+    # GUI manager for pairing and device management
+    - blueman
+    # D-Bus development headers (needed by bluetooth tools)
+    - dbus-devel
+  cargo: []
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn

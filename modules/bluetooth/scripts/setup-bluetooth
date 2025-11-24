@@ -1,0 +1,66 @@
+#!/usr/bin/env fish
+# Setup Bluetooth system for keyboards, mice, headsets, and other devices
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Setting up Bluetooth support"
+
+# Configure Bluetooth input devices for better keyboard/mouse support
+ui-spin --title "Configuring Bluetooth HID support..." -- fish -c '
+    # Enable UserspaceHID for better input device handling
+    # This improves keyboard/mouse persistence across reconnects
+    if test -f /etc/bluetooth/input.conf
+        sudo sed -i "s/^#*UserspaceHID.*/UserspaceHID=true/" /etc/bluetooth/input.conf >/dev/null 2>&1
+    end
+'
+
+if test $status -eq 0
+    ui-success "Bluetooth HID configuration updated"
+else
+    ui-warning "Could not update Bluetooth HID configuration"
+end
+
+# Load uhid kernel module (required for UserspaceHID)
+ui-spin --title "Loading uhid kernel module..." -- fish -c '
+    sudo modprobe uhid >/dev/null 2>&1
+    # Ensure it loads on boot
+    if not test -f /etc/modules-load.d/uhid.conf
+        echo "uhid" | sudo tee /etc/modules-load.d/uhid.conf >/dev/null 2>&1
+    end
+'
+
+if test $status -eq 0
+    ui-success "uhid kernel module loaded"
+else
+    ui-warning "Could not load uhid kernel module"
+end
+
+# Ensure Bluetooth service is enabled and running
+if command -v bluetoothctl >/dev/null 2>&1
+    ui-spin --title "Enabling Bluetooth service..." -- fish -c '
+        sudo systemctl enable --now bluetooth.service >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "Bluetooth service enabled and started"
+    else
+        ui-info "Bluetooth service already enabled"
+    end
+
+    # Check if Bluetooth hardware is available
+    set -l bt_status (bluetoothctl show 2>/dev/null | grep -i "powered" | awk '{print $2}')
+    if test "$bt_status" = "yes"
+        ui-success "Bluetooth hardware detected and powered on"
+    else if test -n "$bt_status"
+        ui-warning "Bluetooth hardware detected but powered off - enable with 'bluetoothctl power on'"
+    else
+        ui-info "No Bluetooth hardware detected"
+    end
+else
+    ui-warning "bluetoothctl command not found"
+end
+
+ui-success "Bluetooth setup complete"
+ui-info "Pairing tools: 'blueman-manager' (GUI) or 'bluetoothctl' (CLI)"
+ui-info "Keyboard discovery: Put device in pairing mode, then scan in blueman"
+ui-info "Troubleshooting: Restart bluetooth with 'sudo systemctl restart bluetooth'"
