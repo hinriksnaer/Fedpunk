@@ -45,6 +45,8 @@ function show_help
     echo "  vault unlock           Unlock Bitwarden vault"
     echo "  vault ssh-backup       Backup SSH keys to vault"
     echo "  vault ssh-restore      Restore SSH keys from vault"
+    echo "  vault claude-backup    Backup Claude Code token (no re-login needed!)"
+    echo "  vault claude-restore   Restore Claude Code token on fresh install"
     echo ""
     echo "Configuration Management:"
     echo "  apply                  Apply current configuration (no git pull)"
@@ -481,8 +483,8 @@ switch $command
             echo "  ssh-load           Load SSH keys into agent"
             echo "  ssh-backup [name]  Backup ~/.ssh directory to vault"
             echo "  ssh-restore [name] Restore ~/.ssh directory from vault"
-            echo "  claude-backup [name]  Backup Claude Code config to vault"
-            echo "  claude-restore [name] Restore Claude Code config from vault"
+            echo "  claude-backup [name]  Generate & backup Claude Code long-lived token"
+            echo "  claude-restore [name] Restore Claude Code token (no login needed!)"
             echo "  env <name>         Load environment variables from item"
             echo ""
             echo "Examples:"
@@ -492,8 +494,8 @@ switch $command
             echo "  fedpunk vault ssh-backup work-laptop        # Named backup"
             echo "  fedpunk vault ssh-restore                   # Restore default"
             echo "  fedpunk vault ssh-restore work-laptop       # Restore named"
-            echo "  fedpunk vault claude-backup                 # Default backup"
-            echo "  fedpunk vault claude-restore                # Restore default"
+            echo "  fedpunk vault claude-backup                 # Generate long-lived token"
+            echo "  fedpunk vault claude-restore                # Restore on fresh install"
             exit 1
         end
 
@@ -761,15 +763,12 @@ $encoded_backup
                 end
 
             case claude-backup
-                # Backup Claude Code credentials to Bitwarden
-                echo "🔒 Backing up Claude Code credentials to Bitwarden..."
+                # Backup Claude Code long-lived token to Bitwarden
+                echo "🔒 Backing up Claude Code token to Bitwarden..."
                 echo ""
-
-                # Check if credentials file exists
-                if not test -f "$HOME/.claude/.credentials.json"
-                    echo "✗ No ~/.claude/.credentials.json file found"
-                    exit 1
-                end
+                echo "This will generate a long-lived token using 'claude setup-token'"
+                echo "that can be restored on fresh installs without re-authenticating."
+                echo ""
 
                 # Check if vault is unlocked
                 set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
@@ -779,20 +778,39 @@ $encoded_backup
                     exit 1
                 end
 
+                # Check if Claude Code is installed
+                if not command -v claude >/dev/null 2>&1
+                    echo "✗ Claude Code not installed"
+                    echo "  Install first: npm install -g @anthropic-ai/claude-code"
+                    exit 1
+                end
+
                 # Get backup name (optional)
                 if test (count $vault_args) -gt 0
                     set backup_name $vault_args[1]
-                    set item_name "Claude Code Credentials - $backup_name"
+                    set item_name "Claude Code Token - $backup_name"
                 else
-                    set item_name "Claude Code Credentials"
+                    set item_name "Claude Code Token"
                 end
 
                 echo "Backup name: $item_name"
                 echo ""
 
-                # Read credentials file
-                echo "→ Reading credentials..."
-                set credentials_content (cat "$HOME/.claude/.credentials.json")
+                # Run claude setup-token and capture the output
+                echo "→ Generating long-lived token..."
+                echo "  (This will open a browser window for authentication)"
+                echo ""
+
+                set token_output (claude setup-token 2>&1)
+
+                # Extract the token from output (look for sk-ant- prefix)
+                set claude_token (echo "$token_output" | grep -o 'sk-ant-[a-zA-Z0-9_-]*' | head -1)
+
+                if test -z "$claude_token"
+                    echo "✗ Failed to generate token"
+                    echo "  Output: $token_output"
+                    exit 1
+                end
 
                 # Setup metadata
                 set backup_hostname (hostname)
@@ -801,37 +819,29 @@ $encoded_backup
                 # Check if item exists
                 set existing_item (bw get item "$item_name" 2>/dev/null)
 
-                # Prepare note content
-                set note_content "Claude Code Credentials Backup
-Hostname: $backup_hostname
-Timestamp: $timestamp
-
---- BEGIN CREDENTIALS ---
-$credentials_content
---- END CREDENTIALS ---"
-
                 if test -n "$existing_item"
                     # Update existing item
                     echo "→ Updating existing backup..."
                     set item_id (echo "$existing_item" | jq -r '.id')
 
-                    # Update item
-                    echo "$existing_item" | jq --arg notes "$note_content" '.notes = $notes' | bw encode | bw edit item "$item_id" >/dev/null 2>&1
+                    # Update password field with token
+                    echo "$existing_item" | jq --arg token "$claude_token" --arg notes "Claude Code Long-Lived Token\nHostname: $backup_hostname\nTimestamp: $timestamp\n\nSet as environment variable:\nexport CLAUDE_CODE_OAUTH_TOKEN='$token'" '.login.password = $token | .notes = $notes' | bw encode | bw edit item "$item_id" >/dev/null 2>&1
                     set bw_status $status
                 else
                     # Create new item
                     echo "→ Creating new backup item..."
 
-                    # Create secure note using jq for proper JSON encoding
-                    jq -n --arg name "$item_name" --arg notes "$note_content" '{
+                    # Create login item with token as password
+                    jq -n --arg name "$item_name" --arg token "$claude_token" --arg notes "Claude Code Long-Lived Token\nHostname: $backup_hostname\nTimestamp: $timestamp\n\nSet as environment variable:\nexport CLAUDE_CODE_OAUTH_TOKEN='\$token'" '{
   organizationId: null,
   folderId: null,
-  type: 2,
+  type: 1,
   name: $name,
   notes: $notes,
   favorite: false,
-  secureNote: {
-    type: 0
+  login: {
+    username: "claude-code",
+    password: $token
   }
 }' | bw encode | bw create item >/dev/null 2>&1
                     set bw_status $status
@@ -839,20 +849,22 @@ $credentials_content
 
                 if test $bw_status -eq 0
                     echo ""
-                    echo "✓ Claude Code credentials backed up successfully"
+                    echo "✓ Claude Code token backed up successfully"
                     echo "  Item: $item_name"
                     echo "  Hostname: $backup_hostname"
                     echo "  Timestamp: $timestamp"
                     echo ""
                     echo "💡 Run 'fedpunk vault sync' to sync with server"
+                    echo ""
+                    echo "Note: This is a long-lived token that won't expire like OAuth tokens."
                 else
                     echo "✗ Failed to create/update backup in Bitwarden"
                     exit 1
                 end
 
             case claude-restore
-                # Restore Claude Code credentials from Bitwarden
-                echo "🔓 Restoring Claude Code credentials from Bitwarden..."
+                # Restore Claude Code long-lived token from Bitwarden
+                echo "🔓 Restoring Claude Code token from Bitwarden..."
                 echo ""
 
                 # Check if vault is unlocked
@@ -873,13 +885,13 @@ $credentials_content
                 # Get backup name (optional)
                 if test (count $vault_args) -gt 0
                     set backup_name $vault_args[1]
-                    set item_name "Claude Code Credentials - $backup_name"
+                    set item_name "Claude Code Token - $backup_name"
                 else
-                    # No name specified - list available backups
-                    set available_backups (bw list items --search "Claude Code Credentials" 2>/dev/null | jq -r '.[] | select(.type == 2) | .name')
+                    # No name specified - list available backups (type 1 = login)
+                    set available_backups (bw list items --search "Claude Code Token" 2>/dev/null | jq -r '.[] | select(.type == 1) | .name')
 
                     if test -z "$available_backups"
-                        echo "✗ No Claude Code credential backups found in Bitwarden"
+                        echo "✗ No Claude Code token backups found in Bitwarden"
                         echo "  Run 'fedpunk vault claude-backup' to create a backup first"
                         exit 1
                     end
@@ -891,7 +903,7 @@ $credentials_content
                         echo "Found backup: $item_name"
                     else
                         # Multiple backups - let user choose
-                        echo "Available Claude Code credential backups:"
+                        echo "Available Claude Code token backups:"
                         echo ""
                         if command -v gum >/dev/null 2>&1
                             set item_name (echo "$available_backups" | gum choose --header "Select backup to restore:")
@@ -912,60 +924,40 @@ $credentials_content
                 echo "Restoring: $item_name"
                 echo ""
 
-                # Check if credentials file already exists
-                if test -f "$HOME/.claude/.credentials.json"
-                    echo "⚠️  Warning: ~/.claude/.credentials.json already exists"
-                    echo ""
-                    cat "$HOME/.claude/.credentials.json" | jq .
-                    echo ""
-                    read -P "Overwrite existing credentials? [y/N] " -n 1 confirm
-                    echo ""
+                # Get token from Bitwarden
+                set claude_token (bw get password "$item_name" 2>/dev/null)
 
-                    if test "$confirm" != "y" -a "$confirm" != "Y"
-                        echo "✗ Restore cancelled"
-                        exit 0
-                    end
-
-                    # Backup existing credentials before overwriting
-                    set backup_file "$HOME/.claude/.credentials.json.backup."(date +%Y%m%d-%H%M%S)
-                    echo "→ Backing up existing credentials to "(basename $backup_file)
-                    cp "$HOME/.claude/.credentials.json" "$backup_file"
-                end
-
-                # Get backup from Bitwarden
-                set item (bw get item "$item_name" 2>/dev/null)
-
-                if test -z "$item"
-                    echo "✗ Could not retrieve backup: $item_name"
+                if test -z "$claude_token"
+                    echo "✗ Could not retrieve token from: $item_name"
                     exit 1
                 end
 
-                # Extract credentials from item
-                set credentials_content (echo "$item" | jq -r '.notes' | sed -n '/--- BEGIN CREDENTIALS ---/,/--- END CREDENTIALS ---/p' | sed '1d;$d')
+                # Add to fish config
+                set fish_config "$HOME/.config/fish/conf.d/claude-token.fish"
+                echo "→ Setting up environment variable..."
 
-                if test -z "$credentials_content"
-                    echo "✗ Could not extract credentials from item"
-                    exit 1
-                end
+                # Create conf.d directory if it doesn't exist
+                mkdir -p "$HOME/.config/fish/conf.d"
 
-                # Ensure .claude directory exists
-                mkdir -p "$HOME/.claude"
+                # Write environment variable to fish config
+                echo "# Claude Code OAuth Token (restored from Bitwarden)" > "$fish_config"
+                echo "set -gx CLAUDE_CODE_OAUTH_TOKEN '$claude_token'" >> "$fish_config"
 
-                # Write credentials
-                echo "→ Restoring credentials..."
-                echo "$credentials_content" > "$HOME/.claude/.credentials.json"
-                chmod 600 "$HOME/.claude/.credentials.json"
+                # Also set for current session
+                set -gx CLAUDE_CODE_OAUTH_TOKEN "$claude_token"
 
-                if test $status -eq 0
-                    echo ""
-                    echo "✓ Claude Code credentials restored successfully"
-                    echo ""
-                    echo "Restored credentials:"
-                    cat "$HOME/.claude/.credentials.json" | jq .
-                else
-                    echo "✗ Failed to write credentials file"
-                    exit 1
-                end
+                echo ""
+                echo "✓ Claude Code token restored successfully"
+                echo ""
+                echo "Environment variable set:"
+                echo "  \$CLAUDE_CODE_OAUTH_TOKEN (long-lived token)"
+                echo ""
+                echo "Config file: $fish_config"
+                echo ""
+                echo "🎉 You can now use Claude Code without logging in!"
+                echo "   Just run: claude"
+                echo ""
+                echo "Note: Restart your shell or run 'source $fish_config' to use in other terminals"
 
             case env
                 if test (count $vault_args) -eq 0
