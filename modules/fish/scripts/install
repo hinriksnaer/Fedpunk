@@ -2,18 +2,28 @@
 # Fish shell post-install setup
 # Handles: Setting fish as default shell
 
+echo "[fish/install] Script started" >&2
+echo "[fish/install] Current SHELL: $SHELL" >&2
+echo "[fish/install] Fish path: "(which fish) >&2
+echo "[fish/install] Current USER: $USER" >&2
+
 # Set fish as default shell if not already
 if test "$SHELL" != (which fish)
-    echo "Setting fish as default shell..."
-    sudo chsh -s (which fish) $USER
+    echo "[fish/install] Setting fish as default shell..." >&2
+    set -l fish_path (which fish)
+    echo "[fish/install] Running: sudo chsh -s $fish_path $USER" >&2
+    sudo chsh -s $fish_path $USER
 
     if test $status -eq 0
-        echo "✓ Fish is now your default shell"
-        echo "  Please log out and back in for changes to take effect"
+        echo "[fish/install] ✓ Fish is now your default shell" >&2
+        echo "[fish/install]   Please log out and back in for changes to take effect" >&2
     else
-        echo "✗ Failed to set fish as default shell"
-        echo "  You may need to run: sudo chsh -s $(which fish) $USER"
+        echo "[fish/install] ✗ Failed to set fish as default shell (exit code: $status)" >&2
+        echo "[fish/install]   You may need to run: sudo chsh -s $fish_path $USER" >&2
+        exit 1
     end
 else
-    echo "✓ Fish is already your default shell"
+    echo "[fish/install] ✓ Fish is already your default shell" >&2
 end
+
+echo "[fish/install] Script completed successfully" >&2
