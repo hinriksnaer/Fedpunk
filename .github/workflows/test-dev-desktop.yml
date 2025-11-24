@@ -1,0 +1,29 @@
+name: Test Dev Desktop Installation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-installation:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+
+    steps:
+      - name: Install fresh Fedora system dependencies
+        run: |
+          dnf install -y git fish sudo stow gum yq
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Move to installation directory and run installer
+        run: |
+          mkdir -p /root/.local/share
+          cp -r $PWD /root/.local/share/fedpunk
+          cd /root/.local/share/fedpunk
+          fish install.fish --profile dev --mode desktop --non-interactive
