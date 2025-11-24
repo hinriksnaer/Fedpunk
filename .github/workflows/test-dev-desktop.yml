@@ -26,4 +26,4 @@ jobs:
           mkdir -p /root/.local/share
           cp -r $PWD /root/.local/share/fedpunk
           cd /root/.local/share/fedpunk
-          fish install.fish
+          fish install.fish --profile dev --mode desktop --non-interactive
