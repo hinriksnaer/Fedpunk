@@ -27,9 +27,11 @@
 
 ## 🎬 See It In Action
 
-<div style="padding:56.24% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/1140211449?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Fedpunk Demo"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
+[![Watch the demo](https://i.vimeocdn.com/video/1960467227-8c8b5d5e2e8e3a5b5e8e3a5b5e8e3a5b5e8e3a5b_640.jpg)](https://vimeo.com/1140211449)
 
-*Watch Fedpunk in action: Live theme switching, keyboard-driven workflow, and seamless module deployment*
+*Click to watch: Live theme switching, keyboard-driven workflow, and seamless module deployment*
+
+### [▶️ **Watch Full Demo on Vimeo**](https://vimeo.com/1140211449)
 
 </div>
 
