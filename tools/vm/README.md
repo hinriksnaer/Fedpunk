@@ -27,14 +27,16 @@ cd tools/vm
 
 This creates a VM with:
 - **Name:** fedpunk-test
-- **Memory:** 4GB
-- **CPUs:** 2
-- **Disk:** 20GB
+- **Memory:** 8GB (optimized for desktop performance)
+- **CPUs:** 4 cores (with host passthrough)
+- **Disk:** 40GB
 - **OS:** Fedora 43 Server
+- **Graphics:** SPICE with QXL (hardware acceleration)
+- **Performance:** Optimized for demos and desktop workloads
 
 **Customize settings:**
 ```bash
-VM_MEMORY=8192 VM_CPUS=4 VM_DISK_SIZE=30 ./create-test-vm.sh my-test-vm
+VM_MEMORY=16384 VM_CPUS=6 VM_DISK_SIZE=50 ./create-test-vm.sh my-demo-vm
 ```
 
 ### 2. Install Fedora
@@ -226,9 +228,9 @@ Customize VM creation:
 
 ```bash
 VM_NAME=my-vm           # VM name (default: fedpunk-test)
-VM_MEMORY=8192          # Memory in MB (default: 4096)
-VM_CPUS=4               # CPU cores (default: 2)
-VM_DISK_SIZE=30         # Disk size in GB (default: 20)
+VM_MEMORY=16384         # Memory in MB (default: 8192)
+VM_CPUS=6               # CPU cores (default: 4)
+VM_DISK_SIZE=50         # Disk size in GB (default: 40)
 VM_DIR=~/VMs            # VM storage directory
 ISO_DIR=~/VMs/iso       # ISO storage directory
 FEDORA_VERSION=43       # Fedora version (default: 43)
@@ -239,13 +241,46 @@ Example:
 VM_MEMORY=8192 VM_CPUS=4 ./create-test-vm.sh powerful-test
 ```
 
-## Tips
+## Performance Tips
+
+### For Demos and Desktop Testing
+The VM is now optimized for smooth desktop performance with:
+- **CPU host-passthrough** - VM sees your actual CPU features
+- **SPICE graphics** - Hardware-accelerated display with QXL
+- **Writeback cache** - Faster disk I/O
+- **8GB RAM / 4 CPU cores** - Smooth multitasking
+
+### Connecting with Remote Viewer
+For best performance, use `virt-viewer` instead of VNC:
+```bash
+virt-viewer fedpunk-test
+```
+
+This gives you:
+- Better graphics performance
+- Clipboard sharing
+- USB device redirection
+- Dynamic resolution
+
+### Optimizing for Your Hardware
+If you have plenty of resources:
+```bash
+VM_MEMORY=16384 VM_CPUS=8 ./create-test-vm.sh demo-vm
+```
+
+If resources are limited:
+```bash
+VM_MEMORY=4096 VM_CPUS=2 ./create-test-vm.sh minimal-vm
+```
+
+## General Tips
 
 - **Use snapshots liberally** - They're cheap and fast
 - **Name snapshots descriptively** - `before-hyprland-test` is better than `snapshot1`
 - **Test destructive operations** in VMs before running on real hardware
 - **Keep fresh-install snapshot** - Always have a clean baseline
 - **Script your tests** - Automate repetitive testing scenarios
+- **Use virt-viewer for demos** - Much better than serial console
 
 ## Next Steps
 

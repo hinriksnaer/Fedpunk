@@ -13,9 +13,9 @@ NC='\033[0m' # No Color
 
 # Default configuration
 VM_NAME="${1:-fedpunk-test}"
-VM_MEMORY="${VM_MEMORY:-4096}" # MB
-VM_CPUS="${VM_CPUS:-2}"
-VM_DISK_SIZE="${VM_DISK_SIZE:-20}" # GB
+VM_MEMORY="${VM_MEMORY:-8192}" # MB (8GB for smooth desktop performance)
+VM_CPUS="${VM_CPUS:-4}" # 4 cores for better responsiveness
+VM_DISK_SIZE="${VM_DISK_SIZE:-40}" # GB (more space for desktop apps)
 VM_DIR="${VM_DIR:-$HOME/VMs}"
 ISO_DIR="${ISO_DIR:-$VM_DIR/iso}"
 FEDORA_VERSION="${FEDORA_VERSION:-43}"
@@ -101,11 +101,14 @@ virt-install \
     --name "$VM_NAME" \
     --memory "$VM_MEMORY" \
     --vcpus "$VM_CPUS" \
-    --disk path="$DISK_PATH",format=qcow2,bus=virtio \
+    --cpu host-passthrough \
+    --disk path="$DISK_PATH",format=qcow2,bus=virtio,cache=writeback \
     --cdrom "$ISO_FILE" \
     --os-variant fedora-unknown \
     --network user,model=virtio \
-    --graphics vnc,listen=127.0.0.1 \
+    --graphics spice,listen=127.0.0.1,gl.enable=yes \
+    --video qxl \
+    --channel spicevmc \
     --console pty,target_type=serial \
     --virt-type kvm \
     --boot uefi \
