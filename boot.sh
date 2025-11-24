@@ -41,7 +41,7 @@ echo "✅ Preflight checks passed"
 echo ""
 
 echo "→ Installing git, fish, stow, gum, and yq..."
-sudo dnf install -y git fish stow gum yq
+sudo dnf install -y -q git fish stow gum yq
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

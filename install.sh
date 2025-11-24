@@ -44,7 +44,7 @@ if ! command -v fish &>/dev/null; then
         fi
     else
         echo -e "${YELLOW}Traditional Fedora detected - installing Fish with DNF${NC}"
-        sudo dnf install -y fish
+        sudo dnf install -y -q fish
     fi
 
     echo -e "${GREEN}✓ Fish installed successfully${NC}"

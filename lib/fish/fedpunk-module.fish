@@ -206,7 +206,7 @@ function fedpunk-module-install-packages
     set -l dnf_packages (yaml-get-list "$module_yaml" "packages" "dnf")
     if test -n "$dnf_packages"
         echo "  Installing DNF packages: $dnf_packages"
-        sudo dnf install -y $dnf_packages
+        sudo dnf install -y -q $dnf_packages
     end
 
     # Cargo packages
@@ -240,7 +240,7 @@ function fedpunk-module-install-packages
         # Ensure flatpak is installed
         if not command -v flatpak >/dev/null 2>&1
             echo "  Installing flatpak..."
-            sudo dnf install -y flatpak
+            sudo dnf install -y -q flatpak
         end
 
         # Ensure Flathub repository is added
