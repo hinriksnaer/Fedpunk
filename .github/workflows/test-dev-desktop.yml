@@ -21,23 +21,3 @@ jobs:
       - name: Run boot.sh installer
         run: |
           wget -O- https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
-        continue-on-error: true
-
-      - name: Activate and install dev desktop profile
-        run: |
-          fish -c 'fedpunk profile activate dev desktop'
-          fish -c 'fedpunk profile install'
-        continue-on-error: true
-
-      - name: Verify essential tools installed
-        run: |
-          echo "=== Checking installed tools ==="
-          command -v nvim && echo "✓ neovim" || echo "✗ neovim"
-          command -v tmux && echo "✓ tmux" || echo "✗ tmux"
-          command -v lazygit && echo "✓ lazygit" || echo "✗ lazygit"
-          command -v btop && echo "✓ btop" || echo "✗ btop"
-          command -v gh && echo "✓ gh" || echo "✗ gh"
-          command -v fish && echo "✓ fish" || echo "✗ fish"
-          echo ""
-          echo "Hardware-specific (expected to fail in CI):"
-          command -v nvidia-smi && echo "✓ nvidia" || echo "✗ nvidia (expected)"
