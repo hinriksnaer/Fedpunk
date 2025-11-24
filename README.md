@@ -36,16 +36,16 @@ Fedpunk is a **next-generation configuration management system** that transforms
 - 🔌 **Plugin Framework** - Extend profiles with custom modules scoped to your workflow
 - ⚡ **Lifecycle Hooks** - Execute scripts at any stage of deployment (before/after/install/update)
 - 🔗 **GNU Stow Integration** - Instant config deployment via symlinks (no generation step)
-- 🎨 **Live Theme Engine** - 11 themes that update across all apps without reloading
+- 🎨 **Live Theme Engine** - 12 themes that update across all apps without reloading
 - 🐟 **Fish-First** - Modern shell with intelligent completions and powerful scripting
 
 **The result?** A keyboard-driven Hyprland environment with vim-style navigation, seamless theming, and a curated development toolset—all deployable in one command.
 
 ---
 
-## ✨ Recent Architecture Overhaul
+## ✨ Architecture Highlights
 
-**v2.0** brings a revolutionary modular system:
+**v0.2.0** features a revolutionary modular system:
 
 ### 🎁 Module System
 Every package is now self-contained with its own metadata, dependencies, and lifecycle:
@@ -68,29 +68,50 @@ fedpunk module list             # See all available modules
 fedpunk module info fish        # Inspect module details
 ```
 
-### 🎭 Profile Modes
-One profile, multiple environments:
+### 🎭 Profiles & Modes
+
+**Three profiles for different use cases:**
+
+| Profile | Purpose | Best For |
+|---------|---------|----------|
+| `default` | General-purpose setup | New users, most workflows |
+| `dev` | Personal reference config | Developers wanting examples |
+| `example` | Template starter | Building custom profiles |
+
+**Each profile supports multiple modes:**
 
 ```yaml
-# profiles/dev/modes/desktop.yaml
+# profiles/default/modes/desktop.yaml
 modules:
-  - fish
+  - essentials
   - neovim
   - hyprland
-  - plugins/dev-extras    # Profile-specific plugin!
+  - firefox
+  # Clean, minimal setup
 
-# profiles/dev/modes/container.yaml
+# profiles/default/modes/container.yaml
 modules:
-  - fish
+  - essentials
   - neovim
   - tmux
-  # No desktop components
+  # Terminal-only for containers
+
+# profiles/dev/modes/desktop.yaml (reference implementation)
+modules:
+  - essentials
+  - neovim
+  - hyprland
+  - nvidia              # Hardware-specific
+  - audio
+  - plugins/dev-extras  # Personal tools (Spotify, Discord)
+  - plugins/fancontrol  # Hardware-specific
 ```
 
-**Switch modes based on your environment:**
-- `dev/desktop` - Full GUI with Hyprland
-- `dev/container` - Minimal for devcontainers
-- `work/desktop` - Work-specific tools
+**Choose at install time:**
+```bash
+fish install.fish --profile default --mode desktop
+fish install.fish --profile default --mode container
+```
 
 ### 🔌 Plugin System
 Profile-scoped modules for personal/work-specific customization:
@@ -158,18 +179,22 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 ```
 
 **Interactive prompts guide you through:**
-1. **Profile Selection** - Choose your base profile (dev/example)
+1. **Profile Selection** - Choose your base profile:
+   - `default` - Recommended for most users
+   - `dev` - Reference implementation with personal preferences
+   - `example` - Template for creating your own profile
 2. **Mode Selection** - Desktop (full GUI) or Container (terminal-only)
-3. **Optional Components** - NVIDIA drivers, extra packages
+3. **Optional Components** - Add modules as needed after installation
 
 **Desktop Mode Includes:**
 - Hyprland compositor with optimized tiling
 - Kitty terminal (GPU-accelerated)
 - Neovim with LSP, tree-sitter, modern plugins
-- tmux, lazygit, btop, yazi
-- 11 complete themes with instant switching
+- tmux, lazygit, btop, yazi (with theming)
+- 12 complete themes with instant switching
 - Rofi launcher, Mako notifications
 - Waybar status bar, Firefox browser
+- Claude Code integration with optional Vertex AI
 
 **Container Mode Includes:**
 - Fish shell with Starship prompt
@@ -182,7 +207,7 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 
 ## 🎨 Themes
 
-**11 carefully curated themes with instant live-reload:**
+**12 carefully curated themes with instant live-reload:**
 
 | Theme | Style | Best For |
 |-------|-------|----------|
@@ -195,6 +220,7 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 | **osaka-jade** | Vibrant teal/green | Energizing workflow |
 | **ristretto** | Rich espresso browns | Coffee-fueled coding |
 | **rose-pine** | Soft rose/pine palette | Gentle on the eyes |
+| **rose-pine-dark** | Deep rose/pine | Dark mode variant |
 | **tokyo-night** | Deep blues with neon | Cyberpunk vibes |
 | **torrentz-hydra** | Bold high contrast | Maximum readability |
 
@@ -569,6 +595,7 @@ Neovim integration with Claude:
 - Buffer-aware AI assistance
 - Project context understanding
 - Slash commands and workflow automation
+- Optional Vertex AI authentication (via vertex-ai module)
 
 ---
 

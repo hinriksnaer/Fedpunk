@@ -1,0 +1,16 @@
+# Default Profile - Container Mode
+# Minimal development environment for containers/devcontainers
+
+mode:
+  name: container
+  description: Minimal development environment for containers/devcontainers
+
+modules:
+  - essentials
+  - neovim
+  - tmux
+  - lazygit
+  - yazi
+  - gh
+  - bitwarden
+  - claude
