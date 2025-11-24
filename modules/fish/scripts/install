@@ -3,14 +3,20 @@
 # Handles: Setting fish as default shell
 
 echo "[fish/install] Script started" >&2
-echo "[fish/install] Current SHELL: $SHELL" >&2
+echo "[fish/install] Current SHELL env: $SHELL" >&2
 echo "[fish/install] Fish path: "(which fish) >&2
 echo "[fish/install] Current USER: $USER" >&2
 
+# Get the actual default shell from /etc/passwd (not the env var which might be empty)
+set -l current_shell (getent passwd $USER | cut -d: -f7)
+set -l fish_path (which fish)
+
+echo "[fish/install] Configured shell in /etc/passwd: $current_shell" >&2
+echo "[fish/install] Fish location: $fish_path" >&2
+
 # Set fish as default shell if not already
-if test "$SHELL" != (which fish)
+if test "$current_shell" != "$fish_path"
     echo "[fish/install] Setting fish as default shell..." >&2
-    set -l fish_path (which fish)
     echo "[fish/install] Running: sudo chsh -s $fish_path $USER" >&2
     sudo chsh -s $fish_path $USER
 
