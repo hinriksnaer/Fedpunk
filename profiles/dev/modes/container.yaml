@@ -14,3 +14,4 @@ modules:
   - gh
   - bitwarden
   - claude
+  - vertex-ai
