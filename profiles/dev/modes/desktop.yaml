@@ -27,4 +27,4 @@ modules:
   - nvidia
   - bluetui
   - extra-apps
-  - plugins/fancontrol
+  # - plugins/fancontrol  # Disabled for testing - plugins are broken
