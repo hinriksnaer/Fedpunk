@@ -161,14 +161,14 @@ jobs:
 
           echo "✅ PASS: Neovim plugins are installed ($PLUGIN_COUNT plugins)"
 
-      - name: Verify LazyVim is not installed
+      - name: Verify LazyVim is installed
         run: |
-          if [ -d /root/.local/share/nvim/lazy/LazyVim ]; then
-            echo "❌ FAIL: LazyVim should not be installed!"
+          if [ ! -d /root/.local/share/nvim/lazy/LazyVim ]; then
+            echo "❌ FAIL: LazyVim should be installed (default profile uses LazyVim)!"
             exit 1
           fi
 
-          echo "✅ PASS: LazyVim is not installed (pure lazy.nvim setup)"
+          echo "✅ PASS: LazyVim is installed (default profile)"
 
       - name: Test fish shell starts without errors
         run: |
