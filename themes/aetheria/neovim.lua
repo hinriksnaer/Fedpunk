@@ -1,6 +1,13 @@
 -- Aetheria Theme for Neovim
 -- Inspired by Audio Waveform Omarchy colorscheme and Base16-Tarot color palette
 
+
+-- Return empty table when imported by lazy.nvim (already configured in lazy.lua)
+-- Return full spec when read by fedpunk theme system or dev profile theme-watcher
+if vim.g.lazyvim_configured then
+  return {}
+end
+
 return {
     {
         "LazyVim/LazyVim",

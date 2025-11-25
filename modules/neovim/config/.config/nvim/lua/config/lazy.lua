@@ -14,11 +14,33 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- Read fedpunk theme colorscheme if theme.lua exists
+local lazyvim_colorscheme = nil
+local theme_file = vim.fn.stdpath("config") .. "/lua/plugins/theme.lua"
+if vim.fn.filereadable(theme_file) == 1 then
+  local ok, theme_spec = pcall(dofile, theme_file)
+  if ok and theme_spec and type(theme_spec) == "table" then
+    for _, spec in ipairs(theme_spec) do
+      if type(spec) == "table" and spec.opts and spec.opts.colorscheme then
+        lazyvim_colorscheme = spec.opts.colorscheme
+        break
+      end
+    end
+  end
+end
+
+-- Mark that we've configured LazyVim so theme.lua doesn't try to configure it again
+vim.g.lazyvim_configured = true
+
+-- Disable LazyVim import order check since we configure LazyVim with theme in lazy.lua
+-- then import plugins directory (which may contain theme.lua)
+vim.g.lazyvim_check_order = false
+
 require("lazy").setup({
   spec = {
-    -- add LazyVim and import its plugins
-    { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-    -- import/override with your plugins
+    -- add LazyVim and import its plugins with fedpunk theme
+    { "LazyVim/LazyVim", import = "lazyvim.plugins", opts = lazyvim_colorscheme and { colorscheme = lazyvim_colorscheme } or {} },
+    -- import/override with your plugins (but skip theme.lua since we already handled it)
     { import = "plugins" },
   },
   defaults = {

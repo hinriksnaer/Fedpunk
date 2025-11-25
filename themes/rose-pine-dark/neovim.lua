@@ -1,3 +1,12 @@
+-- Fedpunk theme: rose-pine-dark
+-- This file is symlinked to ~/.config/nvim/lua/plugins/theme.lua
+
+-- Return empty table when imported by lazy.nvim (already configured in lazy.lua)
+-- Return full spec when read by fedpunk theme system or dev profile theme-watcher
+if vim.g.lazyvim_configured then
+  return {}
+end
+
 return {
 	{
 		"rose-pine/neovim",
