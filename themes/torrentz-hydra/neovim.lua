@@ -3,6 +3,7 @@
 
 return {
   {
+    "LazyVim/LazyVim",
     opts = {
       colorscheme = function()
         vim.opt.termguicolors = true

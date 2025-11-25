@@ -12,6 +12,7 @@ return {
 		-- end,
 	},
 	{
+		"LazyVim/LazyVim",
 		opts = {
 			colorscheme = "rose-pine",
 		},
