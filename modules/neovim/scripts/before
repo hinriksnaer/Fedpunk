@@ -1,0 +1,108 @@
+#!/usr/bin/env fish
+# Clone LazyVim starter before deployment
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+set CONFIG_DIR "$FEDPUNK_ROOT/modules/neovim/config/.config/nvim"
+
+# Remove existing config if it exists
+if test -d "$CONFIG_DIR"
+    rm -rf "$CONFIG_DIR"
+end
+
+ui-info "Cloning LazyVim starter for default profile"
+
+# Clone LazyVim starter
+ui-spin --title "Downloading LazyVim starter..." -- fish -c '
+    git clone https://github.com/LazyVim/starter "'$CONFIG_DIR'" >/dev/null 2>&1
+'
+
+if test $status -ne 0
+    ui-error "Failed to clone LazyVim starter"
+    return 1
+end
+
+# Remove .git directory
+rm -rf "$CONFIG_DIR/.git"
+
+ui-success "LazyVim starter cloned"
+
+# Apply fedpunk customizations to lazy.lua
+ui-info "Applying fedpunk theme integration"
+
+set LAZY_LUA "$CONFIG_DIR/lua/config/lazy.lua"
+
+# Write the complete lazy.lua with fedpunk integration
+printf '%s\n' \
+'local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"' \
+'if not (vim.uv or vim.loop).fs_stat(lazypath) then' \
+'  local lazyrepo = "https://github.com/folke/lazy.nvim.git"' \
+'  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })' \
+'  if vim.v.shell_error ~= 0 then' \
+'    vim.api.nvim_echo({' \
+'      { "Failed to clone lazy.nvim:\\n", "ErrorMsg" },' \
+'      { out, "WarningMsg" },' \
+'      { "\\nPress any key to exit..." },' \
+'    }, true, {})' \
+'    vim.fn.getchar()' \
+'    os.exit(1)' \
+'  end' \
+'end' \
+'vim.opt.rtp:prepend(lazypath)' \
+'' \
+'-- Mark that we'"'"'ve configured LazyVim so theme.lua doesn'"'"'t try to configure it again' \
+'-- This must be set BEFORE reading theme.lua so it returns empty table' \
+'vim.g.lazyvim_configured = true' \
+'' \
+'-- Disable LazyVim import order check since we configure LazyVim with theme in lazy.lua' \
+'-- then import plugins directory (which may contain theme.lua)' \
+'vim.g.lazyvim_check_order = false' \
+'' \
+'require("lazy").setup({' \
+'  spec = {' \
+'    -- add LazyVim and import its plugins' \
+'    { "LazyVim/LazyVim", import = "lazyvim.plugins" },' \
+'    -- import/override with your plugins' \
+'    { import = "plugins" },' \
+'  },' \
+'  defaults = {' \
+'    -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.' \
+'    -- If you know what you'"'"'re doing, you can set this to `true` to have all your custom plugins lazy-loaded by default.' \
+'    lazy = false,' \
+'    -- It'"'"'s recommended to leave version=false for now, since a lot the plugin that support versioning,' \
+'    -- have outdated releases, which may break your Neovim install.' \
+'    version = false, -- always use the latest git commit' \
+'    -- version = "*", -- try installing the latest stable version for plugins that support semver' \
+'  },' \
+'  install = { colorscheme = { "tokyonight", "habamax" } },' \
+'  checker = {' \
+'    enabled = true, -- check for plugin updates periodically' \
+'    notify = false, -- notify on update' \
+'  }, -- automatically check for plugin updates' \
+'  performance = {' \
+'    rtp = {' \
+'      -- disable some rtp plugins' \
+'      disabled_plugins = {' \
+'        "gzip",' \
+'        -- "matchit",' \
+'        -- "matchparen",' \
+'        -- "netrwPlugin",' \
+'        "tarPlugin",' \
+'        "tohtml",' \
+'        "tutor",' \
+'        "zipPlugin",' \
+'      },' \
+'    },' \
+'  },' \
+'})' \
+> "$LAZY_LUA"
+
+ui-success "Fedpunk theme integration configured"
+
+# Copy theme-watcher plugin
+ui-info "Adding theme watcher plugin"
+
+cp "$FEDPUNK_ROOT/modules/neovim/templates/plugins/theme-watcher.lua" \
+   "$CONFIG_DIR/lua/plugins/theme-watcher.lua"
+
+ui-success "Theme watcher plugin added"

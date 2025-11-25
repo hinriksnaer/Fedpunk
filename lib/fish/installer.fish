@@ -69,11 +69,11 @@ function installer-select-mode
         return 1
     end
 
-    # List available modes
+    # List available modes (look for mode.yaml in subdirectories)
     set -l available_modes
-    for mode_file in $modes_dir/*.yaml
-        if test -f "$mode_file"
-            set -l mode_name (basename "$mode_file" .yaml)
+    for mode_dir in $modes_dir/*/
+        if test -f "$mode_dir/mode.yaml"
+            set -l mode_name (basename "$mode_dir")
             set -a available_modes $mode_name
         end
     end
@@ -92,7 +92,7 @@ function installer-select-mode
     # Interactive selection
     ui-info "Available modes for profile '$profile':" >&2
     for mode in $available_modes
-        set -l mode_file "$modes_dir/$mode.yaml"
+        set -l mode_file "$modes_dir/$mode/mode.yaml"
         set -l description (yaml-get-value "$mode_file" "mode" "description")
         if test -n "$description"
             echo "  • $mode - $description" >&2
@@ -116,7 +116,7 @@ function installer-load-modules
     # Load module list from mode configuration
     set -l profile $argv[1]
     set -l mode $argv[2]
-    set -l mode_file "$FEDPUNK_ROOT/profiles/$profile/modes/$mode.yaml"
+    set -l mode_file "$FEDPUNK_ROOT/profiles/$profile/modes/$mode/mode.yaml"
 
     if not test -f "$mode_file"
         ui-error "Mode file not found: $mode_file"
@@ -286,11 +286,41 @@ function installer-run
         end
     end
 
+    # Set up active profile symlink BEFORE deploying modules (plugins need this)
+    echo ""
+    ui-info "Setting up active profile..."
+    set -l active_config "$FEDPUNK_ROOT/.active-config"
+    rm -f "$active_config"
+    ln -s "$FEDPUNK_ROOT/profiles/$profile" "$active_config"
+    ui-success "Active profile: $profile"
+
     # Deploy modules
     echo ""
     installer-deploy-modules $modules
 
     if test $status -eq 0
+        # Set up mode configuration
+        echo ""
+        ui-info "Setting up mode configuration..."
+
+        # Create active mode configuration for Hyprland (if hypr.conf exists)
+        set -l mode_hypr_conf "$FEDPUNK_ROOT/profiles/$profile/modes/$mode/hypr.conf"
+        if test -f "$mode_hypr_conf"
+            set -l active_mode_conf "$HOME/.config/hypr/active-mode.conf"
+            echo "# Active Mode Configuration (runtime-generated)" > "$active_mode_conf"
+            echo "# Sources mode-specific Hyprland overrides" >> "$active_mode_conf"
+            echo "# Mode: $mode" >> "$active_mode_conf"
+            echo "" >> "$active_mode_conf"
+            echo "source = $FEDPUNK_ROOT/profiles/$profile/modes/$mode/hypr.conf" >> "$active_mode_conf"
+            ui-success "Active mode configured: $mode"
+
+            # Reload Hyprland if it's running
+            if hyprctl version >/dev/null 2>&1
+                hyprctl reload >/dev/null 2>&1
+                ui-success "Hyprland configuration reloaded"
+            end
+        end
+
         # Final system update after all modules
         echo ""
         ui-section "Final System Update"

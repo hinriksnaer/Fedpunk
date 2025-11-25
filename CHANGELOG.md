@@ -7,6 +7,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-11-25
+
+### 🔧 Improvements
+
+#### Installation & Setup
+- **Fixed** Installer using temporary directories causing broken symlinks after installation
+  - Changed from `/tmp/fedpunk-install-$` to permanent backup location
+  - Now backs up existing installation to `~/.local/share/fedpunk.backup.TIMESTAMP`
+  - Ensures all symlinks remain valid after installation completes
+- **Fixed** Create `.active-config` symlink before deploying modules
+  - Plugin deployment now works correctly on first install
+  - Modules can reference active profile during deployment
+
+#### Performance
+- **Optimized** SELinux context restoration during installation
+  - Reduced from scanning 5M+ files to only Fedpunk-managed directories
+  - Removed duplicate SELinux restoration from hyprland module
+  - Now restores context only for: `~/.config/{hypr,kitty,fish,nvim}`, `~/.local/bin`, `~/.local/share/fedpunk`
+  - Dramatically reduced installation time
+
+#### Configuration Management
+- **Centralized** configuration file backups
+  - Moved from scattered `.backup.TIMESTAMP` files in `~/.config/` to centralized location
+  - All backups now in `~/.local/share/fedpunk-backups/config-backups/`
+  - Flattened file paths with underscore replacement for better organization
+- **Fixed** Diff functionality during conflict resolution
+  - Now resolves symlinks before attempting diff
+  - Clear error messages for broken symlinks
+  - Better conflict handling experience
+
+#### Hyprland
+- **Added** Per-mode Hyprland configuration system
+  - Each mode can now have custom `hypr.conf` overrides
+  - New directory structure: `profiles/<profile>/modes/<mode>/hypr.conf`
+  - Runtime-generated `active-mode.conf` sources mode-specific settings
+  - Supports mode-specific monitor resolution and layout preferences
+  - Installer automatically generates and reloads configuration
+- **Added** Automatic Hyprland reload after installation
+  - Configuration changes apply immediately without manual reload
+  - Reloads both after module deployment and mode setup
+
+#### Neovim
+- **Refactored** Migrated to LazyVim for default profile, custom config for dev profile
+  - Default profile now uses official LazyVim starter for batteries-included experience
+  - LazyVim starter dynamically cloned via before script (not tracked in git)
+  - Dev profile uses custom Neovim configuration via plugin system (`neovim-custom`)
+  - Created comprehensive CI tests for both default and dev profiles
+  - Added theme-watcher plugin for automatic colorscheme reloading
+  - Fixed LazyVim import order warning by disabling check for fedpunk theme system
+  - Updated all theme files to work with both LazyVim (default) and custom config (dev)
+  - Theme files now include conditional check to prevent duplicate LazyVim imports
+  - Dynamic theme switching now works seamlessly in both profiles
+
+### 🐛 Bug Fixes
+
+- **Fixed** Git tracking of runtime-generated files
+  - Added `.active-config` to gitignore (runtime-generated symlink)
+  - Added `active-mode.conf` to gitignore (runtime-generated config)
+  - Added centralized backup directory to gitignore
+  - Cleaned up tracked files that should be runtime-generated
+- **Fixed** Hyprland globbing error from deprecated monitors.conf source
+  - Removed profile-level monitors.conf source (replaced by mode-based system)
+  - Monitor configuration now handled exclusively via mode-specific hypr.conf files
+
+### 📝 Project Structure
+
+- **Updated** `.gitignore` with runtime-generated files and backup directories
+- **Improved** Mode configuration structure from flat YAML to directories
+  - Better organization with `mode.yaml` + `hypr.conf` per mode
+  - Cleaner separation of mode metadata and configuration
+
+### 🔄 Breaking Changes
+
+None - All changes are backward compatible. Existing installations will work without modification.
+
 ## [0.2.0] - 2025-11-24
 
 ### 🎉 Major Features
@@ -183,6 +258,7 @@ None - All changes are backward compatible with existing installations.
 
 ---
 
-[Unreleased]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/hinriksnaer/Fedpunk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/hinriksnaer/Fedpunk/releases/tag/v0.1.0

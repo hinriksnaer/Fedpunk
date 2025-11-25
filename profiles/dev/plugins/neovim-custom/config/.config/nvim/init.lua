@@ -18,10 +18,15 @@ end
 
 vim.opt.rtp:prepend(lazypath)
 
+vim.g.lazyvim_check_order = false
+
 -- Load plugins from lua/plugins/*.lua
 require('lazy').setup({
   { import = 'plugins' },
 }, {
+  rocks = {
+    enabled = false,  -- Disable luarocks support to avoid installation errors
+  },
   ui = {
     icons = vim.g.have_nerd_font and {} or {
       cmd = '⌘',

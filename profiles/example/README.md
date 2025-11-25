@@ -21,8 +21,10 @@ This is a **minimal template** for creating your own Fedpunk profile. Copy this 
 ```
 profiles/example/
 ├── modes/                   # Required: Module lists
-│   ├── desktop.yaml         # Full desktop environment
-│   └── container.yaml       # Terminal-only environment
+│   ├── desktop/             # Full desktop environment
+│   │   └── mode.yaml
+│   └── container/           # Terminal-only environment
+│       └── mode.yaml
 ├── plugins/                 # Optional: Profile-specific modules
 │   └── README.md            # Plugin documentation
 ├── fedpunk.toml             # Optional: Extra packages/scripts
@@ -40,7 +42,7 @@ profiles/example/
 cp -r ~/.local/share/fedpunk/profiles/example ~/.local/share/fedpunk/profiles/myprofile
 
 # 2. Customize module lists
-nvim ~/.local/share/fedpunk/profiles/myprofile/modes/desktop.yaml
+nvim ~/.local/share/fedpunk/profiles/myprofile/modes/desktop/mode.yaml
 
 # 3. Activate your profile
 fedpunk-activate-profile myprofile
@@ -55,7 +57,7 @@ fish install.fish  # Will prompt for profile
 
 ## 📝 Mode Files
 
-### `modes/desktop.yaml`
+### `modes/desktop/mode.yaml`
 
 **Full desktop environment template:**
 
@@ -88,7 +90,7 @@ modules:
 - Adding modules from `modules/` directory
 - Adding your own plugins
 
-### `modes/container.yaml`
+### `modes/container/mode.yaml`
 
 **Minimal terminal-only template:**
 
@@ -173,7 +175,7 @@ echo "COMPANY_API_KEY=xxx" > profiles/myprofile/plugins/work-tools/config/.confi
 fedpunk module deploy plugins/work-tools
 
 # 5. Add to desktop mode for auto-deployment
-echo "  - plugins/work-tools" >> profiles/myprofile/modes/desktop.yaml
+echo "  - plugins/work-tools" >> profiles/myprofile/modes/desktop/mode.yaml
 ```
 
 **See:** [plugins/README.md](plugins/README.md) for detailed guide
@@ -256,7 +258,7 @@ fedpunk-activate-profile myprofile
 ### Minimal Server Profile
 
 ```yaml
-# modes/server.yaml
+# modes/server/mode.yaml
 mode:
   name: server
   description: Minimal server tools
@@ -272,7 +274,7 @@ modules:
 ### Gaming/Entertainment Profile
 
 ```yaml
-# modes/desktop.yaml
+# modes/desktop/mode.yaml
 mode:
   name: gaming
   description: Entertainment and gaming setup
@@ -313,7 +315,7 @@ stow:
 ### Work Profile
 
 ```yaml
-# modes/desktop.yaml
+# modes/desktop/mode.yaml
 modules:
   # Development essentials
   - essentials
@@ -344,8 +346,8 @@ modules:
 cp -r profiles/example profiles/work
 
 # Edit modes
-nvim profiles/work/modes/desktop.yaml
-nvim profiles/work/modes/container.yaml
+nvim profiles/work/modes/desktop/mode.yaml
+nvim profiles/work/modes/container/mode.yaml
 ```
 
 ### 2. Add Plugins (Optional)
@@ -358,7 +360,7 @@ mkdir -p profiles/work/plugins/company-tools
 nvim profiles/work/plugins/company-tools/module.yaml
 
 # Add to mode
-echo "  - plugins/company-tools" >> profiles/work/modes/desktop.yaml
+echo "  - plugins/company-tools" >> profiles/work/modes/desktop/mode.yaml
 ```
 
 ### 3. Add Monitor Config (Optional)
@@ -433,7 +435,7 @@ ls ~/.local/share/fedpunk/profiles/myprofile/modes/
 fedpunk module list | grep <module-name>
 
 # Check spelling in mode file
-cat profiles/myprofile/modes/desktop.yaml
+cat profiles/myprofile/modes/desktop/mode.yaml
 ```
 
 ### Plugin Not Deploying
@@ -462,8 +464,8 @@ fedpunk module deploy plugins/<plugin-name>
    ```
 
 2. **Customize modes:**
-   - Edit `modes/desktop.yaml`
-   - Edit `modes/container.yaml`
+   - Edit `modes/desktop/mode.yaml`
+   - Edit `modes/container/mode.yaml`
 
 3. **Create plugins (optional):**
    - Create `plugins/my-tools/`

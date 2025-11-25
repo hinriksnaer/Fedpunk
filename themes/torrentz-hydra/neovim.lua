@@ -1,9 +1,17 @@
 -- Fedpunk theme: torrentz-hydra
 -- Matches the color palette from kitty/ghostty/hyprland configs
 
+
+-- Return empty table when imported by lazy.nvim (already configured in lazy.lua)
+-- Return full spec when read by fedpunk theme system or dev profile theme-watcher
+if vim.g.lazyvim_configured then
+  return {}
+end
+
 return {
   {
     "LazyVim/LazyVim",
+    priority = 1000,
     opts = {
       colorscheme = function()
         vim.opt.termguicolors = true

@@ -1,0 +1,192 @@
+name: Test Default Desktop Installation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-installation:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+
+    steps:
+      - name: Install fresh Fedora system dependencies
+        run: |
+          dnf install -y git fish sudo stow gum yq jq
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Move to installation directory and run installer
+        env:
+          HOME: /root
+        run: |
+          mkdir -p /root/.local/share
+          cp -r $PWD /root/.local/share/fedpunk
+          cd /root/.local/share/fedpunk
+          fish install.fish --profile default --mode desktop --non-interactive
+
+      - name: Verify fish is set as default shell
+        run: |
+          CURRENT_SHELL=$(getent passwd root | cut -d: -f7)
+          FISH_PATH=$(which fish)
+
+          echo "Current default shell: $CURRENT_SHELL"
+          echo "Fish path: $FISH_PATH"
+
+          if [ "$CURRENT_SHELL" != "$FISH_PATH" ]; then
+            echo "❌ FAIL: Fish is not the default shell!"
+            echo "Expected: $FISH_PATH"
+            echo "Got: $CURRENT_SHELL"
+            exit 1
+          fi
+
+          echo "✅ PASS: Fish is correctly set as default shell"
+
+      - name: Verify .active-config symlink exists
+        run: |
+          if [ ! -L /root/.local/share/fedpunk/.active-config ]; then
+            echo "❌ FAIL: .active-config symlink does not exist!"
+            exit 1
+          fi
+
+          ACTIVE_PROFILE=$(readlink /root/.local/share/fedpunk/.active-config)
+          echo "Active profile: $ACTIVE_PROFILE"
+
+          if [[ ! "$ACTIVE_PROFILE" == *"/profiles/default" ]]; then
+            echo "❌ FAIL: .active-config does not point to default profile!"
+            echo "Expected: /root/.local/share/fedpunk/profiles/default"
+            echo "Got: $ACTIVE_PROFILE"
+            exit 1
+          fi
+
+          echo "✅ PASS: .active-config symlink correctly points to default profile"
+
+      - name: Verify essential configuration files are symlinked
+        run: |
+          CONFIGS=(
+            "/root/.config/fish/config.fish"
+            "/root/.config/nvim/init.lua"
+            "/root/.config/kitty/kitty.conf"
+            "/root/.config/hypr/hyprland.conf"
+          )
+
+          FAILED=0
+          for config in "${CONFIGS[@]}"; do
+            if [ ! -L "$config" ]; then
+              echo "❌ FAIL: $config is not a symlink!"
+              FAILED=1
+            else
+              TARGET=$(readlink -f "$config")
+              echo "✅ PASS: $config -> $TARGET"
+            fi
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            exit 1
+          fi
+
+          echo "✅ PASS: All essential configuration files are properly symlinked"
+
+      - name: Verify key binaries are available
+        env:
+          PATH: /root/.local/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        run: |
+          BINARIES=(
+            "fish"
+            "nvim"
+            "tmux"
+            "lazygit"
+            "btop"
+            "yazi"
+            "gh"
+            "bw"
+          )
+
+          FAILED=0
+          for binary in "${BINARIES[@]}"; do
+            if ! command -v "$binary" &> /dev/null; then
+              echo "❌ FAIL: $binary not found in PATH!"
+              FAILED=1
+            else
+              echo "✅ PASS: $binary is available"
+            fi
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            exit 1
+          fi
+
+          echo "✅ PASS: All key binaries are available"
+
+      - name: Install Neovim plugins
+        env:
+          HOME: /root
+          PATH: /root/.local/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        run: |
+          # Run nvim headless to trigger lazy.nvim plugin installation
+          timeout 120 nvim --headless "+Lazy! sync" +qa || true
+          echo "Neovim plugin installation triggered"
+
+      - name: Verify Neovim plugins are installed
+        run: |
+          if [ ! -d /root/.local/share/nvim/lazy ]; then
+            echo "❌ FAIL: Neovim lazy plugin directory does not exist!"
+            exit 1
+          fi
+
+          PLUGIN_COUNT=$(ls -1 /root/.local/share/nvim/lazy | wc -l)
+          echo "Installed plugins: $PLUGIN_COUNT"
+
+          if [ $PLUGIN_COUNT -lt 5 ]; then
+            echo "❌ FAIL: Expected at least 5 plugins, found $PLUGIN_COUNT"
+            exit 1
+          fi
+
+          echo "✅ PASS: Neovim plugins are installed ($PLUGIN_COUNT plugins)"
+
+      - name: Verify LazyVim is installed
+        run: |
+          if [ ! -d /root/.local/share/nvim/lazy/LazyVim ]; then
+            echo "❌ FAIL: LazyVim should be installed (default profile uses LazyVim)!"
+            exit 1
+          fi
+
+          echo "✅ PASS: LazyVim is installed (default profile)"
+
+      - name: Verify backup directory structure
+        run: |
+          BACKUP_DIR="/root/.local/share/fedpunk-backups"
+
+          if [ -d "$BACKUP_DIR" ]; then
+            echo "Backup directory exists: $BACKUP_DIR"
+            ls -la "$BACKUP_DIR" || true
+          else
+            echo "No backup directory created (expected on fresh install)"
+          fi
+
+          echo "✅ PASS: Backup directory structure verified"
+
+      - name: Test fish shell starts without errors
+        run: |
+          fish -c "echo 'Fish shell works!'" || exit 1
+          echo "✅ PASS: Fish shell starts without errors"
+
+      - name: Verify installation summary
+        run: |
+          echo ""
+          echo "========================================="
+          echo "Installation Verification Summary"
+          echo "========================================="
+          echo "Profile: default"
+          echo "Mode: desktop"
+          echo "Shell: $(fish --version)"
+          echo "Neovim: $(nvim --version | head -n1)"
+          echo "Fish config: $(readlink -f /root/.config/fish/config.fish)"
+          echo "========================================="
+          echo ""
+          echo "✅ All tests passed! Default desktop profile installation successful."

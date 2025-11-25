@@ -19,8 +19,14 @@ The `dev` profile is the default Fedpunk profile featuring:
 ```
 profiles/dev/
 ├── modes/                      # Module lists per environment
-│   ├── desktop.yaml            # Full desktop with Hyprland
-│   └── container.yaml          # Minimal terminal-only
+│   ├── desktop/                # Full desktop with Hyprland
+│   │   ├── mode.yaml
+│   │   └── hypr.conf          # Per-mode Hyprland overrides
+│   ├── laptop/                 # Laptop-optimized mode
+│   │   ├── mode.yaml
+│   │   └── hypr.conf
+│   └── container/              # Minimal terminal-only
+│       └── mode.yaml
 ├── plugins/                    # Profile-specific modules
 │   ├── README.md               # Plugin system documentation
 │   └── dev-extras/             # Example: Spotify, Discord, Devcontainer CLI
@@ -34,7 +40,7 @@ profiles/dev/
 
 ## 🎭 Modes
 
-### Desktop Mode (`desktop.yaml`)
+### Desktop Mode (`desktop/mode.yaml`)
 
 **Full development environment with GUI:**
 
@@ -78,7 +84,7 @@ fish install.fish                    # Interactive (chooses desktop automaticall
 fish install.fish --mode desktop     # Explicit
 ```
 
-### Container Mode (`container.yaml`)
+### Container Mode (`container/mode.yaml`)
 
 **Minimal terminal-only setup:**
 
@@ -203,7 +209,7 @@ fedpunk module deploy plugins/work-tools
 
 **5. Add to mode (auto-deploy on install):**
 ```yaml
-# profiles/dev/modes/desktop.yaml
+# profiles/dev/modes/desktop/mode.yaml
 modules:
   - fish
   - neovim
@@ -312,17 +318,17 @@ ln -sf ~/.local/share/fedpunk/profiles/dev ~/.local/share/fedpunk/.active-config
 
 ```bash
 # Desktop mode modules
-cat ~/.local/share/fedpunk/profiles/dev/modes/desktop.yaml
+cat ~/.local/share/fedpunk/profiles/dev/modes/desktop/mode.yaml
 
 # Container mode modules
-cat ~/.local/share/fedpunk/profiles/dev/modes/container.yaml
+cat ~/.local/share/fedpunk/profiles/dev/modes/container/mode.yaml
 ```
 
 ### Add Module to Mode
 
 ```bash
 # Add module to desktop mode
-echo "  - docker" >> profiles/dev/modes/desktop.yaml
+echo "  - docker" >> profiles/dev/modes/desktop/mode.yaml
 
 # Deploy new module
 fedpunk module deploy docker
@@ -352,7 +358,7 @@ EOF
 fedpunk module deploy plugins/my-tools
 
 # Add to mode for auto-deployment
-echo "  - plugins/my-tools" >> profiles/dev/modes/desktop.yaml
+echo "  - plugins/my-tools" >> profiles/dev/modes/desktop/mode.yaml
 ```
 
 ---
@@ -363,7 +369,7 @@ echo "  - plugins/my-tools" >> profiles/dev/modes/desktop.yaml
 
 ```bash
 # Edit mode file
-nvim profiles/dev/modes/desktop.yaml
+nvim profiles/dev/modes/desktop/mode.yaml
 
 # Re-run installer to deploy changes
 fish install.fish --mode desktop
@@ -503,7 +509,7 @@ hyprctl monitors
 
 ```bash
 # Ensure plugin is listed in mode file
-cat profiles/dev/modes/desktop.yaml | grep plugins/
+cat profiles/dev/modes/desktop/mode.yaml | grep plugins/
 
 # Deploy manually
 fedpunk module deploy plugins/<plugin-name>

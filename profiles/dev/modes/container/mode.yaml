@@ -7,7 +7,7 @@ mode:
 
 modules:
   - essentials
-  - neovim
+  - plugins/neovim-custom
   - tmux
   - lazygit
   - yazi

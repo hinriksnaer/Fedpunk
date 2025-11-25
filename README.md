@@ -55,7 +55,7 @@ Fedpunk is a **next-generation configuration management system** that transforms
 
 ## ✨ Architecture Highlights
 
-**v0.2.0** features a revolutionary modular system:
+**v0.2.1** features a revolutionary modular system:
 
 ### 🎁 Module System
 Every package is now self-contained with its own metadata, dependencies, and lifecycle:
@@ -91,7 +91,7 @@ fedpunk module info fish        # Inspect module details
 **Each profile supports multiple modes:**
 
 ```yaml
-# profiles/default/modes/desktop.yaml
+# profiles/default/modes/desktop/mode.yaml
 modules:
   - essentials
   - neovim
@@ -99,14 +99,14 @@ modules:
   - firefox
   # Clean, minimal setup
 
-# profiles/default/modes/container.yaml
+# profiles/default/modes/container/mode.yaml
 modules:
   - essentials
   - neovim
   - tmux
   # Terminal-only for containers
 
-# profiles/dev/modes/desktop.yaml (reference implementation)
+# profiles/dev/modes/desktop/mode.yaml (reference implementation)
 modules:
   - essentials
   - neovim
@@ -541,7 +541,7 @@ fedpunk module deploy plugins/work-tools
 
 **Add to mode:**
 ```yaml
-# profiles/dev/modes/desktop.yaml
+# profiles/dev/modes/desktop/mode.yaml
 modules:
   - fish
   - neovim

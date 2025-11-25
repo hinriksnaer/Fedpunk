@@ -132,15 +132,20 @@ function linker-handle-conflict
                 return 0
 
             case r R
-                # Backup existing
-                set -l backup "$target.backup."(date +%Y%m%d-%H%M%S)
+                # Backup existing to centralized location
+                set -l backup_dir "$HOME/.local/share/fedpunk-backups/config-backups"
+                mkdir -p "$backup_dir"
+
+                set -l backup_name (string replace -a "/" "_" (string replace "$HOME/" "" "$target"))
+                set -l backup "$backup_dir/$backup_name.backup."(date +%Y%m%d-%H%M%S)
+
                 if test -L "$target"
                     # Remove old symlink
                     rm "$target"
                 else
                     # Backup regular file
                     mv "$target" "$backup"
-                    echo "  → Backed up to: "(string replace "$HOME/" "" "$backup")
+                    echo "  → Backed up to: "(string replace "$HOME/" "~/" "$backup")
                 end
 
                 # Create new symlink
@@ -152,11 +157,30 @@ function linker-handle-conflict
             case d D
                 echo ""
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                if test -f "$target" -a -f "$source"
-                    diff -u "$target" "$source" | head -50; or true
-                else
-                    echo "Cannot diff: one or both files don't exist"
+
+                # Check if we can actually read the target file
+                set -l can_diff false
+                set -l target_file "$target"
+
+                if test -L "$target"
+                    # Target is a symlink - resolve it
+                    set target_file (readlink -f "$target" 2>/dev/null; or echo "")
+                    if test -n "$target_file" -a -f "$target_file"
+                        set can_diff true
+                    else
+                        echo "Cannot diff: existing file is a broken symlink"
+                        echo "Symlink points to: "(readlink "$target" 2>/dev/null; or echo "unknown")
+                    end
+                else if test -f "$target"
+                    set can_diff true
                 end
+
+                if test "$can_diff" = "true" -a -f "$source"
+                    diff -u "$target_file" "$source" | head -50; or true
+                else if not test -f "$source"
+                    echo "Cannot diff: module source file doesn't exist"
+                end
+
                 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
                 echo ""
                 # Ask again

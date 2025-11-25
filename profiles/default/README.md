@@ -22,7 +22,7 @@ The `default` profile provides a clean, opinionated setup for Fedora Linux users
 
 ## 🎭 Modes
 
-### Desktop Mode (`desktop.yaml`)
+### Desktop Mode (`desktop/mode.yaml`)
 
 **General-purpose desktop environment:**
 
@@ -62,7 +62,7 @@ The `default` profile provides a clean, opinionated setup for Fedora Linux users
 fish install.fish --profile default --mode desktop
 ```
 
-### Container Mode (`container.yaml`)
+### Container Mode (`container/mode.yaml`)
 
 **Minimal terminal-only setup for devcontainers and servers:**
 
@@ -126,7 +126,7 @@ profiles/default/plugins/my-tools/
 
 **Add to mode:**
 ```yaml
-# profiles/default/modes/desktop.yaml
+# profiles/default/modes/desktop/mode.yaml
 modules:
   - essentials
   - neovim
@@ -222,7 +222,7 @@ fish install.fish --profile default --mode desktop
    ```
 
 3. **Add to your mode permanently:**
-   Edit `profiles/default/modes/desktop.yaml` and add the module to the list
+   Edit `profiles/default/modes/desktop/mode.yaml` and add the module to the list
 
 4. **Create custom modules:**
    See [`docs/development/contributing.md`](../../docs/development/contributing.md)

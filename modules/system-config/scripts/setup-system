@@ -80,31 +80,24 @@ if test "$selinux_status" = "Enforcing"
         ui-warning "Failed to enable user_exec_content"
     end
 
-    # Fix SELinux contexts for config directories
+    # Fix SELinux contexts for Fedpunk-managed directories only
+    # NOTE: We only restore contexts for directories Fedpunk creates/modifies
+    # to avoid scanning millions of files (e.g., container storage)
     set home_dir (eval echo ~)
+    set fedpunk_dirs "$home_dir/.config/hypr" "$home_dir/.config/kitty" "$home_dir/.config/fish" "$home_dir/.config/nvim" "$home_dir/.local/bin" "$home_dir/.local/share/fedpunk"
 
-    if test -d "$home_dir/.config"
-        ui-spin --title "Restoring SELinux context for .config..." -- fish -c '
-            sudo restorecon -R "'$home_dir'/.config" >/dev/null 2>&1
-        '
-
-        if test $status -eq 0
-            ui-success "SELinux context restored for .config"
-        else
-            ui-warning "Failed to restore SELinux context for .config"
+    ui-spin --title "Restoring SELinux contexts for Fedpunk directories..." -- fish -c '
+        for dir in '$fedpunk_dirs'
+            if test -d "$dir"
+                sudo restorecon -R "$dir" >/dev/null 2>&1
+            end
         end
-    end
+    '
 
-    if test -d "$home_dir/.local"
-        ui-spin --title "Restoring SELinux context for .local..." -- fish -c '
-            sudo restorecon -R "'$home_dir'/.local" >/dev/null 2>&1
-        '
-
-        if test $status -eq 0
-            ui-success "SELinux context restored for .local"
-        else
-            ui-warning "Failed to restore SELinux context for .local"
-        end
+    if test $status -eq 0
+        ui-success "SELinux contexts restored for Fedpunk directories"
+    else
+        ui-warning "Some SELinux context restorations may have failed"
     end
 
     ui-success "SELinux configuration complete"

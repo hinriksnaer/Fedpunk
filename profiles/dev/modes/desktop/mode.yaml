@@ -8,7 +8,7 @@ mode:
 modules:
   - essentials
   - languages
-  - neovim
+  - plugins/neovim-custom
   - tmux
   - lazygit
   - btop

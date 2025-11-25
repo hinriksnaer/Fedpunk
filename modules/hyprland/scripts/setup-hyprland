@@ -16,18 +16,8 @@ else
     ui-warning "User directories update may have issues"
 end
 
-# Fix SELinux contexts if restorecon is available
-if command -v restorecon >/dev/null 2>&1
-    ui-spin --title "Fixing SELinux contexts..." -- fish -c '
-        sudo restorecon -R '$HOME'/.config '$HOME'/.local >/dev/null 2>&1
-    '
-
-    if test $status -eq 0
-        ui-success "SELinux contexts fixed"
-    else
-        ui-warning "SELinux context fix may have issues"
-    end
-end
+# SELinux contexts are handled by system-config module
+# No need to restore here to avoid duplicate work
 
 # Enable mako notification service
 ui-spin --title "Enabling mako notification service..." -- fish -c '
@@ -52,4 +42,18 @@ else
 end
 
 ui-success "Hyprland setup complete"
-ui-info "Start Hyprland with: Hyprland (from TTY)"
+
+# Reload Hyprland configuration if it's currently running
+if hyprctl version >/dev/null 2>&1
+    ui-spin --title "Reloading Hyprland configuration..." -- fish -c '
+        hyprctl reload >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "Hyprland configuration reloaded"
+    else
+        ui-warning "Failed to reload Hyprland configuration"
+    end
+else
+    ui-info "Start Hyprland with: Hyprland (from TTY)"
+end
