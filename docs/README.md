@@ -92,7 +92,7 @@ Fedpunk is built on a **modular, plugin-based architecture**:
 
 4. **Basic Customization**
    - Read: [guides/customization.md](guides/customization.md)
-   - Edit: `profiles/dev/modes/desktop.yaml` to add/remove modules
+   - Edit: `profiles/dev/modes/desktop/mode.yaml` to add/remove modules
 
 ### Path 2: Power User (Want to Customize)
 
@@ -109,7 +109,7 @@ Fedpunk is built on a **modular, plugin-based architecture**:
 3. **Build Profile Plugins**
    - Read: [../profiles/dev/plugins/README.md](../profiles/dev/plugins/README.md)
    - Create: `profiles/dev/plugins/my-tools/`
-   - Add to mode: Edit `profiles/dev/modes/desktop.yaml`
+   - Add to mode: Edit `profiles/dev/modes/desktop/mode.yaml`
 
 4. **Create Custom Themes**
    - Read: [guides/themes.md](guides/themes.md) - Theme Creation
@@ -154,7 +154,7 @@ Fedpunk is built on a **modular, plugin-based architecture**:
 
 3. **Profile System** (How users customize)
    - **Profiles:** Located in `profiles/<name>/`
-   - **Modes:** `modes/*.yaml` lists modules for desktop/container/etc
+   - **Modes:** `modes/<mode>/mode.yaml` lists modules for desktop/container/etc
    - **Plugins:** `plugins/<name>/` are profile-scoped modules
    - **Resolution:** `fedpunk module deploy plugins/foo` resolves to active profile
 
@@ -228,10 +228,10 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 
 ```bash
 # View active modules
-cat ~/.local/share/fedpunk/profiles/dev/modes/desktop.yaml
+cat ~/.local/share/fedpunk/profiles/dev/modes/desktop/mode.yaml
 
 # Add a module to your profile
-echo "  - bitwarden" >> profiles/dev/modes/desktop.yaml
+echo "  - bitwarden" >> profiles/dev/modes/desktop/mode.yaml
 fedpunk module deploy bitwarden
 
 # Create a custom plugin
