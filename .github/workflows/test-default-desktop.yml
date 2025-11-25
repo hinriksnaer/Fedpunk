@@ -123,6 +123,15 @@ jobs:
 
           echo "✅ PASS: All key binaries are available"
 
+      - name: Install Neovim plugins
+        env:
+          HOME: /root
+          PATH: /root/.local/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        run: |
+          # Run nvim headless to trigger lazy.nvim plugin installation
+          timeout 120 nvim --headless "+Lazy! sync" +qa || true
+          echo "Neovim plugin installation triggered"
+
       - name: Verify Neovim plugins are installed
         run: |
           if [ ! -d /root/.local/share/nvim/lazy ]; then
