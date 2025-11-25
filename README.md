@@ -204,7 +204,6 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 - 12 complete themes with instant switching
 - Rofi launcher, Mako notifications
 - Waybar status bar, Firefox browser
-- Claude Code integration with optional Vertex AI
 
 **Container Mode Includes:**
 - Fish shell with Starship prompt
@@ -605,7 +604,6 @@ Neovim integration with Claude:
 - Buffer-aware AI assistance
 - Project context understanding
 - Slash commands and workflow automation
-- Optional Vertex AI authentication (via vertex-ai module)
 
 ---
 
