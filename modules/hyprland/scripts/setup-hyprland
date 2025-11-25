@@ -16,18 +16,8 @@ else
     ui-warning "User directories update may have issues"
 end
 
-# Fix SELinux contexts if restorecon is available
-if command -v restorecon >/dev/null 2>&1
-    ui-spin --title "Fixing SELinux contexts..." -- fish -c '
-        sudo restorecon -R '$HOME'/.config '$HOME'/.local >/dev/null 2>&1
-    '
-
-    if test $status -eq 0
-        ui-success "SELinux contexts fixed"
-    else
-        ui-warning "SELinux context fix may have issues"
-    end
-end
+# SELinux contexts are handled by system-config module
+# No need to restore here to avoid duplicate work
 
 # Enable mako notification service
 ui-spin --title "Enabling mako notification service..." -- fish -c '
