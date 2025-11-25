@@ -1,6 +1,6 @@
 module:
-  name: neovim
-  description: LazyVim - Neovim distribution with LSP, DAP, and modern plugins preconfigured
+  name: neovim-custom
+  description: Custom Neovim configuration with advanced LSP, DAP, and plugin setup
   dependencies:
     - cli-tools
   priority: 7

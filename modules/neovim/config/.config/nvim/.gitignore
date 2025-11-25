@@ -1,10 +1,8 @@
-tags
-test.sh
-.luarc.json
-nvim
-
-spell/
-lazy-lock.json
-
-# Generated theme file (created during installation)
-lua/plugins/theme.lua
+tt.*
+.tests
+doc/tags
+debug
+.repro
+foo.*
+*.log
+data

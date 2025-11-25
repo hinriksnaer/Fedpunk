@@ -1,0 +1,43 @@
+#!/usr/bin/env fish
+# Install Neovim from GitHub releases
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Installing Neovim from GitHub"
+
+# Create directories
+mkdir -p $HOME/.local/bin
+
+# Download latest Neovim
+set TMPDIR (mktemp -d)
+
+ui-spin --title "Downloading Neovim..." -- fish -c '
+    curl -fL --retry 3 -o "'$TMPDIR'/nvim.tar.gz" \
+        "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz" >/dev/null 2>&1
+'
+
+if test $status -ne 0
+    ui-error "Failed to download Neovim"
+    rm -rf $TMPDIR
+    return 1
+end
+
+ui-success "Neovim downloaded"
+
+# Extract and install
+ui-spin --title "Installing Neovim..." -- fish -c '
+    tar -xzf "'$TMPDIR'/nvim.tar.gz" -C "'$HOME'/.local" >/dev/null 2>&1
+    ln -sfn "'$HOME'/.local/nvim-linux-x86_64/bin/nvim" "'$HOME'/.local/bin/nvim" >/dev/null 2>&1
+'
+
+if test $status -ne 0
+    ui-error "Failed to extract Neovim"
+    rm -rf $TMPDIR
+    return 1
+end
+
+# Cleanup
+rm -rf $TMPDIR
+
+ui-success "Neovim installed to ~/.local/bin/nvim"
+ui-info "Version: "(nvim --version | head -n1)
