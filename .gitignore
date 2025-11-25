@@ -68,5 +68,8 @@ modules/lazygit/config/.config/lazygit/config.yml
 # Linker state file (runtime-generated)
 .linker-state.json
 
+# Active profile symlink (runtime-generated)
+.active-config
+
 # Centralized backup directory
 ../fedpunk-backups/
