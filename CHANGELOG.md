@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-11-25
+
+### 🐛 Bug Fixes
+
+- **Fixed** Neovim theme not loading on startup
+  - Theme-watcher now loads the current fedpunk theme on VimEnter
+  - Previously only watched for changes, causing default theme to show on startup
+  - Affects both default profile (LazyVim) and dev profile (neovim-custom)
+
 ## [0.2.1] - 2025-11-25
 
 ### 🔧 Improvements
