@@ -62,6 +62,9 @@ modules/tmux/config/.config/tmux/plugins/
 # Fish variables (dynamically managed)
 modules/fish/config/.config/fish/fish_variables
 
+# Neovim config (cloned from LazyVim starter by before script)
+modules/neovim/config/.config/nvim/
+
 # Lazygit config (may contain user-specific settings)
 modules/lazygit/config/.config/lazygit/config.yml
 

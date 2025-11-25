@@ -1,0 +1,71 @@
+#!/usr/bin/env fish
+# Clone LazyVim starter before deployment
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+set CONFIG_DIR "$FEDPUNK_ROOT/modules/neovim/config/.config/nvim"
+
+# Remove existing config if it exists
+if test -d "$CONFIG_DIR"
+    rm -rf "$CONFIG_DIR"
+end
+
+ui-info "Cloning LazyVim starter for default profile"
+
+# Clone LazyVim starter
+ui-spin --title "Downloading LazyVim starter..." -- fish -c '
+    git clone https://github.com/LazyVim/starter "'$CONFIG_DIR'" >/dev/null 2>&1
+'
+
+if test $status -ne 0
+    ui-error "Failed to clone LazyVim starter"
+    return 1
+end
+
+# Remove .git directory
+rm -rf "$CONFIG_DIR/.git"
+
+ui-success "LazyVim starter cloned"
+
+# Apply fedpunk customizations to lazy.lua
+ui-info "Applying fedpunk theme integration"
+
+set LAZY_LUA "$CONFIG_DIR/lua/config/lazy.lua"
+
+# Read the current lazy.lua
+set -l content (cat "$LAZY_LUA")
+
+# Insert fedpunk customizations after vim.opt.rtp:prepend(lazypath)
+set -l insertion '
+-- Read fedpunk theme colorscheme if theme.lua exists
+local lazyvim_colorscheme = nil
+local theme_file = vim.fn.stdpath("config") .. "/lua/plugins/theme.lua"
+if vim.fn.filereadable(theme_file) == 1 then
+  local ok, theme_spec = pcall(dofile, theme_file)
+  if ok and theme_spec and type(theme_spec) == "table" then
+    for _, spec in ipairs(theme_spec) do
+      if type(spec) == "table" and spec.opts and spec.opts.colorscheme then
+        lazyvim_colorscheme = spec.opts.colorscheme
+        break
+      end
+    end
+  end
+end
+
+-- Mark that we'"'"'ve configured LazyVim so theme.lua doesn'"'"'t try to configure it again
+vim.g.lazyvim_configured = true
+
+-- Disable LazyVim import order check since we configure LazyVim with theme in lazy.lua
+-- then import plugins directory (which may contain theme.lua)
+vim.g.lazyvim_check_order = false
+'
+
+# Replace the LazyVim setup line to include colorscheme opts
+cat "$LAZY_LUA" | \
+    sed '/vim.opt.rtp:prepend(lazypath)/a\'"$insertion" | \
+    sed 's/{ "LazyVim\/LazyVim", import = "lazyvim.plugins" }/{ "LazyVim\/LazyVim", import = "lazyvim.plugins", opts = lazyvim_colorscheme and { colorscheme = lazyvim_colorscheme } or {} }/' \
+    > "$LAZY_LUA.tmp"
+
+mv "$LAZY_LUA.tmp" "$LAZY_LUA"
+
+ui-success "Fedpunk theme integration configured"
