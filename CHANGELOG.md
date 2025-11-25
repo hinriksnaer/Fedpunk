@@ -49,12 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reloads both after module deployment and mode setup
 
 #### Neovim
-- **Fixed** Removed LazyVim dependency completely
-  - Fixed plugin load order issue with treesitter and which-key
-  - Removed `lazyvim.json` configuration file
-  - Fixed theme.lua to set colorscheme without LazyVim
-  - Disabled luarocks support to avoid installation errors
-  - Pure lazy.nvim setup without LazyVim wrapper
+- **Refactored** Migrated to LazyVim for default profile, custom config for dev profile
+  - Default profile now uses official LazyVim starter for batteries-included experience
+  - Dev profile uses custom Neovim configuration via plugin system (`neovim-custom`)
+  - Created comprehensive CI tests for both default and dev profiles
+  - Fixed LazyVim import order warning by disabling check for fedpunk theme system
+  - Updated all theme files to work with both LazyVim (default) and custom config (dev)
+  - Theme files now include conditional check to prevent duplicate LazyVim imports
 
 ### 🐛 Bug Fixes
 
