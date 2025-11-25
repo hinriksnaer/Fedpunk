@@ -286,20 +286,22 @@ function installer-run
         end
     end
 
+    # Set up active profile symlink BEFORE deploying modules (plugins need this)
+    echo ""
+    ui-info "Setting up active profile..."
+    set -l active_config "$FEDPUNK_ROOT/.active-config"
+    rm -f "$active_config"
+    ln -s "$FEDPUNK_ROOT/profiles/$profile" "$active_config"
+    ui-success "Active profile: $profile"
+
     # Deploy modules
     echo ""
     installer-deploy-modules $modules
 
     if test $status -eq 0
-        # Set up active profile and mode symlinks
+        # Set up mode configuration
         echo ""
-        ui-info "Setting up active profile and mode configuration..."
-
-        # Create active profile symlink
-        set -l active_config "$FEDPUNK_ROOT/.active-config"
-        rm -f "$active_config"
-        ln -s "$FEDPUNK_ROOT/profiles/$profile" "$active_config"
-        ui-success "Active profile: $profile"
+        ui-info "Setting up mode configuration..."
 
         # Create active mode configuration for Hyprland (if hypr.conf exists)
         set -l mode_hypr_conf "$FEDPUNK_ROOT/profiles/$profile/modes/$mode/hypr.conf"
