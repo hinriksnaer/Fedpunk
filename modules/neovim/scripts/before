@@ -112,3 +112,11 @@ printf '%s\n' \
 > "$LAZY_LUA"
 
 ui-success "Fedpunk theme integration configured"
+
+# Copy theme-watcher plugin
+ui-info "Adding theme watcher plugin"
+
+cp "$FEDPUNK_ROOT/modules/neovim/templates/plugins/theme-watcher.lua" \
+   "$CONFIG_DIR/lua/plugins/theme-watcher.lua"
+
+ui-success "Theme watcher plugin added"
