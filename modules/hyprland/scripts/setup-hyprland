@@ -42,4 +42,18 @@ else
 end
 
 ui-success "Hyprland setup complete"
-ui-info "Start Hyprland with: Hyprland (from TTY)"
+
+# Reload Hyprland configuration if it's currently running
+if hyprctl version >/dev/null 2>&1
+    ui-spin --title "Reloading Hyprland configuration..." -- fish -c '
+        hyprctl reload >/dev/null 2>&1
+    '
+
+    if test $status -eq 0
+        ui-success "Hyprland configuration reloaded"
+    else
+        ui-warning "Failed to reload Hyprland configuration"
+    end
+else
+    ui-info "Start Hyprland with: Hyprland (from TTY)"
+end
