@@ -1,0 +1,178 @@
+name: Test Default Container Installation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-installation:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+
+    steps:
+      - name: Install fresh Fedora system dependencies
+        run: |
+          dnf install -y git fish sudo stow gum yq jq
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Move to installation directory and run installer
+        run: |
+          mkdir -p /root/.local/share
+          cp -r $PWD /root/.local/share/fedpunk
+          cd /root/.local/share/fedpunk
+          fish install.fish --profile default --mode container --non-interactive
+
+      - name: Verify fish is set as default shell
+        run: |
+          CURRENT_SHELL=$(getent passwd root | cut -d: -f7)
+          FISH_PATH=$(which fish)
+
+          echo "Current default shell: $CURRENT_SHELL"
+          echo "Fish path: $FISH_PATH"
+
+          if [ "$CURRENT_SHELL" != "$FISH_PATH" ]; then
+            echo "❌ FAIL: Fish is not the default shell!"
+            echo "Expected: $FISH_PATH"
+            echo "Got: $CURRENT_SHELL"
+            exit 1
+          fi
+
+          echo "✅ PASS: Fish is correctly set as default shell"
+
+      - name: Verify .active-config symlink exists
+        run: |
+          if [ ! -L /root/.local/share/fedpunk/.active-config ]; then
+            echo "❌ FAIL: .active-config symlink does not exist!"
+            exit 1
+          fi
+
+          ACTIVE_PROFILE=$(readlink /root/.local/share/fedpunk/.active-config)
+          echo "Active profile: $ACTIVE_PROFILE"
+
+          if [[ ! "$ACTIVE_PROFILE" == *"/profiles/default" ]]; then
+            echo "❌ FAIL: .active-config does not point to default profile!"
+            echo "Expected: /root/.local/share/fedpunk/profiles/default"
+            echo "Got: $ACTIVE_PROFILE"
+            exit 1
+          fi
+
+          echo "✅ PASS: .active-config symlink correctly points to default profile"
+
+      - name: Verify essential configuration files are symlinked
+        run: |
+          CONFIGS=(
+            "/root/.config/fish/config.fish"
+            "/root/.config/nvim/init.lua"
+          )
+
+          FAILED=0
+          for config in "${CONFIGS[@]}"; do
+            if [ ! -L "$config" ]; then
+              echo "❌ FAIL: $config is not a symlink!"
+              FAILED=1
+            else
+              TARGET=$(readlink -f "$config")
+              echo "✅ PASS: $config -> $TARGET"
+            fi
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            exit 1
+          fi
+
+          echo "✅ PASS: All essential configuration files are properly symlinked"
+
+      - name: Verify desktop-specific modules are NOT installed
+        run: |
+          # Container mode should not have Hyprland, Kitty, Firefox, etc.
+          if [ -d /root/.config/hypr ]; then
+            echo "❌ FAIL: Hyprland config should not exist in container mode!"
+            exit 1
+          fi
+
+          if [ -d /root/.config/kitty ]; then
+            echo "❌ FAIL: Kitty config should not exist in container mode!"
+            exit 1
+          fi
+
+          echo "✅ PASS: Desktop-specific modules are not installed"
+
+      - name: Verify key binaries are available
+        run: |
+          BINARIES=(
+            "fish"
+            "nvim"
+            "tmux"
+            "lazygit"
+            "yazi"
+            "gh"
+            "bw"
+          )
+
+          FAILED=0
+          for binary in "${BINARIES[@]}"; do
+            if ! command -v "$binary" &> /dev/null; then
+              echo "❌ FAIL: $binary not found in PATH!"
+              FAILED=1
+            else
+              echo "✅ PASS: $binary is available"
+            fi
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            exit 1
+          fi
+
+          echo "✅ PASS: All key binaries are available"
+
+      - name: Verify Neovim plugins are installed
+        run: |
+          if [ ! -d /root/.local/share/nvim/lazy ]; then
+            echo "❌ FAIL: Neovim lazy plugin directory does not exist!"
+            exit 1
+          fi
+
+          PLUGIN_COUNT=$(ls -1 /root/.local/share/nvim/lazy | wc -l)
+          echo "Installed plugins: $PLUGIN_COUNT"
+
+          if [ $PLUGIN_COUNT -lt 5 ]; then
+            echo "❌ FAIL: Expected at least 5 plugins, found $PLUGIN_COUNT"
+            exit 1
+          fi
+
+          echo "✅ PASS: Neovim plugins are installed ($PLUGIN_COUNT plugins)"
+
+      - name: Verify LazyVim is not installed
+        run: |
+          if [ -d /root/.local/share/nvim/lazy/LazyVim ]; then
+            echo "❌ FAIL: LazyVim should not be installed!"
+            exit 1
+          fi
+
+          echo "✅ PASS: LazyVim is not installed (pure lazy.nvim setup)"
+
+      - name: Test fish shell starts without errors
+        run: |
+          fish -c "echo 'Fish shell works!'" || exit 1
+          echo "✅ PASS: Fish shell starts without errors"
+
+      - name: Verify installation summary
+        run: |
+          echo ""
+          echo "========================================="
+          echo "Installation Verification Summary"
+          echo "========================================="
+          echo "Profile: default"
+          echo "Mode: container"
+          echo "Shell: $(fish --version)"
+          echo "Neovim: $(nvim --version | head -n1)"
+          echo "Fish config: $(readlink -f /root/.config/fish/config.fish)"
+          echo "========================================="
+          echo ""
+          echo "✅ All tests passed! Default container profile installation successful."
