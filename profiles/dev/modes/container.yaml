@@ -14,4 +14,4 @@ modules:
   - gh
   - bitwarden
   - claude
-  - vertex-ai
+  - plugins/vertex-ai

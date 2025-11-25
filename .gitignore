@@ -40,23 +40,8 @@ bw_session
 # Local user config overrides (not tracked)
 local/
 
-# User profiles (personal customizations, won't cause merge conflicts)
-profiles/*/
-!profiles/example/
-!profiles/dev/
-!profiles/default/
-
 # Development tools
 .claude/
-
-# User-specific theme selections (symlinks managed by fedpunk theme system)
-dot_config/btop/themes/active.theme
-dot_config/btop/themes/current.theme
-dot_config/hypr/wallpapers/current
-dot_config/mako/theme.conf
-dot_config/kitty/theme.conf
-dot_config/rofi/theme.rasi
-dot_config/waybar/theme.css
 
 # Runtime-generated theme symlinks (managed by fedpunk-theme-set)
 modules/*/config/.config/*/theme.conf
