@@ -51,11 +51,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Neovim
 - **Refactored** Migrated to LazyVim for default profile, custom config for dev profile
   - Default profile now uses official LazyVim starter for batteries-included experience
+  - LazyVim starter dynamically cloned via before script (not tracked in git)
   - Dev profile uses custom Neovim configuration via plugin system (`neovim-custom`)
   - Created comprehensive CI tests for both default and dev profiles
+  - Added theme-watcher plugin for automatic colorscheme reloading
   - Fixed LazyVim import order warning by disabling check for fedpunk theme system
   - Updated all theme files to work with both LazyVim (default) and custom config (dev)
   - Theme files now include conditional check to prevent duplicate LazyVim imports
+  - Dynamic theme switching now works seamlessly in both profiles
 
 ### 🐛 Bug Fixes
 
@@ -64,6 +67,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `active-mode.conf` to gitignore (runtime-generated config)
   - Added centralized backup directory to gitignore
   - Cleaned up tracked files that should be runtime-generated
+- **Fixed** Hyprland globbing error from deprecated monitors.conf source
+  - Removed profile-level monitors.conf source (replaced by mode-based system)
+  - Monitor configuration now handled exclusively via mode-specific hypr.conf files
 
 ### 📝 Project Structure
 
