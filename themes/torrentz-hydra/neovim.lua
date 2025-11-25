@@ -4,6 +4,7 @@
 return {
   {
     "LazyVim/LazyVim",
+    priority = 1000,
     opts = {
       colorscheme = function()
         vim.opt.termguicolors = true

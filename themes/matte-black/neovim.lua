@@ -3,6 +3,7 @@
 -- All theme plugins are defined in colorscheme.lua
 return {
   {
+    priority = 1000,
     "LazyVim/LazyVim",
     opts = {
       colorscheme = "matteblack",
