@@ -22,6 +22,9 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   { import = 'plugins' },
 }, {
+  rocks = {
+    enabled = false,  -- Disable luarocks support to avoid installation errors
+  },
   ui = {
     icons = vim.g.have_nerd_font and {} or {
       cmd = '⌘',
