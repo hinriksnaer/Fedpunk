@@ -4,10 +4,14 @@
 
 return {
   {
-    'LazyVim/LazyVim',
-    opts = {
-      -- Default to ayu-mirage if no theme is set
-      colorscheme = 'ayu',
-    },
+    'Shatur/neovim-ayu',
+    priority = 1000,
+    config = function()
+      require('ayu').setup {
+        mirage = true,
+      }
+      -- Set ayu as default colorscheme
+      vim.cmd.colorscheme('ayu')
+    end,
   },
 }
