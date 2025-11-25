@@ -3,7 +3,6 @@
 
 return {
     {
-        "LazyVim/LazyVim",
         opts = {
             colorscheme = function()
                 -- Dark color palette
