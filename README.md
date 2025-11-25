@@ -55,7 +55,7 @@ Fedpunk is a **next-generation configuration management system** that transforms
 
 ## ✨ Architecture Highlights
 
-**v0.2.0** features a revolutionary modular system:
+**v0.2.1** features a revolutionary modular system:
 
 ### 🎁 Module System
 Every package is now self-contained with its own metadata, dependencies, and lifecycle:
