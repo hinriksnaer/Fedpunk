@@ -22,6 +22,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Move to installation directory and run installer
+        env:
+          HOME: /root
         run: |
           mkdir -p /root/.local/share
           cp -r $PWD /root/.local/share/fedpunk
