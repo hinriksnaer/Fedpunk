@@ -162,6 +162,12 @@ vim.api.nvim_create_autocmd("VimEnter", {
       last_mtime = stat.mtime.sec
       last_size = stat.size
     end
+
+    -- Load the current theme on startup
+    vim.defer_fn(function()
+      reload_theme()
+    end, 100)
+
     -- Start file watcher
     vim.defer_fn(watch_theme_file, 500)
   end,
