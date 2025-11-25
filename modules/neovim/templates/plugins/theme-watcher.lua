@@ -29,8 +29,16 @@ local function watch_theme_file()
       if filename == "theme.lua" then
         -- Longer delay to ensure file write is complete
         vim.defer_fn(function()
+          -- Temporarily unset the flag so we can read the actual theme content
+          local saved_flag = vim.g.lazyvim_configured
+          vim.g.lazyvim_configured = false
+
           -- Reload the theme configuration
           local ok, theme_spec = pcall(dofile, theme_file)
+
+          -- Restore the flag
+          vim.g.lazyvim_configured = saved_flag
+
           if ok and theme_spec and type(theme_spec) == "table" then
             -- Find and apply the colorscheme
             for _, spec in ipairs(theme_spec) do
@@ -67,7 +75,15 @@ end
 
 -- Function to manually reload theme (useful as fallback)
 local function reload_theme()
+  -- Temporarily unset the flag so we can read the actual theme content
+  local saved_flag = vim.g.lazyvim_configured
+  vim.g.lazyvim_configured = false
+
   local ok, theme_spec = pcall(dofile, theme_file)
+
+  -- Restore the flag
+  vim.g.lazyvim_configured = saved_flag
+
   if ok and theme_spec and type(theme_spec) == "table" then
     for _, spec in ipairs(theme_spec) do
       if type(spec) == "table" and spec.opts and spec.opts.colorscheme then
