@@ -56,16 +56,16 @@ FEDPUNK_REF="${FEDPUNK_REF:-main}"
 echo -e "\nCloning Fedpunk from: https://github.com/${FEDPUNK_REPO}.git"
 echo -e "\e[32mUsing branch: $FEDPUNK_REF\e[0m"
 
-# Clone to temporary location if directory exists
+# Backup existing installation if it exists
 FEDPUNK_PATH="$HOME/.local/share/fedpunk"
 if [[ -d "$FEDPUNK_PATH" ]]; then
-    echo "⚠️  Existing installation found, cloning to temporary location..."
-    TEMP_PATH="/tmp/fedpunk-install-$$"
-    git clone -b "${FEDPUNK_REF}" "https://github.com/${FEDPUNK_REPO}.git" "$TEMP_PATH"
-    FEDPUNK_PATH="$TEMP_PATH"
-else
-    git clone -b "${FEDPUNK_REF}" "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
+    BACKUP_PATH="${FEDPUNK_PATH}.backup.$(date +%Y%m%d-%H%M%S)"
+    echo "⚠️  Existing installation found, backing up to: $BACKUP_PATH"
+    mv "$FEDPUNK_PATH" "$BACKUP_PATH"
 fi
+
+# Clone to the standard location
+git clone -b "${FEDPUNK_REF}" "https://github.com/${FEDPUNK_REPO}.git" "$FEDPUNK_PATH"
 
 echo -e "\nInstallation starting..."
 

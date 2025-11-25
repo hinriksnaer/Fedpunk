@@ -61,3 +61,6 @@ modules/fish/config/.config/fish/fish_variables
 
 # Lazygit config (may contain user-specific settings)
 modules/lazygit/config/.config/lazygit/config.yml
+
+# Linker state file (runtime-generated)
+.linker-state.json
