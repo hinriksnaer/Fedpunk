@@ -18,6 +18,8 @@ end
 
 vim.opt.rtp:prepend(lazypath)
 
+vim.g.lazyvim_check_order = false
+
 -- Load plugins from lua/plugins/*.lua
 require('lazy').setup({
   { import = 'plugins' },
