@@ -106,6 +106,8 @@ jobs:
           echo "✅ PASS: Desktop-specific modules are not installed"
 
       - name: Verify key binaries are available
+        env:
+          PATH: /root/.local/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         run: |
           BINARIES=(
             "fish"

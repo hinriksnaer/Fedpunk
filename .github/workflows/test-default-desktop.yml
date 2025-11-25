@@ -93,6 +93,8 @@ jobs:
           echo "✅ PASS: All essential configuration files are properly symlinked"
 
       - name: Verify key binaries are available
+        env:
+          PATH: /root/.local/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         run: |
           BINARIES=(
             "fish"
