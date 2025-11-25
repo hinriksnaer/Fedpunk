@@ -53,6 +53,9 @@ modules/hyprland/config/.config/hypr/active-theme.conf
 # Wallpaper directory (runtime-generated)
 modules/hyprland/config/.config/hypr/wallpapers/
 
+# Runtime-generated mode configuration (managed by installer)
+modules/hyprland/config/.config/hypr/active-mode.conf
+
 # Tmux plugins (managed by tpm)
 modules/tmux/config/.config/tmux/plugins/
 
