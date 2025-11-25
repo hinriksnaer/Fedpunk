@@ -40,7 +40,7 @@ require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins with fedpunk theme
     { "LazyVim/LazyVim", import = "lazyvim.plugins", opts = lazyvim_colorscheme and { colorscheme = lazyvim_colorscheme } or {} },
-    -- import/override with your plugins (but skip theme.lua since we already handled it)
+    -- import/override with your plugins
     { import = "plugins" },
   },
   defaults = {
