@@ -311,6 +311,12 @@ function installer-run
             echo "" >> "$active_mode_conf"
             echo "source = $FEDPUNK_ROOT/profiles/$profile/modes/$mode/hypr.conf" >> "$active_mode_conf"
             ui-success "Active mode configured: $mode"
+
+            # Reload Hyprland if it's running
+            if hyprctl version >/dev/null 2>&1
+                hyprctl reload >/dev/null 2>&1
+                ui-success "Hyprland configuration reloaded"
+            end
         end
 
         # Final system update after all modules
