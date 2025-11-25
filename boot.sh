@@ -70,8 +70,9 @@ fi
 echo -e "\nInstallation starting..."
 
 # Pass terminal-only flag if set
+# Redirect stdin from /dev/tty to allow interactive prompts when running via curl | bash
 if [[ -n "$FEDPUNK_TERMINAL_ONLY" ]]; then
-    fish "$FEDPUNK_PATH/install.fish" --terminal-only
+    fish "$FEDPUNK_PATH/install.fish" --terminal-only < /dev/tty
 else
-    fish "$FEDPUNK_PATH/install.fish"
+    fish "$FEDPUNK_PATH/install.fish" < /dev/tty
 fi
