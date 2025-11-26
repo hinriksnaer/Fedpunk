@@ -1,0 +1,15 @@
+module:
+  name: lvm-expand
+  description: Expand root LVM partition to use all available space
+  dependencies: []
+
+lifecycle:
+  before:
+    - expand-root.sh
+
+packages:
+  dnf: []
+
+stow:
+  target: $HOME
+  conflicts: warn

@@ -125,6 +125,35 @@ function fedpunk-module-list
             end
         end
     end
+
+    # List profile plugins if active profile exists
+    set -l active_config "$FEDPUNK_ROOT/.active-config"
+    if test -L "$active_config"
+        set -l profile_dir (readlink -f "$active_config")
+        set -l plugins_dir "$profile_dir/plugins"
+
+        if test -d "$plugins_dir"
+            echo ""
+            echo "Profile plugins:"
+            for plugin_dir in $plugins_dir/*
+                if test -d "$plugin_dir"
+                    set -l plugin_name (basename "$plugin_dir")
+                    set -l plugin_yaml "$plugin_dir/module.yaml"
+
+                    if test -f "$plugin_yaml"
+                        set -l description (yaml-get-value "$plugin_yaml" "module" "description")
+                        if test -n "$description"
+                            echo "  plugins/$plugin_name - $description"
+                        else
+                            echo "  plugins/$plugin_name"
+                        end
+                    else
+                        echo "  plugins/$plugin_name (no module.yaml)"
+                    end
+                end
+            end
+        end
+    end
 end
 
 function fedpunk-module-info
