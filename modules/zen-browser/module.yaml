@@ -1,8 +1,9 @@
 module:
-  name: firefox
+  name: zen-browser
   description: Zen Browser - Firefox-based browser focused on privacy and simplicity
   dependencies:
     - multimedia
+  priority: 6
 
 lifecycle:
   before: []

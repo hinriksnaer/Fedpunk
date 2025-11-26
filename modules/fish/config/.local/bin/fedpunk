@@ -40,11 +40,14 @@ function show_help
     echo "  wallpaper set <theme>  Set wallpaper from theme"
     echo "  wallpaper next         Switch to next wallpaper"
     echo ""
+    echo "SSH Key Management:"
+    echo "  ssh backup             Backup SSH keys (GitHub/Bitwarden)"
+    echo "  ssh restore            Restore SSH keys (GitHub/Bitwarden)"
+    echo "  ssh list               List available backups"
+    echo ""
     echo "Vault Management (Bitwarden):"
     echo "  vault status           Show vault status"
     echo "  vault unlock           Unlock Bitwarden vault"
-    echo "  vault ssh-backup       Backup SSH keys to vault"
-    echo "  vault ssh-restore      Restore SSH keys from vault"
     echo "  vault claude-backup    Backup Claude Code token (no re-login needed!)"
     echo "  vault claude-restore   Restore Claude Code token on fresh install"
     echo ""
@@ -61,7 +64,7 @@ function show_help
     echo "  fedpunk init                    # Interactive setup (TUI)"
     echo "  fedpunk profile select          # Select profile (TUI)"
     echo "  fedpunk theme set nord          # Set theme (CLI)"
-    echo "  fedpunk vault ssh-backup        # Backup SSH keys"
+    echo "  fedpunk ssh backup              # Backup SSH keys"
     echo "  fedpunk apply                   # Apply local config changes"
     echo "  fedpunk sync                    # Sync config across machines"
     echo ""
@@ -480,22 +483,18 @@ switch $command
             echo "  lock             Lock the vault"
             echo "  sync             Sync vault with server"
             echo "  get <name>       Get password for item"
-            echo "  ssh-load           Load SSH keys into agent"
-            echo "  ssh-backup [name]  Backup ~/.ssh directory to vault"
-            echo "  ssh-restore [name] Restore ~/.ssh directory from vault"
-            echo "  claude-backup [name]  Generate & backup Claude Code long-lived token"
-            echo "  claude-restore [name] Restore Claude Code token (no login needed!)"
-            echo "  env <name>         Load environment variables from item"
+            echo "  ssh-load         Load SSH keys into agent"
+            echo "  claude-backup    Generate & backup Claude Code long-lived token"
+            echo "  claude-restore   Restore Claude Code token (no login needed!)"
+            echo "  env <name>       Load environment variables from item"
             echo ""
             echo "Examples:"
             echo "  fedpunk vault unlock"
             echo "  fedpunk vault get github"
-            echo "  fedpunk vault ssh-backup                    # Default backup"
-            echo "  fedpunk vault ssh-backup work-laptop        # Named backup"
-            echo "  fedpunk vault ssh-restore                   # Restore default"
-            echo "  fedpunk vault ssh-restore work-laptop       # Restore named"
             echo "  fedpunk vault claude-backup                 # Generate long-lived token"
             echo "  fedpunk vault claude-restore                # Restore on fresh install"
+            echo ""
+            echo "Note: For SSH key backup/restore, use 'fedpunk ssh' command instead."
             exit 1
         end
 
@@ -534,233 +533,18 @@ switch $command
                 bw-ssh-load
 
             case ssh-backup
-                # Backup ~/.ssh directory to Bitwarden
-                echo "🔒 Backing up SSH configuration to Bitwarden..."
+                # Deprecated - redirect to new command
+                echo "Note: 'fedpunk vault ssh-backup' is deprecated."
+                echo "Use 'fedpunk ssh backup -b' instead."
                 echo ""
-
-                # Check if SSH directory exists
-                if not test -d "$HOME/.ssh"
-                    echo "✗ No ~/.ssh directory found"
-                    exit 1
-                end
-
-                # Check if vault is unlocked
-                set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-                if test "$bw_status" != "unlocked"
-                    echo "✗ Bitwarden vault is locked"
-                    echo "  Run: fedpunk vault unlock"
-                    exit 1
-                end
-
-                # Get backup name (optional)
-                if test (count $vault_args) -gt 0
-                    set backup_name $vault_args[1]
-                    set item_name "SSH Config - $backup_name"
-                else
-                    set item_name "SSH Configuration Backup"
-                end
-
-                echo "Backup name: $item_name"
-                echo ""
-
-                # Create a tarball of .ssh directory (excluding known_hosts)
-                set backup_file (mktemp --suffix=.tar.gz)
-                echo "→ Creating encrypted backup..."
-                echo "  (excluding known_hosts - will be rebuilt automatically)"
-                tar -czf "$backup_file" -C "$HOME" --exclude='.ssh/known_hosts' --exclude='.ssh/known_hosts.old' .ssh 2>/dev/null
-
-                if not test -f "$backup_file"
-                    echo "✗ Failed to create backup"
-                    exit 1
-                end
-
-                # Base64 encode the tarball
-                set encoded_backup (base64 -w 0 "$backup_file")
-                rm -f "$backup_file"
-
-                # Setup metadata
-                set backup_hostname (hostname)
-                set timestamp (date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-                # Check if item exists
-                set existing_item (bw get item "$item_name" 2>/dev/null)
-
-                # Prepare note content
-                set note_content "SSH Configuration Backup
-Hostname: $backup_hostname
-Timestamp: $timestamp
-Format: tar.gz (base64 encoded)
-
---- BEGIN SSH BACKUP ---
-$encoded_backup
---- END SSH BACKUP ---"
-
-                if test -n "$existing_item"
-                    # Update existing item
-                    echo "→ Updating existing backup..."
-                    set item_id (echo "$existing_item" | jq -r '.id')
-
-                    # Update item
-                    echo "$existing_item" | jq --arg notes "$note_content" '.notes = $notes' | bw encode | bw edit item "$item_id" >/dev/null 2>&1
-                    set bw_status $status
-                else
-                    # Create new item
-                    echo "→ Creating new backup item..."
-
-                    # Create secure note using jq for proper JSON encoding
-                    jq -n --arg name "$item_name" --arg notes "$note_content" '{
-  organizationId: null,
-  folderId: null,
-  type: 2,
-  name: $name,
-  notes: $notes,
-  favorite: false,
-  secureNote: {
-    type: 0
-  }
-}' | bw encode | bw create item >/dev/null 2>&1
-                    set bw_status $status
-                end
-
-                if test $bw_status -eq 0
-                    echo ""
-                    echo "✓ SSH configuration backed up successfully"
-                    echo "  Item: $item_name"
-                    echo "  Hostname: $backup_hostname"
-                    echo "  Timestamp: $timestamp"
-                    echo ""
-                    echo "💡 Run 'fedpunk vault sync' to sync with server"
-                else
-                    echo "✗ Failed to create/update backup in Bitwarden"
-                    exit 1
-                end
+                exec $script_dir/fedpunk ssh backup -b $vault_args
 
             case ssh-restore
-                # Restore ~/.ssh directory from Bitwarden
-                echo "🔓 Restoring SSH configuration from Bitwarden..."
+                # Deprecated - redirect to new command
+                echo "Note: 'fedpunk vault ssh-restore' is deprecated."
+                echo "Use 'fedpunk ssh restore -b' instead."
                 echo ""
-
-                # Check if vault is unlocked
-                set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-                if test "$bw_status" != "unlocked"
-                    echo "✗ Bitwarden vault is locked"
-                    echo "  Run: fedpunk vault unlock"
-                    exit 1
-                end
-
-                # Sync vault to ensure latest items
-                echo "→ Syncing vault..."
-                if not bw sync >/dev/null 2>&1
-                    echo "⚠️  Warning: Failed to sync vault, using cached data"
-                end
-                echo ""
-
-                # Get backup name (optional)
-                if test (count $vault_args) -gt 0
-                    set backup_name $vault_args[1]
-                    set item_name "SSH Config - $backup_name"
-                else
-                    # No name specified - list available backups
-                    set available_backups (bw list items --search "SSH Config" 2>/dev/null | jq -r '.[] | select(.type == 2) | .name')
-
-                    if test -z "$available_backups"
-                        echo "✗ No SSH backups found in Bitwarden"
-                        echo "  Run 'fedpunk vault ssh-backup' to create a backup first"
-                        exit 1
-                    end
-
-                    # If only one backup, use it
-                    set backup_count (echo "$available_backups" | wc -l)
-                    if test $backup_count -eq 1
-                        set item_name (echo "$available_backups" | head -1)
-                        echo "Found backup: $item_name"
-                    else
-                        # Multiple backups - let user choose
-                        echo "Available SSH backups:"
-                        echo ""
-                        if command -v gum >/dev/null 2>&1
-                            set item_name (echo "$available_backups" | gum choose --header "Select backup to restore:")
-                        else
-                            echo "$available_backups" | nl
-                            echo ""
-                            read -P "Enter number: " choice
-                            set item_name (echo "$available_backups" | sed -n "$choice"p)
-                        end
-
-                        if test -z "$item_name"
-                            echo "✗ No backup selected"
-                            exit 0
-                        end
-                    end
-                end
-
-                echo "Restoring: $item_name"
-                echo ""
-
-                # Check if .ssh already exists
-                if test -d "$HOME/.ssh"
-                    echo "⚠️  Warning: ~/.ssh directory already exists"
-                    echo ""
-                    ls -la "$HOME/.ssh"
-                    echo ""
-                    read -P "Overwrite existing SSH configuration? [y/N] " -n 1 confirm
-                    echo ""
-
-                    if test "$confirm" != "y" -a "$confirm" != "Y"
-                        echo "✗ Restore cancelled"
-                        exit 0
-                    end
-
-                    # Backup existing .ssh before overwriting
-                    set backup_dir "$HOME/.ssh.backup."(date +%Y%m%d-%H%M%S)
-                    echo "→ Backing up existing .ssh to $backup_dir"
-                    mv "$HOME/.ssh" "$backup_dir"
-                end
-
-                # Get backup from Bitwarden
-                set item (bw get item "$item_name" 2>/dev/null)
-
-                if test -z "$item"
-                    echo "✗ Could not retrieve backup: $item_name"
-                    exit 1
-                end
-
-                # Extract base64 encoded backup directly from item
-                set encoded_backup (echo "$item" | jq -r '.notes' | sed -n '/--- BEGIN SSH BACKUP ---/,/--- END SSH BACKUP ---/p' | sed '1d;$d' | tr -d '\n')
-
-                if test -z "$encoded_backup"
-                    echo "✗ Could not extract backup data from item"
-                    exit 1
-                end
-
-                # Decode and extract
-                echo "→ Restoring SSH configuration..."
-                set backup_file (mktemp --suffix=.tar.gz)
-                echo "$encoded_backup" | base64 -d > "$backup_file"
-
-                # Extract tarball
-                tar -xzf "$backup_file" -C "$HOME" 2>/dev/null
-                set extract_status $status
-                rm -f "$backup_file"
-
-                if test $extract_status -eq 0
-                    # Set correct permissions
-                    chmod 700 "$HOME/.ssh"
-                    chmod 600 "$HOME/.ssh/"* 2>/dev/null
-                    chmod 644 "$HOME/.ssh/"*.pub 2>/dev/null
-                    chmod 644 "$HOME/.ssh/config" 2>/dev/null
-
-                    echo ""
-                    echo "✓ SSH configuration restored successfully"
-                    echo ""
-                    echo "Note: known_hosts excluded - SSH will rebuild it automatically"
-                    echo ""
-                    echo "Restored files:"
-                    ls -la "$HOME/.ssh"
-                else
-                    echo "✗ Failed to extract backup"
-                    exit 1
-                end
+                exec $script_dir/fedpunk ssh restore -b $vault_args
 
             case claude-backup
                 # Backup Claude Code long-lived token to Bitwarden
@@ -1062,6 +846,525 @@ $encoded_backup
             exec bluetui
         else
             exec $script_dir/fedpunk-bluetooth
+        end
+
+    case ssh
+        # SSH key management (GitHub + Bitwarden)
+        if test (count $args) -eq 0
+            echo "Usage: fedpunk ssh <subcommand> [args...]"
+            echo ""
+            echo "Backup and restore SSH keys using GitHub (private gist) or Bitwarden"
+            echo ""
+            echo "Subcommands:"
+            echo "  backup               Backup SSH keys"
+            echo "  restore              Restore SSH keys"
+            echo "  list                 List available backups"
+            echo ""
+            echo "Options:"
+            echo "  -g, --github         Use GitHub private gist (default)"
+            echo "  -b, --bitwarden      Use Bitwarden vault"
+            echo "  -n, --name NAME      Backup name (default: ssh-backup)"
+            echo ""
+            echo "Examples:"
+            echo "  fedpunk ssh backup                    # GitHub (default)"
+            echo "  fedpunk ssh backup -b                 # Bitwarden"
+            echo "  fedpunk ssh backup -g -n work-laptop  # Named GitHub backup"
+            echo "  fedpunk ssh restore                   # Restore from GitHub"
+            echo "  fedpunk ssh restore -b                # Restore from Bitwarden"
+            echo "  fedpunk ssh list                      # List GitHub backups"
+            echo "  fedpunk ssh list -b                   # List Bitwarden backups"
+            exit 1
+        end
+
+        set ssh_cmd $args[1]
+        set ssh_args $args[2..-1]
+
+        # Parse backend option from args
+        set backend "github"
+        set backup_name ""
+        set filtered_args
+
+        set i 1
+        while test $i -le (count $ssh_args)
+            switch $ssh_args[$i]
+                case --github -g
+                    set backend "github"
+                case --bitwarden -b
+                    set backend "bitwarden"
+                case --name -n
+                    set i (math $i + 1)
+                    set backup_name $ssh_args[$i]
+                case '*'
+                    set filtered_args $filtered_args $ssh_args[$i]
+            end
+            set i (math $i + 1)
+        end
+
+        switch $ssh_cmd
+            case backup
+                # Backup SSH keys
+                set SSH_DIR "$HOME/.ssh"
+
+                # Check SSH directory exists
+                if not test -d "$SSH_DIR"
+                    echo "✗ No ~/.ssh directory found"
+                    exit 1
+                end
+
+                # Find SSH key files
+                set key_files (find "$SSH_DIR" -maxdepth 1 -type f -name "id_*" ! -name "*.pub" 2>/dev/null)
+
+                if test -z "$key_files"
+                    echo "✗ No SSH keys found in $SSH_DIR"
+                    exit 1
+                end
+
+                echo "🔒 SSH Key Backup"
+                echo ""
+                echo "Backend: $backend"
+                echo "Found SSH keys:"
+                for key in $key_files
+                    echo "  - "(basename $key)
+                end
+                echo ""
+
+                # Create encrypted tarball
+                set timestamp (date +%Y%m%d_%H%M%S)
+                set temp_tar (mktemp --suffix=.tar.gz)
+
+                # Build list of files to backup
+                set files_to_backup
+                for k in $key_files
+                    set files_to_backup $files_to_backup (basename $k)
+                    if test -f "$k.pub"
+                        set files_to_backup $files_to_backup (basename $k).pub
+                    end
+                end
+
+                # Include config if exists
+                if test -f "$SSH_DIR/config"
+                    set files_to_backup $files_to_backup config
+                end
+
+                tar -czf "$temp_tar" -C "$SSH_DIR" $files_to_backup 2>/dev/null
+
+                if test $status -ne 0
+                    rm -f "$temp_tar"
+                    echo "✗ Failed to create archive"
+                    exit 1
+                end
+
+                # Encrypt with GPG
+                set encrypted_file (mktemp --suffix=.tar.gz.gpg)
+                echo "Enter a passphrase to encrypt your backup:"
+                gpg --symmetric --cipher-algo AES256 --output "$encrypted_file" "$temp_tar" 2>/dev/null
+                set gpg_status $status
+                rm -f "$temp_tar"
+
+                if test $gpg_status -ne 0
+                    rm -f "$encrypted_file"
+                    echo "✗ Failed to encrypt backup"
+                    exit 1
+                end
+
+                # Base64 encode for storage
+                set encoded_backup (base64 -w 0 "$encrypted_file")
+                rm -f "$encrypted_file"
+
+                set hostname_str (hostname)
+                if test -z "$backup_name"
+                    set backup_name "ssh-backup"
+                end
+
+                switch $backend
+                    case github
+                        # Check GitHub CLI
+                        if not command -v gh >/dev/null 2>&1
+                            echo "✗ GitHub CLI not found. Install with: sudo dnf install gh"
+                            exit 1
+                        end
+
+                        if not gh auth status >/dev/null 2>&1
+                            echo "✗ Not authenticated with GitHub. Run 'gh auth login' first."
+                            exit 1
+                        end
+
+                        echo "→ Backing up to GitHub private gist..."
+
+                        set gist_name "git-ssh-backup-$backup_name"
+                        set gist_filename "$gist_name.enc"
+
+                        # Check if gist already exists
+                        set existing_gist (gh gist list --limit 100 2>/dev/null | grep "$gist_name" | head -1 | awk '{print $1}')
+
+                        # Create content file
+                        set content_file (mktemp)
+                        echo "# Git SSH Backup" > "$content_file"
+                        echo "# Name: $backup_name" >> "$content_file"
+                        echo "# Hostname: $hostname_str" >> "$content_file"
+                        echo "# Timestamp: $timestamp" >> "$content_file"
+                        echo "# Format: tar.gz.gpg (base64 encoded)" >> "$content_file"
+                        echo "" >> "$content_file"
+                        echo "--- BEGIN SSH BACKUP ---" >> "$content_file"
+                        echo "$encoded_backup" >> "$content_file"
+                        echo "--- END SSH BACKUP ---" >> "$content_file"
+
+                        if test -n "$existing_gist"
+                            # Update existing gist
+                            gh gist edit "$existing_gist" -f "$gist_filename" "$content_file" >/dev/null 2>&1
+                            set gist_status $status
+                            set gist_url "https://gist.github.com/$existing_gist"
+                        else
+                            # Create new private gist
+                            set gist_output (gh gist create --private -f "$gist_filename" "$content_file" 2>&1)
+                            set gist_status $status
+                            set gist_url "$gist_output"
+                        end
+
+                        rm -f "$content_file"
+
+                        if test $gist_status -eq 0
+                            echo ""
+                            echo "✓ SSH keys backed up to GitHub"
+                            echo "  Name: $backup_name"
+                            echo "  Gist: $gist_url"
+                            echo ""
+                            echo "To restore: fedpunk ssh restore -g -n $backup_name"
+                        else
+                            echo "✗ Failed to create/update GitHub gist"
+                            exit 1
+                        end
+
+                    case bitwarden
+                        # Check Bitwarden CLI
+                        if not command -v bw >/dev/null 2>&1
+                            echo "✗ Bitwarden CLI not found. Install with: sudo dnf install bw"
+                            exit 1
+                        end
+
+                        set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+                        if test "$bw_status" != "unlocked"
+                            echo "✗ Bitwarden vault is locked. Run 'fedpunk vault unlock' first."
+                            exit 1
+                        end
+
+                        echo "→ Backing up to Bitwarden vault..."
+
+                        set item_name "SSH Backup - $backup_name"
+
+                        # Prepare note content
+                        set note_content "SSH Backup
+Name: $backup_name
+Hostname: $hostname_str
+Timestamp: $timestamp
+Format: tar.gz.gpg (base64 encoded)
+
+--- BEGIN SSH BACKUP ---
+$encoded_backup
+--- END SSH BACKUP ---"
+
+                        # Check if item exists
+                        set existing_item (bw get item "$item_name" 2>/dev/null)
+
+                        if test -n "$existing_item"
+                            # Update existing item
+                            set item_id (echo "$existing_item" | jq -r '.id')
+                            echo "$existing_item" | jq --arg notes "$note_content" '.notes = $notes' | bw encode | bw edit item "$item_id" >/dev/null 2>&1
+                            set bw_result $status
+                        else
+                            # Create new secure note
+                            jq -n --arg name "$item_name" --arg notes "$note_content" '{
+                                organizationId: null,
+                                folderId: null,
+                                type: 2,
+                                name: $name,
+                                notes: $notes,
+                                favorite: false,
+                                secureNote: { type: 0 }
+                            }' | bw encode | bw create item >/dev/null 2>&1
+                            set bw_result $status
+                        end
+
+                        if test $bw_result -eq 0
+                            echo ""
+                            echo "✓ SSH keys backed up to Bitwarden"
+                            echo "  Item: $item_name"
+                            echo ""
+                            echo "To restore: fedpunk ssh restore -b -n $backup_name"
+                            echo "💡 Run 'bw sync' to sync with server"
+                        else
+                            echo "✗ Failed to create/update Bitwarden item"
+                            exit 1
+                        end
+                end
+
+            case restore
+                # Restore SSH keys
+                set SSH_DIR "$HOME/.ssh"
+
+                switch $backend
+                    case github
+                        # Check GitHub CLI
+                        if not command -v gh >/dev/null 2>&1
+                            echo "✗ GitHub CLI not found. Install with: sudo dnf install gh"
+                            exit 1
+                        end
+
+                        if not gh auth status >/dev/null 2>&1
+                            echo "✗ Not authenticated with GitHub. Run 'gh auth login' first."
+                            exit 1
+                        end
+
+                        # List available backups
+                        set available_gists (gh gist list --limit 100 2>/dev/null | grep "git-ssh-backup-")
+
+                        if test -z "$available_gists"
+                            echo "✗ No SSH backups found in GitHub gists"
+                            echo "  Run 'fedpunk ssh backup -g' to create a backup first"
+                            exit 1
+                        end
+
+                        # Select backup
+                        if test -z "$backup_name"
+                            set gist_names (gh gist list --limit 100 2>/dev/null | grep "git-ssh-backup-" | awk '{print $2}' | sed 's/git-ssh-backup-//' | sed 's/\.enc//')
+
+                            if test (count $gist_names) -eq 1
+                                set backup_name $gist_names[1]
+                                echo "Found backup: $backup_name"
+                            else
+                                if command -v gum >/dev/null 2>&1
+                                    set backup_name (printf "%s\n" $gist_names | gum choose --header "Select backup to restore:")
+                                else
+                                    echo "Available backups:"
+                                    printf "%s\n" $gist_names | nl
+                                    read -P "Enter number: " choice
+                                    set backup_name (printf "%s\n" $gist_names | sed -n "$choice"p)
+                                end
+                            end
+
+                            if test -z "$backup_name"
+                                echo "✗ No backup selected"
+                                exit 0
+                            end
+                        end
+
+                        echo "🔓 SSH Key Restore (GitHub)"
+                        echo ""
+                        echo "Restoring: $backup_name"
+                        echo ""
+
+                        # Find the gist
+                        set gist_id (gh gist list --limit 100 2>/dev/null | grep "git-ssh-backup-$backup_name" | head -1 | awk '{print $1}')
+
+                        if test -z "$gist_id"
+                            echo "✗ Backup not found: $backup_name"
+                            exit 1
+                        end
+
+                        # Get gist content
+                        set gist_content (gh gist view "$gist_id" --raw 2>/dev/null)
+
+                        if test -z "$gist_content"
+                            echo "✗ Failed to retrieve gist content"
+                            exit 1
+                        end
+
+                        # Extract encoded backup
+                        set encoded_backup (echo "$gist_content" | sed -n '/--- BEGIN SSH BACKUP ---/,/--- END SSH BACKUP ---/p' | sed '1d;$d' | tr -d '\n')
+
+                    case bitwarden
+                        # Check Bitwarden CLI
+                        if not command -v bw >/dev/null 2>&1
+                            echo "✗ Bitwarden CLI not found. Install with: sudo dnf install bw"
+                            exit 1
+                        end
+
+                        set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+                        if test "$bw_status" != "unlocked"
+                            echo "✗ Bitwarden vault is locked. Run 'fedpunk vault unlock' first."
+                            exit 1
+                        end
+
+                        # Sync vault
+                        bw sync >/dev/null 2>&1
+
+                        # List available backups
+                        set available_backups (bw list items --search "SSH Backup" 2>/dev/null | jq -r '.[] | select(.type == 2) | .name' | sed 's/SSH Backup - //')
+
+                        if test -z "$available_backups"
+                            echo "✗ No SSH backups found in Bitwarden"
+                            echo "  Run 'fedpunk ssh backup -b' to create a backup first"
+                            exit 1
+                        end
+
+                        # Select backup
+                        if test -z "$backup_name"
+                            if test (count $available_backups) -eq 1
+                                set backup_name $available_backups[1]
+                                echo "Found backup: $backup_name"
+                            else
+                                if command -v gum >/dev/null 2>&1
+                                    set backup_name (printf "%s\n" $available_backups | gum choose --header "Select backup to restore:")
+                                else
+                                    echo "Available backups:"
+                                    printf "%s\n" $available_backups | nl
+                                    read -P "Enter number: " choice
+                                    set backup_name (printf "%s\n" $available_backups | sed -n "$choice"p)
+                                end
+                            end
+
+                            if test -z "$backup_name"
+                                echo "✗ No backup selected"
+                                exit 0
+                            end
+                        end
+
+                        echo "🔓 SSH Key Restore (Bitwarden)"
+                        echo ""
+                        echo "Restoring: $backup_name"
+                        echo ""
+
+                        set item_name "SSH Backup - $backup_name"
+                        set item (bw get item "$item_name" 2>/dev/null)
+
+                        if test -z "$item"
+                            echo "✗ Backup not found: $backup_name"
+                            exit 1
+                        end
+
+                        # Extract encoded backup
+                        set encoded_backup (echo "$item" | jq -r '.notes' | sed -n '/--- BEGIN SSH BACKUP ---/,/--- END SSH BACKUP ---/p' | sed '1d;$d' | tr -d '\n')
+                end
+
+                if test -z "$encoded_backup"
+                    echo "✗ Could not extract backup data"
+                    exit 1
+                end
+
+                # Check if .ssh already exists
+                if test -d "$SSH_DIR"
+                    echo "⚠️  Warning: ~/.ssh directory already exists"
+                    echo ""
+                    ls -la "$SSH_DIR" 2>/dev/null | head -10
+                    echo ""
+
+                    if command -v gum >/dev/null 2>&1
+                        if not gum confirm "Overwrite existing SSH configuration?"
+                            echo "✗ Restore cancelled"
+                            exit 0
+                        end
+                    else
+                        read -P "Overwrite existing SSH configuration? [y/N] " -n 1 confirm
+                        echo ""
+                        if test "$confirm" != "y" -a "$confirm" != "Y"
+                            echo "✗ Restore cancelled"
+                            exit 0
+                        end
+                    end
+
+                    # Backup existing .ssh
+                    set backup_dir "$HOME/.ssh.backup."(date +%Y%m%d-%H%M%S)
+                    echo "→ Backing up existing .ssh to $backup_dir"
+                    mv "$SSH_DIR" "$backup_dir"
+                end
+
+                # Create SSH directory
+                mkdir -p "$SSH_DIR"
+                chmod 700 "$SSH_DIR"
+
+                # Decode and decrypt
+                set encrypted_file (mktemp --suffix=.tar.gz.gpg)
+                echo "$encoded_backup" | base64 -d > "$encrypted_file"
+
+                set temp_tar (mktemp --suffix=.tar.gz)
+                echo "Enter the passphrase to decrypt your backup:"
+                gpg --decrypt --output "$temp_tar" "$encrypted_file" 2>/dev/null
+                set gpg_status $status
+                rm -f "$encrypted_file"
+
+                if test $gpg_status -ne 0
+                    rm -f "$temp_tar"
+                    echo "✗ Failed to decrypt backup (wrong passphrase?)"
+                    exit 1
+                end
+
+                # Extract to SSH directory
+                tar -xzf "$temp_tar" -C "$SSH_DIR" 2>/dev/null
+                set tar_status $status
+                rm -f "$temp_tar"
+
+                if test $tar_status -ne 0
+                    echo "✗ Failed to extract backup"
+                    exit 1
+                end
+
+                # Set correct permissions
+                chmod 700 "$SSH_DIR"
+                chmod 600 "$SSH_DIR"/id_* 2>/dev/null
+                chmod 644 "$SSH_DIR"/*.pub 2>/dev/null
+                chmod 644 "$SSH_DIR/config" 2>/dev/null
+
+                echo ""
+                echo "✓ SSH keys restored to $SSH_DIR"
+                echo ""
+                echo "Restored files:"
+                ls -la "$SSH_DIR" | grep -v "^total" | grep -v "known_hosts"
+
+            case list
+                # List available backups
+                switch $backend
+                    case github
+                        if not command -v gh >/dev/null 2>&1
+                            echo "✗ GitHub CLI not found"
+                            exit 1
+                        end
+
+                        if not gh auth status >/dev/null 2>&1
+                            echo "✗ Not authenticated with GitHub"
+                            exit 1
+                        end
+
+                        echo "GitHub SSH Backups:"
+                        echo ""
+                        set gists (gh gist list --limit 100 2>/dev/null | grep "git-ssh-backup-")
+                        if test -z "$gists"
+                            echo "  No backups found"
+                        else
+                            for gist in $gists
+                                set gist_id (echo "$gist" | awk '{print $1}')
+                                set gist_name (echo "$gist" | awk '{print $2}' | sed 's/git-ssh-backup-//' | sed 's/\.enc//')
+                                echo "  - $gist_name"
+                            end
+                        end
+
+                    case bitwarden
+                        if not command -v bw >/dev/null 2>&1
+                            echo "✗ Bitwarden CLI not found"
+                            exit 1
+                        end
+
+                        set bw_status (bw status 2>/dev/null | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+                        if test "$bw_status" != "unlocked"
+                            echo "✗ Bitwarden vault is locked"
+                            exit 1
+                        end
+
+                        echo "Bitwarden SSH Backups:"
+                        echo ""
+                        set backups (bw list items --search "SSH Backup" 2>/dev/null | jq -r '.[] | select(.type == 2) | .name' | sed 's/SSH Backup - //')
+                        if test -z "$backups"
+                            echo "  No backups found"
+                        else
+                            for name in $backups
+                                echo "  - $name"
+                            end
+                        end
+                end
+
+            case '*'
+                echo "Unknown ssh subcommand: $ssh_cmd"
+                echo "Run 'fedpunk ssh' for help"
+                exit 1
         end
 
     case help

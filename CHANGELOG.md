@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-11-26
+
+### 🎉 Major Features
+
+#### SSH Key Management
+- **Added** `fedpunk ssh` command for cross-platform SSH key backup and restore
+  - Support for GitHub private gists (`-g, --github`) as default backend
+  - Support for Bitwarden vault (`-b, --bitwarden`) as alternative backend
+  - Named backups with `-n, --name` for multiple machines
+  - GPG encryption (AES256) for all backups
+  - Interactive backup selection with `gum` TUI
+  - Commands: `backup`, `restore`, `list`
+  - Example: `fedpunk ssh backup -g -n work-laptop`
+
+#### New Modules
+- **Added** `git-ssh` module for SSH key management dependencies
+  - Depends on `gh` (GitHub CLI) and `bitwarden`
+  - Integrates with fedpunk CLI
+
+- **Added** `zen-browser` module
+  - Zen Browser - Firefox-based browser focused on privacy and simplicity
+  - Uses `sneexy/zen-browser` COPR repository
+
+### 🔧 Improvements
+
+#### Browser
+- **Changed** Firefox module now installs Zen Browser instead of stock Firefox
+  - Uses `sneexy/zen-browser` COPR for better privacy-focused browsing
+  - Same module name (`firefox`) for backward compatibility
+
+#### Dev Profile
+- **Added** Slack (`com.slack.Slack`) to dev-extras flatpak packages
+  - Joins Spotify and Discord in the dev-extras module
+
+#### CLI
+- **Updated** Help text to reflect new SSH management commands
+- **Reorganized** Vault commands - SSH backup/restore moved to dedicated `fedpunk ssh` command
+- **Deprecated** `fedpunk vault ssh-backup` and `fedpunk vault ssh-restore` (redirects to new commands)
+- **Improved** Command documentation with clear examples
+
+### 📝 Notes
+
+The new `fedpunk ssh` command provides a unified interface for SSH key management across machines:
+- GitHub backend stores encrypted keys in private gists (accessible anywhere with `gh auth`)
+- Bitwarden backend stores encrypted keys in your vault (requires vault unlock)
+- Both backends use GPG symmetric encryption for security
+- Backups include SSH keys, public keys, and config file
+
 ## [0.2.2] - 2025-11-25
 
 ### 🐛 Bug Fixes
@@ -267,7 +315,9 @@ None - All changes are backward compatible with existing installations.
 
 ---
 
-[Unreleased]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/hinriksnaer/Fedpunk/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.2...v0.3.0
+[0.2.2]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/hinriksnaer/Fedpunk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/hinriksnaer/Fedpunk/releases/tag/v0.1.0

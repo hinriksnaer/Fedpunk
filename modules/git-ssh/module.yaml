@@ -1,0 +1,21 @@
+module:
+  name: git-ssh
+  description: Git SSH key backup and restore (GitHub Gist + Bitwarden)
+  dependencies:
+    - gh
+    - bitwarden
+  priority: 6
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  dnf: []
+  cargo: []
+  npm: []
+  flatpak: []
+
+stow:
+  target: $HOME
+  conflicts: warn
