@@ -81,3 +81,4 @@ modules/lazygit/config/.config/lazygit/config.yml
 # Core CLI commands in cli/ are tracked, but symlinks to module CLIs are not
 cli/vault
 cli/bluetooth
+cli/ssh

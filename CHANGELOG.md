@@ -29,19 +29,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Bluetooth commands created at (`modules/bluetooth/cli/bluetooth/`)
 
 #### SSH Key Management
-- **Added** `fedpunk ssh` command for SSH key backup and restore via Bitwarden
-  - Uses Bitwarden vault as the single backend for consistency with vault ecosystem
+- **Added** SSH key backup and restore commands to `fedpunk vault`
+  - `ssh-backup` - Backup SSH keys to Bitwarden vault (GPG encrypted)
+  - `ssh-restore` - Restore SSH keys from vault
+  - `ssh-load` - Load SSH keys into ssh-agent
+  - `ssh-list` - List available SSH backups
   - Named backups for multiple machines (defaults to hostname)
-  - GPG encryption (AES256) for secure storage
   - Interactive backup selection when restoring
-  - Commands: `backup`, `restore`, `load`, `list`
-  - Workflow: `restore` → `load` → `gh auth login`
-  - Example: `fedpunk ssh backup work-laptop`
+  - Workflow: `vault unlock` → `ssh-restore` → `ssh-load` → `gh auth login`
 
 #### New Modules
-- **Added** `git-ssh` module for SSH key management dependencies
-  - Depends on `gh` (GitHub CLI) and `bitwarden`
-  - Integrates with fedpunk CLI
 
 - **Added** `zen-browser` module
   - Zen Browser - Firefox-based browser focused on privacy and simplicity
@@ -94,10 +91,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 📝 Notes
 
-The new `fedpunk ssh` command provides a unified interface for SSH key management across machines:
-- SSH keys are stored as GPG-encrypted secure notes in Bitwarden vault
+SSH key management is now integrated into `fedpunk vault`:
+- SSH keys are stored as GPG-encrypted secure notes in Bitwarden
 - Backups include SSH keys, public keys, and config file
-- Typical workflow for new machine: `fedpunk vault unlock` → `fedpunk ssh restore` → `fedpunk ssh load` → `gh auth login`
+- Workflow for new machine: `fedpunk vault unlock` → `ssh-restore` → `ssh-load` → `gh auth login`
 
 ## [0.2.2] - 2025-11-25
 
