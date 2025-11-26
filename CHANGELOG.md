@@ -11,6 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎉 Major Features
 
+#### CLI Modularization
+- **Refactored** Monolithic 1,083-line CLI into modular architecture
+  - New thin dispatcher at `bin/fedpunk` (~190 lines) routes commands to modular handlers
+  - Commands organized in `cli/<command>/<command>.fish` with functions as subcommands
+  - Descriptions extracted from `--description` flags - no separate metadata files
+  - Private functions (prefixed with `_`) hidden from help and protected from direct execution
+  - Smart TUI/CLI mode: if arg provided → CLI mode, if no arg + TTY → TUI selector
+  - Modules can now provide their own CLI commands via `module/cli/` directories
+
+#### Module CLI Extensions
+- **Added** Module CLI extension pattern for self-contained command modules
+  - Modules place CLI commands in `module/cli/<command>/<command>.fish`
+  - Linker automatically deploys module CLIs as symlinks to `$FEDPUNK_ROOT/cli/`
+  - Commands seamlessly integrate with main `fedpunk` dispatcher
+  - Vault commands now live in bitwarden module (`modules/bitwarden/cli/vault/`)
+  - Bluetooth commands created at (`modules/bluetooth/cli/bluetooth/`)
+
 #### SSH Key Management
 - **Added** `fedpunk ssh` command for cross-platform SSH key backup and restore
   - Support for GitHub private gists (`-g, --github`) as default backend
@@ -32,6 +49,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔧 Improvements
 
+#### UI Utilities
+- **Added** Smart UI utility functions in `lib/fish/ui.fish`
+  - `ui-select-smart`: TUI selector if interactive and no value, otherwise use provided value
+  - `ui-input-smart`: TUI input if interactive and no value, otherwise use provided value
+  - `ui-confirm-smart`: TUI confirm if interactive, use default if not
+  - Enables consistent behavior across TUI and CLI modes
+
+#### Linker Enhancements
+- **Added** CLI deployment functions to linker
+  - `linker-deploy-cli`: Symlinks module CLI commands to `$FEDPUNK_ROOT/cli/`
+  - `linker-remove-cli`: Removes CLI symlinks when module is removed
+  - CLI state tracked in `.linker-state.json` alongside config files
+
 #### Browser
 - **Changed** Firefox module now installs Zen Browser instead of stock Firefox
   - Uses `sneexy/zen-browser` COPR for better privacy-focused browsing
@@ -46,6 +76,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Reorganized** Vault commands - SSH backup/restore moved to dedicated `fedpunk ssh` command
 - **Deprecated** `fedpunk vault ssh-backup` and `fedpunk vault ssh-restore` (redirects to new commands)
 - **Improved** Command documentation with clear examples
+
+#### Testing
+- **Added** Comprehensive CLI dispatcher test suite (37 tests)
+  - Tests command discovery, subcommand execution, help generation
+  - Tests error handling, exit codes, private function protection
+  - Test command `fedpunk doctor` for dispatcher verification
+
+### 📝 Project Structure
+
+- **New** `bin/fedpunk` - Modular CLI dispatcher
+- **New** `cli/` directory - Core command modules (apply, doctor, init, module, profile, sync, theme, wallpaper)
+- **New** `modules/bitwarden/cli/vault/` - Vault commands as module CLI
+- **New** `modules/bluetooth/cli/bluetooth/` - Bluetooth commands as module CLI
+- **New** `tests/cli-dispatcher.fish` - CLI test suite
+- **Changed** `modules/fish/config/.local/bin/fedpunk` - Now thin wrapper delegating to new dispatcher
 
 ### 📝 Notes
 

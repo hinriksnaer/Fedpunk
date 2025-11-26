@@ -1,0 +1,191 @@
+#!/usr/bin/env fish
+# Fedpunk CLI - Modular Command Dispatcher
+#
+# Routes 'fedpunk <cmd> <subcmd>' to functions in cli/<cmd>/*.fish
+#
+# Interface Contract:
+#   - cli/<cmd>/*.fish files contain functions
+#   - Function matching directory name is the "group function"
+#   - Functions starting with _ are private (not exposed)
+#   - All functions must handle --help flag
+#   - Descriptions come from --description in function definition
+
+# Initialize FEDPUNK_ROOT
+if not set -q FEDPUNK_ROOT
+    if test -L ~/.local/share/fedpunk
+        set -gx FEDPUNK_ROOT (readlink -f ~/.local/share/fedpunk)
+    else if test -d ~/.local/share/fedpunk
+        set -gx FEDPUNK_ROOT ~/.local/share/fedpunk
+    else
+        echo "Error: FEDPUNK_ROOT not found" >&2
+        exit 1
+    end
+end
+
+set -g FEDPUNK_VERSION (cat "$FEDPUNK_ROOT/VERSION" 2>/dev/null || echo "dev")
+set -g FEDPUNK_CLI "$FEDPUNK_ROOT/cli"
+
+# Source shared libraries
+for lib in $FEDPUNK_ROOT/lib/fish/*.fish
+    source "$lib" 2>/dev/null
+end
+
+# Discover all available commands (directories in cli/)
+function _discover_commands
+    for dir in $FEDPUNK_CLI/*/
+        if test -d "$dir"
+            basename "$dir"
+        end
+    end
+end
+
+# Discover public functions in a command directory
+# Returns functions that don't start with underscore
+function _discover_functions --argument-names cmd
+    set -l cmd_dir "$FEDPUNK_CLI/$cmd"
+    set -l found
+
+    for file in $cmd_dir/*.fish
+        if test -f "$file"
+            # Skip private files
+            string match -q "_*" (basename "$file"); and continue
+
+            # Extract function names
+            for fn in (grep -oP "^function \K[a-zA-Z][a-zA-Z0-9_-]*" "$file" 2>/dev/null)
+                # Skip private functions and group function
+                string match -q "_*" "$fn"; and continue
+                test "$fn" = "$cmd"; and continue
+                set -a found $fn
+            end
+        end
+    end
+
+    printf '%s\n' $found | sort -u
+end
+
+# Get function description from --description flag in definition
+function _get_description --argument-names cmd fn
+    set -l cmd_dir "$FEDPUNK_CLI/$cmd"
+
+    for file in $cmd_dir/*.fish
+        test -f "$file"; or continue
+        string match -q "_*" (basename "$file"); and continue
+
+        set -l line (grep -P "^function $fn\\s+" "$file" 2>/dev/null)
+        if test -n "$line"
+            # Extract --description "text" or -d "text"
+            set -l desc (echo $line | sed -n 's/.*--description[= ]["'"'"']\([^"'"'"']*\)["'"'"'].*/\1/p')
+            if test -z "$desc"
+                set desc (echo $line | sed -n 's/.*-d[= ]["'"'"']\([^"'"'"']*\)["'"'"'].*/\1/p')
+            end
+            test -n "$desc"; and echo $desc; and return 0
+        end
+    end
+end
+
+# Get group function description
+function _get_group_description --argument-names cmd
+    _get_description $cmd $cmd
+end
+
+# Source all fish files in command directory
+function _source_command --argument-names cmd
+    set -l cmd_dir "$FEDPUNK_CLI/$cmd"
+
+    for file in $cmd_dir/*.fish
+        test -f "$file"; and source "$file"
+    end
+end
+
+# Show main help - list all commands
+function _show_help
+    echo "fedpunk - Modern Fedora development environment"
+    echo ""
+    echo "Usage: fedpunk <command> [subcommand] [args...]"
+    echo ""
+    echo "Commands:"
+
+    for cmd in (_discover_commands)
+        set -l desc (_get_group_description $cmd)
+        printf "  %-14s %s\n" $cmd "$desc"
+    end
+
+    echo ""
+    echo "Run 'fedpunk <command> --help' for subcommand details"
+    echo "Run 'fedpunk version' for version info"
+end
+
+# Show command help - list all subcommands
+function _show_command_help --argument-names cmd
+    set -l desc (_get_group_description $cmd)
+
+    if test -n "$desc"
+        echo "$desc"
+        echo ""
+    end
+
+    echo "Usage: fedpunk $cmd <subcommand> [args...]"
+    echo ""
+    echo "Subcommands:"
+
+    for fn in (_discover_functions $cmd)
+        set -l fn_desc (_get_description $cmd $fn)
+        printf "  %-14s %s\n" $fn "$fn_desc"
+    end
+
+    echo ""
+    echo "Run 'fedpunk $cmd <subcommand> --help' for details"
+end
+
+# Main dispatch logic
+function _main
+    set -l cmd $argv[1]
+    set -l subcmd $argv[2]
+    set -l args $argv[3..-1]
+
+    # No args or help
+    if test -z "$cmd"; or contains -- "$cmd" help --help -h
+        _show_help
+        return 0
+    end
+
+    # Version
+    if contains -- "$cmd" version --version -v
+        echo "fedpunk $FEDPUNK_VERSION"
+        return 0
+    end
+
+    # Check command exists
+    if not test -d "$FEDPUNK_CLI/$cmd"
+        echo "Unknown command: $cmd" >&2
+        echo "Run 'fedpunk help' for available commands" >&2
+        return 1
+    end
+
+    # Source command files
+    _source_command $cmd
+
+    # No subcommand or help requested - show command help
+    if test -z "$subcmd"; or contains -- "$subcmd" help --help -h
+        _show_command_help $cmd
+        return 0
+    end
+
+    # Check subcommand is not private
+    if string match -q "_*" "$subcmd"
+        echo "Unknown subcommand: $cmd $subcmd" >&2
+        return 1
+    end
+
+    # Check function exists
+    if not functions -q "$subcmd"
+        echo "Unknown subcommand: $cmd $subcmd" >&2
+        _show_command_help $cmd
+        return 1
+    end
+
+    # Execute subcommand
+    $subcmd $args
+end
+
+_main $argv

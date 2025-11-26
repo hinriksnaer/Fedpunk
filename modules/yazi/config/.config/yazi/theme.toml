@@ -3,4 +3,4 @@
 # This file automatically switches flavors based on the active Fedpunk theme
 
 [flavor]
-use = "catppuccin-mocha"
+use = "ayu-dark"
