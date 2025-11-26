@@ -1,6 +1,6 @@
 module:
   name: git-ssh
-  description: Git SSH key backup and restore (GitHub Gist + Bitwarden)
+  description: SSH key backup and restore via Bitwarden vault
   dependencies:
     - gh
     - bitwarden
