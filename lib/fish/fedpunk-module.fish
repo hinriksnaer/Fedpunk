@@ -279,6 +279,9 @@ function fedpunk-module-stow
 
     # Use new linker instead of stow
     linker-deploy $module_name $module_dir
+
+    # Deploy CLI commands if module has them
+    linker-deploy-cli $module_name $module_dir
 end
 
 function fedpunk-module-unstow
@@ -301,6 +304,9 @@ function fedpunk-module-unstow
 
     # Use new linker instead of stow
     linker-remove $module_name
+
+    # Remove CLI commands
+    linker-remove-cli $module_name
 end
 
 function fedpunk-module-run-lifecycle

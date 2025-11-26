@@ -373,3 +373,195 @@ function ui-show-logs
         echo "  Full output: $UI_OUTPUT_LOG"
     end
 end
+
+# Smart select - TUI if interactive and no value, otherwise use provided value
+# Usage: ui-select-smart --value "$user_value" --header "Pick one:" --options $items
+# Returns: selected value via stdout, or returns 1 on error/cancel
+function ui-select-smart
+    set -l value ""
+    set -l header ""
+    set -l options
+
+    # Parse arguments
+    set -l i 1
+    while test $i -le (count $argv)
+        switch $argv[$i]
+            case --value
+                set i (math $i + 1)
+                set value $argv[$i]
+            case --header
+                set i (math $i + 1)
+                set header $argv[$i]
+            case --options
+                set i (math $i + 1)
+                # Collect remaining as options
+                while test $i -le (count $argv)
+                    if string match -q -- "--*" $argv[$i]
+                        set i (math $i - 1)
+                        break
+                    end
+                    set -a options $argv[$i]
+                    set i (math $i + 1)
+                end
+            case '*'
+                # Unknown arg, might be an option
+                if not string match -q -- "--*" $argv[$i]
+                    set -a options $argv[$i]
+                end
+        end
+        set i (math $i + 1)
+    end
+
+    ui-log SELECT-SMART "value='$value' header='$header' options="(count $options)
+
+    # If value provided, validate and return it
+    if test -n "$value"
+        # Optional: validate against options if provided
+        if test (count $options) -gt 0
+            if not contains -- "$value" $options
+                ui-log SELECT-SMART "Invalid value '$value' not in options"
+                printf "Error: '%s' is not a valid option\n" "$value" >&2
+                printf "Valid options: %s\n" (string join ", " $options) >&2
+                return 1
+            end
+        end
+        echo $value
+        return 0
+    end
+
+    # No value - check if interactive
+    if not ui-is-interactive
+        ui-log SELECT-SMART "Not interactive, no value provided"
+        printf "Error: No value provided and not running interactively\n" >&2
+        if test -n "$header"
+            printf "Usage requires: %s\n" (string replace ":" "" "$header") >&2
+        end
+        return 1
+    end
+
+    # Interactive mode - show TUI
+    if test (count $options) -eq 0
+        ui-log SELECT-SMART "No options provided for interactive selection"
+        printf "Error: No options available for selection\n" >&2
+        return 1
+    end
+
+    set -l selected (ui-choose --header "$header" $options)
+    if test -z "$selected"
+        ui-log SELECT-SMART "User cancelled selection"
+        return 1
+    end
+
+    echo $selected
+    return 0
+end
+
+# Smart input - TUI if interactive and no value, otherwise use provided value
+# Usage: ui-input-smart --value "$user_value" --prompt "Enter name:" [--default "foo"] [--required]
+function ui-input-smart
+    set -l value ""
+    set -l prompt ""
+    set -l default_val ""
+    set -l required false
+
+    # Parse arguments
+    set -l i 1
+    while test $i -le (count $argv)
+        switch $argv[$i]
+            case --value
+                set i (math $i + 1)
+                set value $argv[$i]
+            case --prompt
+                set i (math $i + 1)
+                set prompt $argv[$i]
+            case --default
+                set i (math $i + 1)
+                set default_val $argv[$i]
+            case --required
+                set required true
+        end
+        set i (math $i + 1)
+    end
+
+    ui-log INPUT-SMART "value='$value' prompt='$prompt' required=$required"
+
+    # If value provided, return it
+    if test -n "$value"
+        echo $value
+        return 0
+    end
+
+    # No value - check if interactive
+    if not ui-is-interactive
+        # Use default if available
+        if test -n "$default_val"
+            echo $default_val
+            return 0
+        end
+
+        if test "$required" = "true"
+            ui-log INPUT-SMART "Not interactive, no value, required"
+            printf "Error: No value provided and not running interactively\n" >&2
+            return 1
+        end
+
+        return 0
+    end
+
+    # Interactive mode - show TUI input
+    set -l input_args
+    if test -n "$prompt"
+        set -a input_args --placeholder "$prompt"
+    end
+    if test -n "$default_val"
+        set -a input_args --value "$default_val"
+    end
+
+    set -l entered (ui-input $input_args)
+
+    if test -z "$entered" -a "$required" = "true"
+        ui-log INPUT-SMART "User entered empty value but required"
+        printf "Error: Value is required\n" >&2
+        return 1
+    end
+
+    echo $entered
+    return 0
+end
+
+# Smart confirm - TUI if interactive, otherwise use default
+# Usage: ui-confirm-smart --prompt "Continue?" [--default yes|no]
+function ui-confirm-smart
+    set -l prompt ""
+    set -l default_val ""
+
+    # Parse arguments
+    set -l i 1
+    while test $i -le (count $argv)
+        switch $argv[$i]
+            case --prompt
+                set i (math $i + 1)
+                set prompt $argv[$i]
+            case --default
+                set i (math $i + 1)
+                set default_val $argv[$i]
+        end
+        set i (math $i + 1)
+    end
+
+    ui-log CONFIRM-SMART "prompt='$prompt' default='$default_val'"
+
+    # Check if interactive
+    if not ui-is-interactive
+        # Use default
+        if test "$default_val" = "yes"
+            return 0
+        else
+            return 1
+        end
+    end
+
+    # Interactive mode
+    ui-confirm "$prompt"
+    return $status
+end
