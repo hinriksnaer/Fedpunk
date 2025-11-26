@@ -387,6 +387,14 @@ function linker-deploy-cli
                 echo "  ⚠️  CLI conflict: $cmd_name (owned by $owner)"
                 continue
             end
+            # No owner or same owner - remove directory to replace with symlink
+            if test -z "$(ls -A "$target_dir" 2>/dev/null)"
+                # Empty directory - safe to remove
+                rmdir "$target_dir" 2>/dev/null
+            else
+                echo "  ⚠️  CLI conflict: $cmd_name has files (manual cleanup needed)"
+                continue
+            end
         end
 
         # Symlink the entire command directory
