@@ -24,7 +24,7 @@ modules:
   - hyprland
   - audio
   - multimedia
-  - firefox
+  - zen-browser
   - nvidia
   - bluetui
   - extra-apps

@@ -10,12 +10,10 @@ lifecycle:
   after: []
 
 packages:
-  dnf: []
   copr:
-    - sneexy/zen-browser:zen-browser
-  cargo: []
-  npm: []
-  flatpak: []
+    - sneexy/zen-browser
+  dnf:
+    - zen-browser
 
 stow:
   target: $HOME
