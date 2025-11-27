@@ -6,6 +6,7 @@ mode:
   description: Full desktop environment with all development tools
 
 modules:
+  - plugins/lvm-expand
   - essentials
   - languages
   - plugins/neovim-custom
@@ -23,8 +24,7 @@ modules:
   - hyprland
   - audio
   - multimedia
-  - firefox
+  - zen-browser
   - nvidia
   - bluetui
-  - extra-apps
   - plugins/fancontrol

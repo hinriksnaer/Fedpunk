@@ -15,7 +15,6 @@ packages:
     - lazygit
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

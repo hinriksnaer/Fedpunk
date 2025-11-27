@@ -1,0 +1,20 @@
+module:
+  name: zen-browser
+  description: Zen Browser - Firefox-based browser focused on privacy and simplicity
+  dependencies:
+    - multimedia
+  priority: 6
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  copr:
+    - sneexy/zen-browser
+  dnf:
+    - zen-browser
+
+stow:
+  target: $HOME
+  conflicts: warn

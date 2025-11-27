@@ -38,7 +38,6 @@ packages:
     - pipewire-plugin-libcamera
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

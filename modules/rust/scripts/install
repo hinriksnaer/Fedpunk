@@ -11,7 +11,7 @@ set -gx PATH $HOME/.cargo/bin $PATH
 
 # Check if rustup is installed
 if not command -v rustup >/dev/null 2>&1
-    ui-spin --title "Installing Rust toolchain via rustup..." -- fish -c '
+    ui-spin --title "Installing Rust toolchain via rustup..." --tail 5 -- fish -c '
         curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path
     '
 

@@ -1,0 +1,19 @@
+module:
+  name: flatpak
+  description: Flatpak package manager and Flathub repository setup
+  dependencies: []
+
+lifecycle:
+  before: []
+  after:
+    - setup-flathub
+
+packages:
+  dnf:
+    - flatpak
+  cargo: []
+  npm: []
+
+stow:
+  target: $HOME
+  conflicts: warn

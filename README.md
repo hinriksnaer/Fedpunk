@@ -55,7 +55,7 @@ Fedpunk is a **next-generation configuration management system** that transforms
 
 ## ✨ Architecture Highlights
 
-**v0.2.1** features a revolutionary modular system:
+**v0.3.0** features a revolutionary modular system:
 
 ### 🎁 Module System
 Every package is now self-contained with its own metadata, dependencies, and lifecycle:
@@ -203,7 +203,7 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 - tmux, lazygit, btop, yazi (with theming)
 - 12 complete themes with instant switching
 - Rofi launcher, Mako notifications
-- Waybar status bar, Firefox browser
+- Waybar status bar, Zen Browser (privacy-focused)
 
 **Container Mode Includes:**
 - Fish shell with Starship prompt
@@ -360,7 +360,7 @@ Modules are self-documenting—no manual dependency tracking required.
 | **Mako** | Notification daemon | `~/.config/mako/` |
 | **Waybar** | Status bar | `~/.config/waybar/` |
 | **swaybg** | Wallpaper manager | Per-theme |
-| **Firefox** | Default browser | System defaults |
+| **Zen Browser** | Privacy-focused browser | System defaults |
 
 ### Hyprland Features
 - **Smart Layouts** - Dwindle (standard tiling) and Master (ultrawide-optimized)
@@ -414,7 +414,7 @@ Modules are self-documenting—no manual dependency tracking required.
 |-----|------------|-------|
 | `Super+Return` | Kitty terminal | GPU-accelerated |
 | `Super+Space` | Rofi launcher | Theme-aware |
-| `Super+B` | Firefox browser | Default browser |
+| `Super+B` | Zen Browser | Privacy-focused |
 | `Super+E` | File manager | Yazi in terminal |
 | `Super+Shift+B` | Bluetooth | GUI manager |
 
@@ -561,19 +561,21 @@ fedpunk vault login              # Login to Bitwarden
 fedpunk vault unlock             # Unlock vault
 fedpunk vault status             # Check vault status
 
-# SSH Key Backup/Restore
-fedpunk vault ssh-backup         # Backup SSH keys to vault
+# SSH Key Management
+fedpunk vault ssh-backup         # Backup SSH keys to vault (GPG encrypted)
 fedpunk vault ssh-restore        # Restore SSH keys from vault
+fedpunk vault ssh-load           # Load SSH keys into ssh-agent
+fedpunk vault ssh-list           # List available SSH backups
 
 # Claude Code Credentials
 fedpunk vault claude-backup      # Backup Claude credentials
 fedpunk vault claude-restore     # Restore Claude credentials
 
-# Helper Functions (Fish)
-bwlogin                          # Login + auto-unlock
-bwunlock                         # Unlock vault
-bw-get <item-name>              # Get password for item
-bw-ssh-load                      # Load SSH keys from vault
+# New Machine Workflow
+fedpunk vault unlock             # Unlock vault first
+fedpunk vault ssh-restore        # Restore your SSH keys
+fedpunk vault ssh-load           # Load keys into agent
+gh auth login                    # Authenticate with GitHub
 ```
 
 ### GitHub CLI
@@ -615,7 +617,7 @@ Neovim integration with Claude:
 # Update Fedpunk
 cd ~/.local/share/fedpunk
 git pull
-fish install.fish  # Re-run installer (safe to repeat)
+./install.fish  # Re-run installer (safe to repeat)
 
 # Update specific module
 fedpunk module deploy neovim --force
@@ -659,11 +661,13 @@ Perfect for:
 - Existing desktop setups
 
 ```bash
-# During install
-fish install.fish --terminal-only --non-interactive
+# Use container mode during install
+curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
+# Select "container" mode when prompted
 
-# Or use terminal-only boot script
-bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh)
+# Or non-interactive with container mode
+curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | \
+  FEDPUNK_MODE=container bash
 ```
 
 **Installs:**
@@ -686,7 +690,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boo
 {
   "name": "Fedpunk Dev",
   "image": "fedora:40",
-  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot-terminal.sh | bash",
+  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | FEDPUNK_MODE=container bash",
   "customizations": {
     "vscode": {
       "settings": {

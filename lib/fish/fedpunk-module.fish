@@ -125,6 +125,35 @@ function fedpunk-module-list
             end
         end
     end
+
+    # List profile plugins if active profile exists
+    set -l active_config "$FEDPUNK_ROOT/.active-config"
+    if test -L "$active_config"
+        set -l profile_dir (readlink -f "$active_config")
+        set -l plugins_dir "$profile_dir/plugins"
+
+        if test -d "$plugins_dir"
+            echo ""
+            echo "Profile plugins:"
+            for plugin_dir in $plugins_dir/*
+                if test -d "$plugin_dir"
+                    set -l plugin_name (basename "$plugin_dir")
+                    set -l plugin_yaml "$plugin_dir/module.yaml"
+
+                    if test -f "$plugin_yaml"
+                        set -l description (yaml-get-value "$plugin_yaml" "module" "description")
+                        if test -n "$description"
+                            echo "  plugins/$plugin_name - $description"
+                        else
+                            echo "  plugins/$plugin_name"
+                        end
+                    else
+                        echo "  plugins/$plugin_name (no module.yaml)"
+                    end
+                end
+            end
+        end
+    end
 end
 
 function fedpunk-module-info
@@ -191,6 +220,9 @@ function fedpunk-module-install-packages
         return 1
     end
 
+    # Source ui.fish for ui-spin
+    source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
     echo "Installing packages for module: $module_name"
 
     # Install in order: copr -> dnf -> cargo -> npm -> flatpak
@@ -199,21 +231,18 @@ function fedpunk-module-install-packages
     set -l copr_repos (yaml-get-list "$module_yaml" "packages" "copr")
     for repo in $copr_repos
         echo "  Enabling COPR repo: $repo"
-        sudo dnf copr enable -y $repo
+        sudo dnf copr enable -y $repo 2>/dev/null
     end
 
     # DNF packages
     set -l dnf_packages (yaml-get-list "$module_yaml" "packages" "dnf")
     if test -n "$dnf_packages"
-        echo "  Installing DNF packages: $dnf_packages"
-        sudo dnf install -y -q $dnf_packages
+        ui-spin --title "  Installing DNF packages..." --tail 8 -- sudo dnf install -y $dnf_packages
     end
 
     # Cargo packages
     set -l cargo_packages (yaml-get-list "$module_yaml" "packages" "cargo")
     for pkg in $cargo_packages
-        echo "  Installing cargo package: $pkg"
-
         # Ensure cargo is in PATH (in case it was just installed)
         if not command -v cargo >/dev/null 2>&1
             if test -f "$HOME/.cargo/bin/cargo"
@@ -224,35 +253,25 @@ function fedpunk-module-install-packages
             end
         end
 
-        cargo install $pkg
+        ui-spin --title "  Installing cargo: $pkg..." --tail 5 -- cargo install $pkg
     end
 
     # NPM packages
     set -l npm_packages (yaml-get-list "$module_yaml" "packages" "npm")
     for pkg in $npm_packages
-        echo "  Installing npm package: $pkg"
-        sudo npm install -g $pkg
+        ui-spin --title "  Installing npm: $pkg..." --tail 3 -- sudo npm install -g $pkg
     end
 
-    # Flatpak packages
+    # Flatpak packages (requires flatpak module as dependency)
     set -l flatpak_packages (yaml-get-list "$module_yaml" "packages" "flatpak")
     if test -n "$flatpak_packages"
-        # Ensure flatpak is installed
         if not command -v flatpak >/dev/null 2>&1
-            echo "  Installing flatpak..."
-            sudo dnf install -y -q flatpak
+            echo "  Error: flatpak not installed. Add 'flatpak' module as a dependency." >&2
+            return 1
         end
 
-        # Ensure Flathub repository is added
-        if not flatpak remotes | grep -q flathub
-            echo "  Adding Flathub repository..."
-            sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-        end
-
-        # Install flatpak packages
         for pkg in $flatpak_packages
-            echo "  Installing flatpak: $pkg"
-            sudo flatpak install -y flathub $pkg
+            ui-spin --title "  Installing flatpak: $pkg..." --tail 5 -- sudo flatpak install -y flathub $pkg
         end
     end
 
@@ -279,6 +298,9 @@ function fedpunk-module-stow
 
     # Use new linker instead of stow
     linker-deploy $module_name $module_dir
+
+    # Deploy CLI commands if module has them
+    linker-deploy-cli $module_name $module_dir
 end
 
 function fedpunk-module-unstow
@@ -301,6 +323,9 @@ function fedpunk-module-unstow
 
     # Use new linker instead of stow
     linker-remove $module_name
+
+    # Remove CLI commands
+    linker-remove-cli $module_name
 end
 
 function fedpunk-module-run-lifecycle
@@ -334,6 +359,7 @@ function fedpunk-module-run-lifecycle
     set -lx MODULE_DIR $module_dir
     set -lx STOW_TARGET $HOME
     set -lx FEDPUNK_ROOT $FEDPUNK_ROOT
+    set -lx FEDPUNK_AUTO_TAIL 5  # Enable auto-tail for ui-spin in lifecycle scripts
 
     # Run each script
     for script in $scripts

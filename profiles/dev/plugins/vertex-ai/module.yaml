@@ -13,7 +13,6 @@ packages:
   dnf: []
   npm: []
   cargo: []
-  flatpak: []
 
 stow:
   target: $HOME

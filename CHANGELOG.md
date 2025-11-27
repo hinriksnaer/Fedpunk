@@ -7,6 +7,153 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-11-26
+
+### 🎉 Major Features
+
+#### CLI Modularization
+- **Refactored** Monolithic 1,083-line CLI into modular architecture
+  - New thin dispatcher at `bin/fedpunk` (~190 lines) routes commands to modular handlers
+  - Commands organized in `cli/<command>/<command>.fish` with functions as subcommands
+  - Descriptions extracted from `--description` flags - no separate metadata files
+  - Private functions (prefixed with `_`) hidden from help and protected from direct execution
+  - Smart TUI/CLI mode: if arg provided → CLI mode, if no arg + TTY → TUI selector
+  - Modules can now provide their own CLI commands via `module/cli/` directories
+
+#### Module CLI Extensions
+- **Added** Module CLI extension pattern for self-contained command modules
+  - Modules place CLI commands in `module/cli/<command>/<command>.fish`
+  - Linker automatically deploys module CLIs as symlinks to `$FEDPUNK_ROOT/cli/`
+  - Commands seamlessly integrate with main `fedpunk` dispatcher
+  - Vault commands now live in bitwarden module (`modules/bitwarden/cli/vault/`)
+  - Bluetooth commands created at (`modules/bluetooth/cli/bluetooth/`)
+
+#### SSH Key Management
+- **Added** SSH key backup and restore commands to `fedpunk vault`
+  - `ssh-backup` - Backup SSH keys to Bitwarden vault (GPG encrypted)
+  - `ssh-restore` - Restore SSH keys from vault
+  - `ssh-load` - Load SSH keys into ssh-agent
+  - `ssh-list` - List available SSH backups
+  - Named backups for multiple machines (defaults to hostname)
+  - Interactive backup selection when restoring
+  - Workflow: `vault unlock` → `ssh-restore` → `ssh-load` → `gh auth login`
+
+#### New Modules
+
+- **Added** `zen-browser` module
+  - Zen Browser - Firefox-based browser focused on privacy and simplicity
+  - Uses `sneexy/zen-browser` COPR repository
+
+- **Added** `flatpak` module
+  - Dedicated module for Flatpak package manager setup
+  - Handles Flathub repository configuration via lifecycle script
+  - Modules with flatpak packages must now declare `flatpak` as dependency
+
+- **Added** `vm-testing` module
+  - VM testing tools for Fedpunk development
+  - `fedpunk vm create` - Create test VM with cloud-init auto-setup
+  - `fedpunk vm start/stop/list/delete` - VM management commands
+  - Auto-generates install script with current git branch baked in
+  - Cloud-init configures credentials and install script automatically
+
+- **Added** `plugins/lvm-expand` plugin
+  - Automatically expands LVM root partition on first boot
+  - Useful for VMs and fresh installations with unallocated space
+
+### 🔧 Improvements
+
+#### UI Utilities
+- **Added** Smart UI utility functions in `lib/fish/ui.fish`
+  - `ui-select-smart`: TUI selector if interactive and no value, otherwise use provided value
+  - `ui-input-smart`: TUI input if interactive and no value, otherwise use provided value
+  - `ui-confirm-smart`: TUI confirm if interactive, use default if not
+  - Enables consistent behavior across TUI and CLI modes
+
+- **Added** `ui-spin --tail N` flag for live progress output
+  - Shows last N lines of command output updating in place
+  - Useful for long operations like DNF updates, cargo installs
+  - Single-line mode for TTY, multi-line for terminal emulators
+
+- **Added** Auto-tail via `FEDPUNK_AUTO_TAIL` environment variable
+  - Set `FEDPUNK_AUTO_TAIL=5` to automatically show tail output
+  - Enabled during installer and lifecycle script execution
+  - No need to manually add `--tail` flags everywhere
+
+- **Added** Terminal capability detection
+  - Detects TTY (`TERM=linux`) vs terminal emulators
+  - Uses appropriate output mode (single-line vs multi-line)
+  - Prevents mangled output in raw TTY environments
+
+#### Linker Enhancements
+- **Added** CLI deployment functions to linker
+  - `linker-deploy-cli`: Symlinks module CLI commands to `$FEDPUNK_ROOT/cli/`
+  - `linker-remove-cli`: Removes CLI symlinks when module is removed
+  - CLI state tracked in `.linker-state.json` alongside config files
+
+#### Browser
+- **Changed** Firefox module now installs Zen Browser instead of stock Firefox
+  - Uses `sneexy/zen-browser` COPR for better privacy-focused browsing
+  - Same module name (`firefox`) for backward compatibility
+
+#### Dev Profile
+- **Added** Slack (`com.slack.Slack`) to dev-extras flatpak packages
+  - Joins Spotify and Discord in the dev-extras module
+
+#### CLI
+- **Updated** Help text to reflect new SSH management commands
+- **Reorganized** Vault commands - SSH backup/restore moved to dedicated `fedpunk ssh` command
+- **Deprecated** `fedpunk vault ssh-backup` and `fedpunk vault ssh-restore` (redirects to new commands)
+- **Improved** Command documentation with clear examples
+
+#### Testing
+- **Added** Comprehensive CLI dispatcher test suite (37 tests)
+  - Tests command discovery, subcommand execution, help generation
+  - Tests error handling, exit codes, private function protection
+  - Test command `fedpunk doctor` for dispatcher verification
+
+### 🐛 Bug Fixes
+
+- **Fixed** Bluetooth script hanging in VMs without bluetooth hardware
+  - Added `timeout 3` to `bluetoothctl show` command
+  - Prevents indefinite hang during installation
+
+- **Fixed** `~/etc/` directory being created incorrectly
+  - Removed redundant `terra.repo` from system-config module
+  - File was being stowed to wrong location due to target misconfiguration
+
+- **Fixed** Zen Browser COPR format
+  - Changed from `sneexy/zen-browser:zen-browser` to `sneexy/zen-browser`
+  - Added `zen-browser` to dnf packages list
+
+- **Fixed** Linker creating broken symlinks for CLI directories
+  - Now removes empty CLI directories before creating symlinks
+  - Prevents "directory not empty" errors
+
+- **Fixed** Log bleed into profile selection prompt
+  - Added extra blank lines after DNF update
+  - Pushes audit/systemd console messages off screen
+
+### 📝 Project Structure
+
+- **New** `bin/fedpunk` - Modular CLI dispatcher
+- **New** `cli/` directory - Core command modules (apply, doctor, init, module, profile, sync, theme, wallpaper)
+- **New** `modules/bitwarden/cli/vault/` - Vault commands as module CLI
+- **New** `modules/bluetooth/cli/bluetooth/` - Bluetooth commands as module CLI
+- **New** `modules/vm-testing/` - VM testing module with cloud-init support
+- **New** `modules/flatpak/` - Dedicated flatpak module with Flathub setup
+- **New** `profiles/dev/plugins/lvm-expand/` - LVM partition expansion plugin
+- **New** `tests/cli-dispatcher.fish` - CLI test suite
+- **Changed** `modules/fish/config/.local/bin/fedpunk` - Now thin wrapper delegating to new dispatcher
+- **Removed** `modules/extra-apps/` - Replaced by `flatpak` module
+- **Removed** `install.sh` - Redundant, `boot.sh` handles everything
+
+### 📝 Notes
+
+SSH key management is now integrated into `fedpunk vault`:
+- SSH keys are stored as GPG-encrypted secure notes in Bitwarden
+- Backups include SSH keys, public keys, and config file
+- Workflow for new machine: `fedpunk vault unlock` → `ssh-restore` → `ssh-load` → `gh auth login`
+
 ## [0.2.2] - 2025-11-25
 
 ### 🐛 Bug Fixes
@@ -267,7 +414,9 @@ None - All changes are backward compatible with existing installations.
 
 ---
 
-[Unreleased]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/hinriksnaer/Fedpunk/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.2...v0.3.0
+[0.2.2]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/hinriksnaer/Fedpunk/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/hinriksnaer/Fedpunk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/hinriksnaer/Fedpunk/releases/tag/v0.1.0

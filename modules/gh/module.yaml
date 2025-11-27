@@ -13,7 +13,6 @@ packages:
     - gh
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

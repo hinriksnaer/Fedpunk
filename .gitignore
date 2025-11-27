@@ -76,3 +76,9 @@ modules/lazygit/config/.config/lazygit/config.yml
 
 # Centralized backup directory
 ../fedpunk-backups/
+
+# CLI symlinks from module deployment (runtime-generated)
+# Core CLI commands in cli/ are tracked, but symlinks to module CLIs are not
+cli/vault
+cli/bluetooth
+cli/ssh

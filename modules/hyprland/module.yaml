@@ -55,7 +55,6 @@ packages:
     - hyprland-qt-support
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

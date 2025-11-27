@@ -1,6 +1,6 @@
 module:
   name: firefox
-  description: Mozilla Firefox web browser
+  description: Zen Browser - Firefox-based browser focused on privacy and simplicity
   dependencies:
     - multimedia
 
@@ -9,11 +9,11 @@ lifecycle:
   after: []
 
 packages:
-  dnf:
-    - firefox
+  dnf: []
+  copr:
+    - sneexy/zen-browser:zen-browser
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME
