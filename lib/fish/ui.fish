@@ -79,7 +79,7 @@ function ui-spin
 
     ui-log SPIN "Starting: $title_arg (tail=$tail_lines)"
 
-    # If --tail specified, use tail mode - simple streaming output
+    # If --tail specified, use tail mode
     if test "$tail_lines" != "0" -a "$tail_lines" != ""
         if test -n "$title_arg"
             printf "%s\n" "$title_arg"
@@ -90,27 +90,69 @@ function ui-spin
             return 1
         end
 
-        # Run command and tail output directly (dimmed)
+        # Run command and capture output
         set -l tmp_out (mktemp)
         $argv[$cmd_start..] > "$tmp_out" 2>&1 &
         set -l cmd_pid $last_pid
 
-        # Stream last line while running
-        set -l last_line ""
-        while kill -0 $cmd_pid 2>/dev/null
-            if test -f "$tmp_out" -a -s "$tmp_out"
-                set -l current_line (tail -n 1 "$tmp_out" 2>/dev/null | string sub -l 70)
-                if test "$current_line" != "$last_line" -a -n "$current_line"
-                    # Clear line and print new status
-                    printf '\r\033[K\033[90m  %s\033[0m' "$current_line"
-                    set last_line "$current_line"
-                end
-            end
-            sleep 0.2
+        # Detect if we're in a capable terminal (not raw TTY)
+        # TERM=linux is raw TTY, anything else (xterm, kitty, etc) supports cursor movement
+        set -l use_multiline false
+        if test -n "$TERM" -a "$TERM" != "linux" -a "$TERM" != "dumb"
+            set use_multiline true
         end
 
-        # Clear the status line
-        printf '\r\033[K'
+        if test "$use_multiline" = "true"
+            # Multi-line mode for capable terminals
+            # Print empty lines to reserve space
+            for i in (seq $tail_lines)
+                printf "\n"
+            end
+
+            # Stream output while running
+            while kill -0 $cmd_pid 2>/dev/null
+                if test -f "$tmp_out" -a -s "$tmp_out"
+                    # Move cursor up
+                    printf '\033[%dA' $tail_lines
+
+                    # Get last N lines and display
+                    set -l lines_to_show (tail -n $tail_lines "$tmp_out" 2>/dev/null)
+                    set -l count 0
+                    for line in $lines_to_show
+                        set count (math $count + 1)
+                        printf '\033[2K\033[90m  %s\033[0m\n' (string sub -l 76 "$line")
+                    end
+
+                    # Pad remaining lines
+                    while test $count -lt $tail_lines
+                        printf '\033[2K\n'
+                        set count (math $count + 1)
+                    end
+                end
+                sleep 0.2
+            end
+
+            # Clear the output area
+            printf '\033[%dA' $tail_lines
+            for i in (seq $tail_lines)
+                printf '\033[2K\n'
+            end
+            printf '\033[%dA' $tail_lines
+        else
+            # Single-line mode for TTY/dumb terminals
+            set -l last_line ""
+            while kill -0 $cmd_pid 2>/dev/null
+                if test -f "$tmp_out" -a -s "$tmp_out"
+                    set -l current_line (tail -n 1 "$tmp_out" 2>/dev/null | string sub -l 70)
+                    if test "$current_line" != "$last_line" -a -n "$current_line"
+                        printf '\r\033[K\033[90m  %s\033[0m' "$current_line"
+                        set last_line "$current_line"
+                    end
+                end
+                sleep 0.2
+            end
+            printf '\r\033[K'
+        end
 
         # Wait for command and get status
         wait $cmd_pid
