@@ -44,6 +44,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Zen Browser - Firefox-based browser focused on privacy and simplicity
   - Uses `sneexy/zen-browser` COPR repository
 
+- **Added** `flatpak` module
+  - Dedicated module for Flatpak package manager setup
+  - Handles Flathub repository configuration via lifecycle script
+  - Modules with flatpak packages must now declare `flatpak` as dependency
+
+- **Added** `vm-testing` module
+  - VM testing tools for Fedpunk development
+  - `fedpunk vm create` - Create test VM with cloud-init auto-setup
+  - `fedpunk vm start/stop/list/delete` - VM management commands
+  - Auto-generates install script with current git branch baked in
+  - Cloud-init configures credentials and install script automatically
+
+- **Added** `plugins/lvm-expand` plugin
+  - Automatically expands LVM root partition on first boot
+  - Useful for VMs and fresh installations with unallocated space
+
 ### 🔧 Improvements
 
 #### UI Utilities
@@ -52,6 +68,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ui-input-smart`: TUI input if interactive and no value, otherwise use provided value
   - `ui-confirm-smart`: TUI confirm if interactive, use default if not
   - Enables consistent behavior across TUI and CLI modes
+
+- **Added** `ui-spin --tail N` flag for live progress output
+  - Shows last N lines of command output updating in place
+  - Useful for long operations like DNF updates, cargo installs
+  - Single-line mode for TTY, multi-line for terminal emulators
+
+- **Added** Auto-tail via `FEDPUNK_AUTO_TAIL` environment variable
+  - Set `FEDPUNK_AUTO_TAIL=5` to automatically show tail output
+  - Enabled during installer and lifecycle script execution
+  - No need to manually add `--tail` flags everywhere
+
+- **Added** Terminal capability detection
+  - Detects TTY (`TERM=linux`) vs terminal emulators
+  - Uses appropriate output mode (single-line vs multi-line)
+  - Prevents mangled output in raw TTY environments
 
 #### Linker Enhancements
 - **Added** CLI deployment functions to linker
@@ -80,14 +111,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests error handling, exit codes, private function protection
   - Test command `fedpunk doctor` for dispatcher verification
 
+### 🐛 Bug Fixes
+
+- **Fixed** Bluetooth script hanging in VMs without bluetooth hardware
+  - Added `timeout 3` to `bluetoothctl show` command
+  - Prevents indefinite hang during installation
+
+- **Fixed** `~/etc/` directory being created incorrectly
+  - Removed redundant `terra.repo` from system-config module
+  - File was being stowed to wrong location due to target misconfiguration
+
+- **Fixed** Zen Browser COPR format
+  - Changed from `sneexy/zen-browser:zen-browser` to `sneexy/zen-browser`
+  - Added `zen-browser` to dnf packages list
+
+- **Fixed** Linker creating broken symlinks for CLI directories
+  - Now removes empty CLI directories before creating symlinks
+  - Prevents "directory not empty" errors
+
+- **Fixed** Log bleed into profile selection prompt
+  - Added extra blank lines after DNF update
+  - Pushes audit/systemd console messages off screen
+
 ### 📝 Project Structure
 
 - **New** `bin/fedpunk` - Modular CLI dispatcher
 - **New** `cli/` directory - Core command modules (apply, doctor, init, module, profile, sync, theme, wallpaper)
 - **New** `modules/bitwarden/cli/vault/` - Vault commands as module CLI
 - **New** `modules/bluetooth/cli/bluetooth/` - Bluetooth commands as module CLI
+- **New** `modules/vm-testing/` - VM testing module with cloud-init support
+- **New** `modules/flatpak/` - Dedicated flatpak module with Flathub setup
+- **New** `profiles/dev/plugins/lvm-expand/` - LVM partition expansion plugin
 - **New** `tests/cli-dispatcher.fish` - CLI test suite
 - **Changed** `modules/fish/config/.local/bin/fedpunk` - Now thin wrapper delegating to new dispatcher
+- **Removed** `modules/extra-apps/` - Replaced by `flatpak` module
+- **Removed** `install.sh` - Redundant, `boot.sh` handles everything
 
 ### 📝 Notes
 
