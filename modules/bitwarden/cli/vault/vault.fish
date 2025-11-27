@@ -208,10 +208,31 @@ function ssh-backup --description "Backup SSH keys to vault"
         return 1
     end
 
+    # Get passphrase for encryption
+    set -l passphrase
+    if test -t 0  # Check if stdin is a terminal
+        if command -v gum >/dev/null 2>&1
+            set passphrase (gum input --password --placeholder "Enter passphrase to encrypt backup")
+        else
+            printf "Enter passphrase to encrypt backup: "
+            read -s passphrase
+            printf "\n"
+        end
+    else
+        # Non-interactive: read from stdin
+        read passphrase
+    end
+
+    if test -z "$passphrase"
+        rm -f "$temp_tar"
+        printf "Error: Passphrase cannot be empty\n" >&2
+        return 1
+    end
+
     # Encrypt with GPG
     set -l encrypted_file (mktemp --suffix=.tar.gz.gpg)
-    printf "Enter a passphrase to encrypt your backup:\n"
-    gpg --symmetric --cipher-algo AES256 --output "$encrypted_file" "$temp_tar" 2>/dev/null
+    printf "Encrypting backup...\n"
+    echo "$passphrase" | gpg --batch --yes --passphrase-fd 0 --symmetric --cipher-algo AES256 --output "$encrypted_file" "$temp_tar" 2>/dev/null
     set -l gpg_status $status
     rm -f "$temp_tar"
 
@@ -244,13 +265,14 @@ $encoded_backup
 
     # Check if item exists
     set -l existing_item (bw get item "$item_name" 2>/dev/null)
+    set -l bw_result 1
 
     if test -n "$existing_item"
         # Update existing item
         printf "Updating existing backup...\n"
         set -l item_id (echo "$existing_item" | jq -r '.id')
         echo "$existing_item" | jq --arg notes "$note_content" '.notes = $notes' | bw encode | bw edit item "$item_id" >/dev/null 2>&1
-        set -l bw_result $status
+        set bw_result $status
     else
         # Create new secure note
         printf "Creating new backup...\n"
@@ -263,7 +285,7 @@ $encoded_backup
             favorite: false,
             secureNote: { type: 0 }
         }' | bw encode | bw create item >/dev/null 2>&1
-        set -l bw_result $status
+        set bw_result $status
     end
 
     if test $bw_result -eq 0
@@ -282,7 +304,10 @@ function ssh-restore --description "Restore SSH keys from vault"
     if contains -- "$argv[1]" --help -h
         printf "Restore SSH keys from Bitwarden vault\n"
         printf "\n"
-        printf "Usage: fedpunk vault ssh-restore [name]\n"
+        printf "Usage: fedpunk vault ssh-restore [--force] [name]\n"
+        printf "\n"
+        printf "Options:\n"
+        printf "  --force  Overwrite existing SSH directory without confirmation\n"
         printf "\n"
         printf "Arguments:\n"
         printf "  name    Backup name (interactive if not provided)\n"
@@ -290,13 +315,25 @@ function ssh-restore --description "Restore SSH keys from vault"
         printf "Examples:\n"
         printf "  fedpunk vault ssh-restore             # Interactive selection\n"
         printf "  fedpunk vault ssh-restore work-laptop # Restore specific backup\n"
+        printf "  fedpunk vault ssh-restore --force my-backup  # Force overwrite\n"
         return 0
     end
 
     _require_unlocked; or return 1
 
+    # Parse --force flag
+    set -l force_overwrite false
+    set -l remaining_args
+    for arg in $argv
+        if test "$arg" = "--force"
+            set force_overwrite true
+        else
+            set -a remaining_args $arg
+        end
+    end
+
     set -l SSH_DIR "$HOME/.ssh"
-    set -l backup_name $argv[1]
+    set -l backup_name $remaining_args[1]
 
     # Sync vault
     printf "Syncing vault...\n"
@@ -352,9 +389,13 @@ function ssh-restore --description "Restore SSH keys from vault"
         ls -la "$SSH_DIR" 2>/dev/null | head -10
         printf "\n"
 
-        if not ui-confirm-smart --prompt "Overwrite existing SSH configuration?" --default no
-            printf "Restore cancelled\n"
-            return 0
+        if test "$force_overwrite" != "true"
+            if not ui-confirm-smart --prompt "Overwrite existing SSH configuration?" --default no
+                printf "Restore cancelled\n"
+                return 0
+            end
+        else
+            printf "Force overwrite enabled, continuing...\n"
         end
 
         # Backup existing .ssh
@@ -371,9 +412,30 @@ function ssh-restore --description "Restore SSH keys from vault"
     set -l encrypted_file (mktemp --suffix=.tar.gz.gpg)
     echo "$encoded_backup" | base64 -d > "$encrypted_file"
 
+    # Get passphrase for decryption
+    set -l passphrase
+    if test -t 0  # Check if stdin is a terminal
+        if command -v gum >/dev/null 2>&1
+            set passphrase (gum input --password --placeholder "Enter passphrase to decrypt backup")
+        else
+            printf "Enter passphrase to decrypt backup: "
+            read -s passphrase
+            printf "\n"
+        end
+    else
+        # Non-interactive: read from stdin
+        read passphrase
+    end
+
+    if test -z "$passphrase"
+        rm -f "$encrypted_file"
+        printf "Error: Passphrase cannot be empty\n" >&2
+        return 1
+    end
+
     set -l temp_tar (mktemp --suffix=.tar.gz)
-    printf "Enter the passphrase to decrypt your backup:\n"
-    gpg --decrypt --output "$temp_tar" "$encrypted_file" 2>/dev/null
+    printf "Decrypting backup...\n"
+    echo "$passphrase" | gpg --batch --yes --passphrase-fd 0 --decrypt --output "$temp_tar" "$encrypted_file" 2>/dev/null
     set -l gpg_status $status
     rm -f "$encrypted_file"
 
