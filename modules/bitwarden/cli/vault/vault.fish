@@ -468,8 +468,8 @@ function ssh-restore --description "Restore SSH keys from vault"
     ls -la "$SSH_DIR" | grep -v "^total" | grep -v "known_hosts"
     printf "\n"
     printf "Next steps:\n"
-    printf "  fedpunk vault ssh-load  # Load keys into ssh-agent\n"
-    printf "  gh auth login           # Authenticate with GitHub\n"
+    printf "  fedpunk vault ssh-load    # Load keys into ssh-agent\n"
+    printf "  fedpunk vault gh-restore  # Authenticate with GitHub\n"
 end
 
 function ssh-load --description "Load SSH keys into agent"
@@ -729,4 +729,193 @@ function claude-restore --description "Restore Claude Code token"
     printf "Config file: %s\n" "$fish_config"
     printf "\n"
     printf "🎉 You can now use Claude Code without logging in!\n"
+end
+
+function gh-backup --description "Backup GitHub CLI token"
+    if contains -- "$argv[1]" --help -h
+        printf "Backup GitHub personal access token to Bitwarden\n"
+        printf "\n"
+        printf "Usage: fedpunk vault gh-backup [name]\n"
+        printf "\n"
+        printf "This stores your GitHub PAT for automated gh auth login.\n"
+        printf "Create a PAT at: https://github.com/settings/tokens\n"
+        printf "\n"
+        printf "Required scopes: repo, read:org, workflow, gist\n"
+        printf "\n"
+        printf "Examples:\n"
+        printf "  fedpunk vault gh-backup              # Default backup\n"
+        printf "  fedpunk vault gh-backup work         # Named backup\n"
+        return 0
+    end
+
+    _require_unlocked; or return 1
+
+    set -l backup_name $argv[1]
+    set -l item_name "GitHub PAT"
+    if test -n "$backup_name"
+        set item_name "GitHub PAT - $backup_name"
+    end
+
+    printf "GitHub CLI Token Backup\n"
+    printf "\n"
+    printf "Backup name: %s\n" "$item_name"
+    printf "\n"
+
+    # Get the PAT from user
+    set -l gh_token
+    if test -t 0
+        if command -v gum >/dev/null 2>&1
+            printf "Enter your GitHub Personal Access Token:\n"
+            printf "(Create one at https://github.com/settings/tokens)\n"
+            printf "\n"
+            set gh_token (gum input --password --placeholder "ghp_xxxxxxxxxxxx")
+        else
+            printf "Enter your GitHub Personal Access Token: "
+            read -s gh_token
+            printf "\n"
+        end
+    else
+        read gh_token
+    end
+
+    if test -z "$gh_token"
+        printf "Error: Token cannot be empty\n" >&2
+        return 1
+    end
+
+    # Validate token format (should start with ghp_ or github_pat_)
+    if not string match -q -r '^(ghp_|github_pat_)' "$gh_token"
+        printf "Warning: Token doesn't look like a GitHub PAT\n"
+        printf "Expected format: ghp_xxx or github_pat_xxx\n"
+        printf "\n"
+    end
+
+    # Setup metadata
+    set -l backup_hostname (hostname)
+    set -l timestamp (date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    printf "Backing up to Bitwarden vault...\n"
+
+    # Check if item exists
+    set -l existing_item (bw get item "$item_name" 2>/dev/null)
+    set -l bw_result 1
+
+    if test -n "$existing_item"
+        printf "Updating existing backup...\n"
+        set -l item_id (echo "$existing_item" | jq -r '.id')
+        echo "$existing_item" | jq --arg token "$gh_token" --arg notes "GitHub Personal Access Token
+Hostname: $backup_hostname
+Timestamp: $timestamp
+
+Restore with: fedpunk vault gh-restore" '.login.password = $token | .notes = $notes' | bw encode | bw edit item "$item_id" >/dev/null 2>&1
+        set bw_result $status
+    else
+        printf "Creating new backup...\n"
+        jq -n --arg name "$item_name" --arg token "$gh_token" --arg notes "GitHub Personal Access Token
+Hostname: $backup_hostname
+Timestamp: $timestamp
+
+Restore with: fedpunk vault gh-restore" '{
+            organizationId: null,
+            folderId: null,
+            type: 1,
+            name: $name,
+            notes: $notes,
+            favorite: false,
+            login: {
+                username: "github",
+                password: $token
+            }
+        }' | bw encode | bw create item >/dev/null 2>&1
+        set bw_result $status
+    end
+
+    if test $bw_result -eq 0
+        printf "\n"
+        printf "✓ GitHub token backed up to Bitwarden\n"
+        printf "  Item: %s\n" "$item_name"
+        printf "\n"
+        printf "Run 'fedpunk vault sync' to sync with server\n"
+    else
+        printf "Error: Failed to save backup to Bitwarden\n" >&2
+        return 1
+    end
+end
+
+function gh-restore --description "Restore GitHub CLI auth"
+    if contains -- "$argv[1]" --help -h
+        printf "Restore GitHub CLI authentication from Bitwarden\n"
+        printf "\n"
+        printf "Usage: fedpunk vault gh-restore [name]\n"
+        printf "\n"
+        printf "Authenticates gh CLI using stored PAT - no browser needed!\n"
+        printf "\n"
+        printf "Examples:\n"
+        printf "  fedpunk vault gh-restore             # Default backup\n"
+        printf "  fedpunk vault gh-restore work        # Named backup\n"
+        return 0
+    end
+
+    _require_unlocked; or return 1
+
+    if not command -v gh >/dev/null 2>&1
+        printf "Error: GitHub CLI (gh) not installed\n" >&2
+        return 1
+    end
+
+    set -l backup_name $argv[1]
+    set -l item_name "GitHub PAT"
+    if test -n "$backup_name"
+        set item_name "GitHub PAT - $backup_name"
+    end
+
+    printf "GitHub CLI Authentication\n"
+    printf "\n"
+
+    # Sync vault first
+    printf "Syncing vault...\n"
+    bw sync >/dev/null 2>&1
+
+    # Get the item
+    set -l item (bw get item "$item_name" 2>/dev/null)
+
+    if test -z "$item"
+        printf "Error: Backup not found: %s\n" "$item_name" >&2
+        printf "\n"
+        printf "Available backups:\n"
+        bw list items --search "GitHub PAT" 2>/dev/null | jq -r '.[] | select(.type == 1) | "  - " + .name'
+        printf "\n"
+        printf "Run 'fedpunk vault gh-backup' to create a backup first\n"
+        return 1
+    end
+
+    # Extract token
+    set -l gh_token (echo "$item" | jq -r '.login.password')
+
+    if test -z "$gh_token" -o "$gh_token" = "null"
+        printf "Error: Could not extract token from backup\n" >&2
+        return 1
+    end
+
+    printf "Authenticating with GitHub...\n"
+
+    # Login to gh using the token
+    echo "$gh_token" | gh auth login --with-token 2>&1
+    set -l auth_result $status
+
+    if test $auth_result -eq 0
+        printf "\n"
+        printf "✓ GitHub CLI authenticated successfully\n"
+        printf "\n"
+
+        # Show auth status
+        gh auth status 2>&1 | head -5
+        printf "\n"
+        printf "You can now use gh commands!\n"
+    else
+        printf "Error: Failed to authenticate with GitHub\n" >&2
+        printf "The token may be invalid or expired.\n" >&2
+        printf "Create a new one at: https://github.com/settings/tokens\n" >&2
+        return 1
+    end
 end
