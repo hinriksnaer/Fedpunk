@@ -79,7 +79,7 @@ function ui-spin
 
     ui-log SPIN "Starting: $title_arg (tail=$tail_lines)"
 
-    # If --tail specified, use tail mode - simple streaming output
+    # If --tail specified, use tail mode - show last N lines updating in place
     if test "$tail_lines" != "0" -a "$tail_lines" != ""
         if test -n "$title_arg"
             printf "%s\n" "$title_arg"
@@ -90,27 +90,52 @@ function ui-spin
             return 1
         end
 
-        # Run command and tail output directly (dimmed)
+        # Run command and tail output
         set -l tmp_out (mktemp)
         $argv[$cmd_start..] > "$tmp_out" 2>&1 &
         set -l cmd_pid $last_pid
 
-        # Stream last line while running
-        set -l last_line ""
+        # Print empty lines to reserve space
+        for i in (seq $tail_lines)
+            printf "\n"
+        end
+
+        # Move cursor back up
+        tput cuu $tail_lines 2>/dev/null; or printf '\033[%dA' $tail_lines
+
+        # Save cursor position
+        set -l start_row (tput lines 2>/dev/null; or echo 0)
+
+        # Stream output while running
         while kill -0 $cmd_pid 2>/dev/null
             if test -f "$tmp_out" -a -s "$tmp_out"
-                set -l current_line (tail -n 1 "$tmp_out" 2>/dev/null | string sub -l 70)
-                if test "$current_line" != "$last_line" -a -n "$current_line"
-                    # Clear line and print new status
-                    printf '\r\033[K\033[90m  %s\033[0m' "$current_line"
-                    set last_line "$current_line"
+                # Move to start position
+                tput cuu $tail_lines 2>/dev/null; or printf '\033[%dA' $tail_lines
+
+                # Get last N lines and display
+                set -l lines_to_show (tail -n $tail_lines "$tmp_out" 2>/dev/null)
+                set -l count 0
+                for line in $lines_to_show
+                    set count (math $count + 1)
+                    # Clear line, print dimmed, truncated
+                    printf '\033[2K\033[90m  %s\033[0m\n' (string sub -l 76 "$line")
+                end
+
+                # Pad remaining lines
+                while test $count -lt $tail_lines
+                    printf '\033[2K\n'
+                    set count (math $count + 1)
                 end
             end
             sleep 0.2
         end
 
-        # Clear the status line
-        printf '\r\033[K'
+        # Clear the output area
+        tput cuu $tail_lines 2>/dev/null; or printf '\033[%dA' $tail_lines
+        for i in (seq $tail_lines)
+            printf '\033[2K\n'
+        end
+        tput cuu $tail_lines 2>/dev/null; or printf '\033[%dA' $tail_lines
 
         # Wait for command and get status
         wait $cmd_pid
