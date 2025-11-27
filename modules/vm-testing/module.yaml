@@ -1,0 +1,22 @@
+module:
+  name: vm-testing
+  description: VM testing environment for Fedpunk development
+  dependencies: []
+  priority: 99
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  dnf:
+    - "@virtualization"
+    - virt-viewer
+    - qemu-kvm
+    - libvirt
+    - virt-install
+    - genisoimage
+
+stow:
+  target: $HOME
+  conflicts: warn

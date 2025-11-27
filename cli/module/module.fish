@@ -56,22 +56,67 @@ function deploy --description "Deploy a module"
     if contains -- "$argv[1]" --help -h
         printf "Deploy a module (install packages + config + lifecycle scripts)\n"
         printf "\n"
-        printf "Usage: fedpunk module deploy <name>\n"
+        printf "Usage: fedpunk module deploy [name]\n"
+        printf "\n"
+        printf "If no name provided, shows interactive selector.\n"
         printf "\n"
         printf "Examples:\n"
+        printf "  fedpunk module deploy           # Interactive\n"
         printf "  fedpunk module deploy hyprland\n"
         printf "  fedpunk module deploy neovim\n"
         return 0
     end
 
+    _ensure_module_lib
+
     set -l module_name $argv[1]
+
+    # If no module specified, show TUI selector
     if test -z "$module_name"
-        printf "Error: Module name required\n" >&2
-        printf "Usage: fedpunk module deploy <name>\n" >&2
-        return 1
+        # Build list of modules
+        set -l modules_dir "$FEDPUNK_ROOT/modules"
+        set -l module_list
+
+        for module_dir in $modules_dir/*
+            if test -d "$module_dir" -a -f "$module_dir/module.yaml"
+                set -a module_list (basename "$module_dir")
+            end
+        end
+
+        # Add profile plugins
+        set -l active_config "$FEDPUNK_ROOT/.active-config"
+        if test -L "$active_config"
+            set -l profile_dir (readlink -f "$active_config")
+            set -l plugins_dir "$profile_dir/plugins"
+
+            if test -d "$plugins_dir"
+                for plugin_dir in $plugins_dir/*
+                    if test -d "$plugin_dir" -a -f "$plugin_dir/module.yaml"
+                        set -a module_list "plugins/"(basename "$plugin_dir")
+                    end
+                end
+            end
+        end
+
+        if test -z "$module_list"
+            printf "Error: No modules found\n" >&2
+            return 1
+        end
+
+        # Use gum directly for interactive selection
+        if command -v gum >/dev/null 2>&1
+            set module_name (printf "%s\n" $module_list | gum filter --placeholder "Search modules...")
+        else
+            # Fallback to simple choose
+            set module_name (ui-choose --header "Select module to deploy:" $module_list)
+        end
+
+        if test -z "$module_name"
+            printf "Cancelled\n"
+            return 1
+        end
     end
 
-    _ensure_module_lib
     fedpunk-module deploy $module_name
 end
 

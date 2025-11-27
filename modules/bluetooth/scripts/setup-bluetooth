@@ -47,14 +47,14 @@ if command -v bluetoothctl >/dev/null 2>&1
         ui-info "Bluetooth service already enabled"
     end
 
-    # Check if Bluetooth hardware is available
-    set -l bt_status (bluetoothctl show 2>/dev/null | grep -i "powered" | awk '{print $2}')
+    # Check if Bluetooth hardware is available (with timeout to avoid hanging in VMs)
+    set -l bt_status (timeout 3 bluetoothctl show 2>/dev/null | grep -i "powered" | awk '{print $2}')
     if test "$bt_status" = "yes"
         ui-success "Bluetooth hardware detected and powered on"
     else if test -n "$bt_status"
         ui-warning "Bluetooth hardware detected but powered off - enable with 'bluetoothctl power on'"
     else
-        ui-info "No Bluetooth hardware detected"
+        ui-info "No Bluetooth hardware detected (or check timed out)"
     end
 else
     ui-warning "bluetoothctl command not found"
