@@ -262,22 +262,14 @@ function fedpunk-module-install-packages
         ui-spin --title "  Installing npm: $pkg..." --tail 3 -- sudo npm install -g $pkg
     end
 
-    # Flatpak packages
+    # Flatpak packages (requires flatpak module as dependency)
     set -l flatpak_packages (yaml-get-list "$module_yaml" "packages" "flatpak")
     if test -n "$flatpak_packages"
-        # Ensure flatpak is installed
         if not command -v flatpak >/dev/null 2>&1
-            echo "  Installing flatpak..."
-            sudo dnf install -y -q flatpak
+            echo "  Error: flatpak not installed. Add 'flatpak' module as a dependency." >&2
+            return 1
         end
 
-        # Ensure Flathub repository is added
-        if not flatpak remotes | grep -q flathub
-            echo "  Adding Flathub repository..."
-            sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-        end
-
-        # Install flatpak packages
         for pkg in $flatpak_packages
             ui-spin --title "  Installing flatpak: $pkg..." --tail 5 -- sudo flatpak install -y flathub $pkg
         end

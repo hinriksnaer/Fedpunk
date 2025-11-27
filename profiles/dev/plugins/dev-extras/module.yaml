@@ -3,6 +3,7 @@ module:
   description: Extra development tools and applications - Spotify, Discord, Slack, and Devcontainer CLI
   dependencies:
     - fish
+    - flatpak
 
 lifecycle:
   before: []

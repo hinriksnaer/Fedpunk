@@ -1,0 +1,14 @@
+#!/usr/bin/env fish
+# Setup Flathub repository for Flatpak
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Setting up Flathub repository..."
+
+# Add Flathub if not present
+if not flatpak remotes | grep -q flathub
+    ui-spin --title "Adding Flathub repository..." -- sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    ui-success "Flathub repository added"
+else
+    ui-success "Flathub repository already configured"
+end
