@@ -61,6 +61,7 @@ end
 function ui-spin
     # Usage: ui-spin --title "Loading..." -- command args
     # Usage: ui-spin --title "Loading..." --tail 10 -- command args  (shows last 10 lines live)
+    # Auto-tail: Set FEDPUNK_AUTO_TAIL=N to automatically enable tail mode
     set -l title_arg ""
     set -l tail_lines 0
     set -l cmd_start 0
@@ -77,9 +78,14 @@ function ui-spin
         end
     end
 
+    # Auto-enable tail if FEDPUNK_AUTO_TAIL is set and --tail wasn't specified
+    if test "$tail_lines" = "0" -a -n "$FEDPUNK_AUTO_TAIL"
+        set tail_lines $FEDPUNK_AUTO_TAIL
+    end
+
     ui-log SPIN "Starting: $title_arg (tail=$tail_lines)"
 
-    # If --tail specified, use tail mode
+    # If --tail specified (or auto-enabled), use tail mode
     if test "$tail_lines" != "0" -a "$tail_lines" != ""
         if test -n "$title_arg"
             printf "%s\n" "$title_arg"

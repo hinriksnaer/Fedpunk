@@ -367,6 +367,7 @@ function fedpunk-module-run-lifecycle
     set -lx MODULE_DIR $module_dir
     set -lx STOW_TARGET $HOME
     set -lx FEDPUNK_ROOT $FEDPUNK_ROOT
+    set -lx FEDPUNK_AUTO_TAIL 5  # Enable auto-tail for ui-spin in lifecycle scripts
 
     # Run each script
     for script in $scripts

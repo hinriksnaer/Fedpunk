@@ -211,6 +211,9 @@ function installer-run
         echo ""
     end
 
+    # Enable auto-tail for all ui-spin calls during install
+    set -gx FEDPUNK_AUTO_TAIL 5
+
     # Initial system update
     ui-section "System Update"
     ui-info "Updating system packages before installation"
