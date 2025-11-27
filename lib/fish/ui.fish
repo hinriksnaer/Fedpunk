@@ -79,7 +79,7 @@ function ui-spin
 
     ui-log SPIN "Starting: $title_arg (tail=$tail_lines)"
 
-    # If --tail specified, use tail mode
+    # If --tail specified, use tail mode - simple streaming output
     if test "$tail_lines" != "0" -a "$tail_lines" != ""
         if test -n "$title_arg"
             printf "%s\n" "$title_arg"
@@ -90,56 +90,31 @@ function ui-spin
             return 1
         end
 
-        # Create temp file for output
+        # Run command and tail output directly (dimmed)
         set -l tmp_out (mktemp)
-
-        # Run command, capture output
         $argv[$cmd_start..] > "$tmp_out" 2>&1 &
         set -l cmd_pid $last_pid
 
-        # Display last N lines while command runs
+        # Stream last line while running
+        set -l last_line ""
         while kill -0 $cmd_pid 2>/dev/null
             if test -f "$tmp_out" -a -s "$tmp_out"
-                set -l output_lines (tail -n $tail_lines "$tmp_out" 2>/dev/null)
-
-                # Clear previous output
-                if set -q _ui_spin_tail_printed
-                    printf '\033[%dA' $tail_lines
-                    for i in (seq $tail_lines)
-                        printf '\033[2K\n'
-                    end
-                    printf '\033[%dA' $tail_lines
+                set -l current_line (tail -n 1 "$tmp_out" 2>/dev/null | string sub -l 70)
+                if test "$current_line" != "$last_line" -a -n "$current_line"
+                    # Clear line and print new status
+                    printf '\r\033[K\033[90m  %s\033[0m' "$current_line"
+                    set last_line "$current_line"
                 end
-
-                # Print current output (dimmed)
-                for line in $output_lines
-                    printf '\033[90m  %s\033[0m\n' (string sub -l 80 "$line")
-                end
-
-                # Pad if fewer lines
-                set -l printed (count $output_lines)
-                for i in (seq (math "$tail_lines - $printed"))
-                    printf '\n'
-                end
-
-                set -g _ui_spin_tail_printed true
             end
-            sleep 0.3
+            sleep 0.2
         end
+
+        # Clear the status line
+        printf '\r\033[K'
 
         # Wait for command and get status
         wait $cmd_pid
         set -l status_code $status
-
-        # Clear tail output
-        if set -q _ui_spin_tail_printed
-            printf '\033[%dA' $tail_lines
-            for i in (seq $tail_lines)
-                printf '\033[2K\n'
-            end
-            printf '\033[%dA' $tail_lines
-            set -e _ui_spin_tail_printed
-        end
 
         # Log full output
         if test "$UI_CAPTURE_OUTPUT" = "true" -a -n "$UI_OUTPUT_LOG"
