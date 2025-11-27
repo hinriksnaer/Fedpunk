@@ -13,7 +13,6 @@ packages:
     - kitty
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

@@ -25,7 +25,6 @@ packages:
     - ImageMagick
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

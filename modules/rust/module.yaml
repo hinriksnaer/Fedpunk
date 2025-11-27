@@ -15,7 +15,6 @@ packages:
     - clang
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

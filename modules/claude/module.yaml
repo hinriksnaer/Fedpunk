@@ -16,7 +16,6 @@ packages:
   npm:
     - "@anthropic-ai/claude-code"
   cargo: []
-  flatpak: []
 
 stow:
   target: $HOME

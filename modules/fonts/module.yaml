@@ -20,7 +20,6 @@ packages:
     - jetbrains-mono-fonts
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

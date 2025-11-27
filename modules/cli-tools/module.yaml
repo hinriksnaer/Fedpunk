@@ -17,7 +17,6 @@ packages:
     - fd-find
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

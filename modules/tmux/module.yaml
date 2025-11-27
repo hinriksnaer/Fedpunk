@@ -14,7 +14,6 @@ packages:
     - tmux
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

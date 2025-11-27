@@ -23,7 +23,6 @@ packages:
     - openssl-devel
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

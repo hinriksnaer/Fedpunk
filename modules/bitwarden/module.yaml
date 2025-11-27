@@ -13,7 +13,6 @@ packages:
     - bitwarden-cli
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

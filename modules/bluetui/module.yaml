@@ -14,7 +14,6 @@ packages:
   cargo:
     - bluetui
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME

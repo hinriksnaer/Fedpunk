@@ -16,7 +16,6 @@ packages:
     - fzf
   cargo: []
   npm: []
-  flatpak: []
 
 stow:
   target: $HOME
