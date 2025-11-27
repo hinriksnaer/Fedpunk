@@ -225,6 +225,8 @@ function installer-run
         ui-warning "System update completed with warnings"
     end
     echo ""
+    echo ""
+    echo ""
 
     # Select profile
     if test -z "$profile"
