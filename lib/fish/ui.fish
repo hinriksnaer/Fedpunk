@@ -60,28 +60,114 @@ end
 # Spinner/progress indicator
 function ui-spin
     # Usage: ui-spin --title "Loading..." -- command args
-    ui-log SPIN "Starting: $argv"
+    # Usage: ui-spin --title "Loading..." --tail 10 -- command args  (shows last 10 lines live)
+    set -l title_arg ""
+    set -l tail_lines 0
+    set -l cmd_start 0
 
-    if ui-has-gum
-        gum spin $argv
-    else
-        # Fallback: just run the command
-        set -l title_arg ""
-        set -l cmd_start 0
+    # Parse arguments
+    for i in (seq (count $argv))
+        if test "$argv[$i]" = "--"
+            set cmd_start (math $i + 1)
+            break
+        else if test "$argv[$i]" = "--title"
+            set title_arg $argv[(math $i + 1)]
+        else if test "$argv[$i]" = "--tail"
+            set tail_lines $argv[(math $i + 1)]
+        end
+    end
 
-        for i in (seq (count $argv))
-            if test "$argv[$i]" = "--"
-                set cmd_start (math $i + 1)
-                break
-            else if test "$argv[$i]" = "--title"
-                set title_arg $argv[(math $i + 1)]
-            end
+    ui-log SPIN "Starting: $title_arg (tail=$tail_lines)"
+
+    # If --tail specified, use tail mode
+    if test $tail_lines -gt 0
+        if test -n "$title_arg"
+            printf "%s\n" "$title_arg"
         end
 
+        if test $cmd_start -eq 0
+            ui-log SPIN "No command provided"
+            return 1
+        end
+
+        # Create temp file for output
+        set -l tmp_out (mktemp)
+
+        # Run command, capture output
+        eval $argv[$cmd_start..] > "$tmp_out" 2>&1 &
+        set -l cmd_pid $last_pid
+
+        # Display last N lines while command runs
+        while kill -0 $cmd_pid 2>/dev/null
+            if test -f "$tmp_out" -a -s "$tmp_out"
+                set -l output_lines (tail -n $tail_lines "$tmp_out" 2>/dev/null)
+
+                # Clear previous output
+                if set -q _ui_spin_tail_printed
+                    printf '\033[%dA' $tail_lines
+                    for i in (seq $tail_lines)
+                        printf '\033[2K\n'
+                    end
+                    printf '\033[%dA' $tail_lines
+                end
+
+                # Print current output (dimmed)
+                for line in $output_lines
+                    printf '\033[90m  %s\033[0m\n' (string sub -l 80 "$line")
+                end
+
+                # Pad if fewer lines
+                set -l printed (count $output_lines)
+                for i in (seq (math "$tail_lines - $printed"))
+                    printf '\n'
+                end
+
+                set -g _ui_spin_tail_printed true
+            end
+            sleep 0.3
+        end
+
+        # Wait for command and get status
+        wait $cmd_pid
+        set -l status_code $status
+
+        # Clear tail output
+        if set -q _ui_spin_tail_printed
+            printf '\033[%dA' $tail_lines
+            for i in (seq $tail_lines)
+                printf '\033[2K\n'
+            end
+            printf '\033[%dA' $tail_lines
+            set -e _ui_spin_tail_printed
+        end
+
+        # Log full output
+        if test "$UI_CAPTURE_OUTPUT" = "true" -a -n "$UI_OUTPUT_LOG"
+            echo "=== $title_arg ===" >> "$UI_OUTPUT_LOG"
+            cat "$tmp_out" >> "$UI_OUTPUT_LOG"
+            echo "" >> "$UI_OUTPUT_LOG"
+        end
+
+        rm -f "$tmp_out"
+        ui-log SPIN "Completed with status: $status_code"
+        return $status_code
+    end
+
+    # Standard spinner mode (no --tail)
+    if ui-has-gum
+        # Build gum args without --tail
+        set -l gum_args
+        if test -n "$title_arg"
+            set -a gum_args --title "$title_arg"
+        end
+        if test $cmd_start -gt 0
+            set -a gum_args -- $argv[$cmd_start..]
+        end
+        gum spin $gum_args
+    else
         if test -n "$title_arg"
             echo "$title_arg"
         end
-
         if test $cmd_start -gt 0
             eval $argv[$cmd_start..]
         end

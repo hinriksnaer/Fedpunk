@@ -214,9 +214,7 @@ function installer-run
     # Initial system update
     ui-section "System Update"
     ui-info "Updating system packages before installation"
-    ui-spin --title "Running DNF update..." -- fish -c '
-        sudo dnf update -y
-    '
+    ui-spin --title "Running DNF update..." --tail 10 -- sudo dnf update -y
 
     if test $status -eq 0
         ui-success "System updated successfully"
@@ -325,9 +323,7 @@ function installer-run
         echo ""
         ui-section "Final System Update"
         ui-info "Updating all packages after module installation"
-        ui-spin --title "Running final DNF update..." -- fish -c '
-            sudo dnf update -y
-        '
+        ui-spin --title "Running final DNF update..." --tail 10 -- sudo dnf update -y
 
         if test $status -eq 0
             ui-success "Final system update completed"

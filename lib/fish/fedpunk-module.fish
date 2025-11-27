@@ -220,6 +220,9 @@ function fedpunk-module-install-packages
         return 1
     end
 
+    # Source ui.fish for ui-spin
+    source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
     echo "Installing packages for module: $module_name"
 
     # Install in order: copr -> dnf -> cargo -> npm -> flatpak
@@ -228,21 +231,18 @@ function fedpunk-module-install-packages
     set -l copr_repos (yaml-get-list "$module_yaml" "packages" "copr")
     for repo in $copr_repos
         echo "  Enabling COPR repo: $repo"
-        sudo dnf copr enable -y $repo
+        sudo dnf copr enable -y $repo 2>/dev/null
     end
 
     # DNF packages
     set -l dnf_packages (yaml-get-list "$module_yaml" "packages" "dnf")
     if test -n "$dnf_packages"
-        echo "  Installing DNF packages: $dnf_packages"
-        sudo dnf install -y -q $dnf_packages
+        ui-spin --title "  Installing DNF packages..." --tail 8 -- sudo dnf install -y $dnf_packages
     end
 
     # Cargo packages
     set -l cargo_packages (yaml-get-list "$module_yaml" "packages" "cargo")
     for pkg in $cargo_packages
-        echo "  Installing cargo package: $pkg"
-
         # Ensure cargo is in PATH (in case it was just installed)
         if not command -v cargo >/dev/null 2>&1
             if test -f "$HOME/.cargo/bin/cargo"
@@ -253,14 +253,13 @@ function fedpunk-module-install-packages
             end
         end
 
-        cargo install $pkg
+        ui-spin --title "  Installing cargo: $pkg..." --tail 5 -- cargo install $pkg
     end
 
     # NPM packages
     set -l npm_packages (yaml-get-list "$module_yaml" "packages" "npm")
     for pkg in $npm_packages
-        echo "  Installing npm package: $pkg"
-        sudo npm install -g $pkg
+        ui-spin --title "  Installing npm: $pkg..." --tail 3 -- sudo npm install -g $pkg
     end
 
     # Flatpak packages
@@ -280,8 +279,7 @@ function fedpunk-module-install-packages
 
         # Install flatpak packages
         for pkg in $flatpak_packages
-            echo "  Installing flatpak: $pkg"
-            sudo flatpak install -y flathub $pkg
+            ui-spin --title "  Installing flatpak: $pkg..." --tail 5 -- sudo flatpak install -y flathub $pkg
         end
     end
 
