@@ -80,7 +80,7 @@ function ui-spin
     ui-log SPIN "Starting: $title_arg (tail=$tail_lines)"
 
     # If --tail specified, use tail mode
-    if test $tail_lines -gt 0
+    if test "$tail_lines" != "0" -a "$tail_lines" != ""
         if test -n "$title_arg"
             printf "%s\n" "$title_arg"
         end
@@ -94,7 +94,7 @@ function ui-spin
         set -l tmp_out (mktemp)
 
         # Run command, capture output
-        eval $argv[$cmd_start..] > "$tmp_out" 2>&1 &
+        $argv[$cmd_start..] > "$tmp_out" 2>&1 &
         set -l cmd_pid $last_pid
 
         # Display last N lines while command runs
