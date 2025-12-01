@@ -1,0 +1,3 @@
+dnf:
+  - openssh-clients  # SSH client
+  - openssh-server   # SSH server (optional, for sshd)

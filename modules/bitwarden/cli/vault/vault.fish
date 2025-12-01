@@ -182,6 +182,18 @@ function ssh-backup --description "Backup SSH keys to vault"
     for key in $key_files
         printf "  - %s\n" (basename $key)
     end
+
+    # Show additional files being backed up
+    set -l extra_files
+    if test -f "$SSH_DIR/config.d/hosts"
+        set -a extra_files "config.d/hosts"
+    end
+    if test (count $extra_files) -gt 0
+        printf "\nAdditional files:\n"
+        for f in $extra_files
+            printf "  - %s\n" $f
+        end
+    end
     printf "\n"
 
     # Build list of files to backup
@@ -193,9 +205,14 @@ function ssh-backup --description "Backup SSH keys to vault"
         end
     end
 
-    # Include config if exists
+    # Include config if exists (but this is usually managed by SSH module)
     if test -f "$SSH_DIR/config"
         set -a files_to_backup config
+    end
+
+    # Include user's personal hosts configuration
+    if test -f "$SSH_DIR/config.d/hosts"
+        set -a files_to_backup config.d/hosts
     end
 
     # Create tarball

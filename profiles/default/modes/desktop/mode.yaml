@@ -8,6 +8,7 @@ mode:
 modules:
   # Core System
   - essentials
+  - ssh
   - languages
 
   # Terminal Tools

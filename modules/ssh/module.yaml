@@ -1,0 +1,3 @@
+name: ssh
+description: SSH client configuration and agent setup
+category: core
