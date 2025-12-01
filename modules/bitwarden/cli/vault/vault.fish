@@ -490,12 +490,27 @@ function ssh-load --description "Load SSH keys into agent"
     set -l SSH_DIR "$HOME/.ssh"
     set -l key_name $argv[1]
 
-    # Start ssh-agent if not running
-    if not set -q SSH_AGENT_PID
+    # Check if agent is accessible (handles both local agent and forwarded agent)
+    if not ssh-add -l &>/dev/null
+        # Agent not accessible or not running
+        if test -n "$SSH_AUTH_SOCK"
+            # SSH_AUTH_SOCK is set but agent is not responding (possibly forwarded agent issue)
+            printf "Warning: SSH_AUTH_SOCK is set but agent is not responding\n"
+            printf "Attempting to start local agent...\n"
+        end
+
+        # Start local ssh-agent
         eval (ssh-agent -c) >/dev/null
         set -Ux SSH_AGENT_PID $SSH_AGENT_PID
         set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
-        printf "Started ssh-agent\n"
+        printf "Started ssh-agent (PID: %s)\n" $SSH_AGENT_PID
+    else
+        # Agent is accessible
+        if test -n "$SSH_CONNECTION"
+            printf "Using forwarded SSH agent\n"
+        else
+            printf "Using local SSH agent\n"
+        end
     end
 
     if test -n "$key_name"
