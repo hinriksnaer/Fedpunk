@@ -10,11 +10,8 @@ lifecycle:
     - install
 
 packages:
-  dnf:
-    - nodejs
-    - npm
-  npm:
-    - "@anthropic-ai/claude-code"
+  dnf: []
+  npm: []
   cargo: []
 
 stow:

@@ -1,17 +1,28 @@
 #!/usr/bin/env fish
-# Claude Code post-install setup
-# Handles: Migration and cleanup
+# Claude Code install and setup
+# Handles: Installation via curl and migration
 
-# Migrate Claude Code installer if claude is installed
-if command -v claude >/dev/null 2>&1
-    echo "Migrating Claude Code installer..."
-    claude --migrate-installer
+# Install Claude Code using the official installer
+if not command -v claude >/dev/null 2>&1
+    echo "Installing Claude Code..."
+    curl -fsSL https://claude.ai/install.sh | bash
 
     if test $status -eq 0
-        echo "✓ Claude Code installer migrated successfully"
+        echo "✓ Claude Code installed successfully"
     else
-        echo "⚠ Claude Code migration failed or not needed"
+        echo "✗ Claude Code installation failed"
+        exit 1
     end
 else
-    echo "⚠ Claude command not found, skipping migration"
+    echo "✓ Claude already installed"
+end
+
+# Migrate Claude Code installer if needed
+echo "Migrating Claude Code installer..."
+claude --migrate-installer
+
+if test $status -eq 0
+    echo "✓ Claude Code installer migrated successfully"
+else
+    echo "⚠ Claude Code migration failed or not needed"
 end
