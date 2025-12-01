@@ -217,7 +217,11 @@ function installer-run
     # Initial system update
     ui-section "System Update"
     ui-info "Updating system packages before installation"
-    ui-spin --title "Running DNF update..." --tail 10 -- sudo dnf update -y -q --color=never
+    # DNF progress output is complex, disable tail mode for clean spinner
+    set -l FEDPUNK_AUTO_TAIL_BACKUP $FEDPUNK_AUTO_TAIL
+    set -e FEDPUNK_AUTO_TAIL
+    ui-spin --title "Running DNF update..." -- sudo dnf update -y -q --color=never
+    set -gx FEDPUNK_AUTO_TAIL $FEDPUNK_AUTO_TAIL_BACKUP
 
     if test $status -eq 0
         ui-success "System updated successfully"

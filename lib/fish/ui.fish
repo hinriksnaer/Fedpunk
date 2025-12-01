@@ -129,7 +129,7 @@ function ui-spin
                     set -l count 0
                     for line in $lines_to_show
                         set count (math $count + 1)
-                        printf '\033[2K\033[90m  %s\033[0m\n' (string sub -l 76 "$line")
+                        printf '\033[2K\033[90m  %s\033[0m\n' (string sub -l 76 -- "$line")
                     end
 
                     # Pad remaining lines
@@ -153,7 +153,7 @@ function ui-spin
             while kill -0 $cmd_pid 2>/dev/null
                 if test -f "$tmp_out" -a -s "$tmp_out"
                     # Keep only text after final \r, strip ANSI codes
-                    set -l current_line (tail -n 1 "$tmp_out" 2>/dev/null | sed "s/.*\r//g" | sed "s/\x1b\[[0-9;]*[a-zA-Z]//g" | string sub -l 70)
+                    set -l current_line (tail -n 1 "$tmp_out" 2>/dev/null | sed "s/.*\r//g" | sed "s/\x1b\[[0-9;]*[a-zA-Z]//g" | string sub -l 70 --)
                     if test "$current_line" != "$last_line" -a -n "$current_line"
                         printf '\r\033[K\033[90m  %s\033[0m' "$current_line"
                         set last_line "$current_line"
