@@ -102,9 +102,12 @@ function ui-spin
         set -l cmd_pid $last_pid
 
         # Detect if we're in a capable terminal (not raw TTY)
-        # TERM=linux is raw TTY, anything else (xterm, kitty, etc) supports cursor movement
+        # Requirements: stdout must be a TTY, TERM must be set and capable
+        # TERM=linux is raw TTY, TERM=dumb has no capabilities, containers often don't have proper TTY
         set -l use_multiline false
-        if test -n "$TERM" -a "$TERM" != "linux" -a "$TERM" != "dumb"
+        if test -t 1 -a -n "$TERM" -a "$TERM" != "linux" -a "$TERM" != "dumb"
+            # Additional check: verify cursor movement is actually supported
+            # In containers, TERM might be set but stdout isn't a proper TTY
             set use_multiline true
         end
 
