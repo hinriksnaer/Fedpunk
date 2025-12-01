@@ -485,77 +485,8 @@ function ssh-restore --description "Restore SSH keys from vault"
     ls -la "$SSH_DIR" | grep -v "^total" | grep -v "known_hosts"
     printf "\n"
     printf "Next steps:\n"
-    printf "  fedpunk vault ssh-load    # Load keys into ssh-agent\n"
-    printf "  fedpunk vault gh-restore  # Authenticate with GitHub\n"
-end
-
-function ssh-load --description "Load SSH keys into agent"
-    if contains -- "$argv[1]" --help -h
-        printf "Load SSH keys into ssh-agent\n"
-        printf "\n"
-        printf "Usage: fedpunk vault ssh-load [key]\n"
-        printf "\n"
-        printf "Arguments:\n"
-        printf "  key    Specific key to load (default: all keys)\n"
-        printf "\n"
-        printf "Examples:\n"
-        printf "  fedpunk vault ssh-load            # Load all keys\n"
-        printf "  fedpunk vault ssh-load id_ed25519 # Load specific key\n"
-        return 0
-    end
-
-    set -l SSH_DIR "$HOME/.ssh"
-    set -l key_name $argv[1]
-
-    # Check if agent is accessible (handles both local agent and forwarded agent)
-    if not ssh-add -l &>/dev/null
-        # Agent not accessible or not running
-        if test -n "$SSH_AUTH_SOCK"
-            # SSH_AUTH_SOCK is set but agent is not responding (possibly forwarded agent issue)
-            printf "Warning: SSH_AUTH_SOCK is set but agent is not responding\n"
-            printf "Attempting to start local agent...\n"
-        end
-
-        # Start local ssh-agent
-        eval (ssh-agent -c) >/dev/null
-        set -Ux SSH_AGENT_PID $SSH_AGENT_PID
-        set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
-        printf "Started ssh-agent (PID: %s)\n" $SSH_AGENT_PID
-    else
-        # Agent is accessible
-        if test -n "$SSH_CONNECTION"
-            printf "Using forwarded SSH agent\n"
-        else
-            printf "Using local SSH agent\n"
-        end
-    end
-
-    if test -n "$key_name"
-        # Load specific key
-        set -l key_path "$SSH_DIR/$key_name"
-        if not test -f "$key_path"
-            printf "Error: Key not found: %s\n" "$key_path" >&2
-            return 1
-        end
-        ssh-add "$key_path"
-    else
-        # Load all keys
-        set -l key_files (find "$SSH_DIR" -maxdepth 1 -type f -name "id_*" ! -name "*.pub" 2>/dev/null)
-
-        if test -z "$key_files"
-            printf "Error: No SSH keys found in %s\n" "$SSH_DIR" >&2
-            return 1
-        end
-
-        for key in $key_files
-            printf "Loading %s...\n" (basename $key)
-            ssh-add "$key" 2>/dev/null
-        end
-    end
-
-    printf "\n"
-    printf "Loaded keys:\n"
-    ssh-add -l
+    printf "  fedpunk ssh load         # Load keys into ssh-agent\n"
+    printf "  fedpunk vault gh-restore # Authenticate with GitHub\n"
 end
 
 function ssh-list --description "List SSH key backups"
