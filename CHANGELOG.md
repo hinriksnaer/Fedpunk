@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-11-30
+
+### 🐛 Bug Fixes
+
+#### Hyprland Layout Toggle
+- **Fixed** Layout toggle (Super+Alt+Space) not switching from master to dwindle
+  - Issue: Profile mode configurations were overriding layout toggle script
+  - Desktop mode forced `layout = master` even after toggle command ran
+  - Solution: Toggle script now updates both general.conf and active mode configuration
+  - Affects: `modules/hyprland/config/.config/hypr/scripts/toggle-layout.fish`
+  - Both dwindle ↔ master transitions now work correctly
+- **Improved** Layout toggle transition smoothness
+  - File I/O operations now complete before visual transition
+  - Blur temporarily disabled during layout switch to prevent GPU strain
+  - Eliminates glitchy/stuttering feeling during window repositioning
+
+#### Hyprland Theme Switching
+- **Fixed** Theme switching (Super+T) exiting master layout mode
+  - Issue: Same profile mode override issue affecting theme reload scripts
+  - Opening rofi theme selector would reset to dwindle layout
+  - Solution: Restore-layout script now also updates active mode configuration
+  - Affects: `modules/hyprland/config/.config/hypr/scripts/restore-layout.fish`
+  - All theme operations now preserve layout preference correctly
+
 ## [0.3.0] - 2025-11-26
 
 ### 🎉 Major Features
