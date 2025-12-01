@@ -124,8 +124,8 @@ function ui-spin
                     # Move cursor up
                     printf '\033[%dA' $tail_lines
 
-                    # Get last N lines and display
-                    set -l lines_to_show (tail -n $tail_lines "$tmp_out" 2>/dev/null)
+                    # Get last N lines, strip carriage returns and ANSI codes
+                    set -l lines_to_show (tail -n $tail_lines "$tmp_out" 2>/dev/null | tr -d '\r' | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
                     set -l count 0
                     for line in $lines_to_show
                         set count (math $count + 1)
@@ -152,7 +152,8 @@ function ui-spin
             set -l last_line ""
             while kill -0 $cmd_pid 2>/dev/null
                 if test -f "$tmp_out" -a -s "$tmp_out"
-                    set -l current_line (tail -n 1 "$tmp_out" 2>/dev/null | string sub -l 70)
+                    # Strip carriage returns and ANSI codes
+                    set -l current_line (tail -n 1 "$tmp_out" 2>/dev/null | tr -d '\r' | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' | string sub -l 70)
                     if test "$current_line" != "$last_line" -a -n "$current_line"
                         printf '\r\033[K\033[90m  %s\033[0m' "$current_line"
                         set last_line "$current_line"
