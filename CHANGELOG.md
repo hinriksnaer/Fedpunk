@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2025-11-30
+
+### 🎉 New Features
+
+#### SSH Module
+- **Added** Dedicated SSH module with opinionated client configuration
+  - Connection multiplexing for faster git/ansible operations
+  - Auto key management (AddKeysToAgent)
+  - Keepalive to prevent connection timeouts (60s interval)
+  - Privacy with HashKnownHosts
+  - Separation of concerns: `~/.ssh/config` managed by module, `~/.ssh/config.d/hosts` for user hosts
+  - Includes in all profile modes (dev + default)
+
+#### SSH CLI Commands
+- **Added** `fedpunk ssh` command for SSH operations
+  - `fedpunk ssh load` - Load SSH keys into agent (moved from vault)
+  - `fedpunk ssh list` - List configured hosts
+  - `fedpunk ssh edit` - Edit hosts configuration file
+  - `fedpunk ssh test` - Test SSH connection to a host
+
+### 🔧 Improvements
+
+#### Wayland Support
+- **Added** Missing Wayland environment variables
+  - `ELECTRON_OZONE_PLATFORM_HINT=auto` - Native Wayland for Electron apps
+  - `NIXOS_OZONE_WL=1` - Alternative flag for Electron apps
+  - `_JAVA_AWT_WM_NONREPARENTING=1` - Java apps on tiling WMs
+  - Fixes blurry rendering in Slack, Discord, VS Code, Spotify, etc.
+
+#### SSH Agent Handling
+- **Improved** Agent detection in Fish config
+  - Reuses existing agent sockets instead of spawning new agents
+  - Better handling of systemd-managed and forwarded agents
+  - Prevents multiple ssh-agent instances
+- **Improved** Agent detection in SSH commands
+  - Checks agent accessibility with `ssh-add -l` instead of just PID
+  - Detects and uses forwarded SSH agents
+  - Better error messages when agent not responding
+
+#### Vault Integration
+- **Updated** `ssh-backup` to include `config.d/hosts` in backups
+  - Backs up SSH keys + personal host configurations together
+  - Shows additional files in backup output
+- **Refactored** Vault SSH commands to focus on backup/restore only
+  - Removed `ssh-load` (moved to `fedpunk ssh load`)
+  - Clear separation: vault = persistence, ssh = operations
+
+### 📊 Module Count
+- **28 modules** (added SSH module)
+
 ## [0.3.1] - 2025-11-30
 
 ### 🐛 Bug Fixes
