@@ -2,6 +2,16 @@
 # SSH management commands
 # Handles key loading, host management, and SSH configuration
 
+function ssh --description "SSH key and configuration management"
+    if contains -- "$argv[1]" --help -h
+        printf "SSH key and configuration management\n"
+        printf "\n"
+        printf "Manage SSH keys, hosts, and connections.\n"
+        return 0
+    end
+    _show_command_help ssh
+end
+
 function load --description "Load SSH keys into agent"
     if contains -- "$argv[1]" --help -h
         printf "Load SSH keys into ssh-agent\n"
