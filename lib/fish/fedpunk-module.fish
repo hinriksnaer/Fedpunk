@@ -264,8 +264,22 @@ function fedpunk-module-install-packages
 
     # NPM packages
     set -l npm_packages (yaml-get-list "$module_yaml" "packages" "npm")
-    for pkg in $npm_packages
-        ui-spin --title "  Installing npm: $pkg..." --tail 3 -- sudo npm install -g $pkg
+    if test -n "$npm_packages"
+        # Ensure npm is available
+        if not command -v npm >/dev/null 2>&1
+            echo "  npm not found, installing nodejs and npm..."
+            set -l FEDPUNK_AUTO_TAIL_SAVE $FEDPUNK_AUTO_TAIL
+            set -e FEDPUNK_AUTO_TAIL
+            ui-spin --title "  Installing nodejs and npm..." -- sudo dnf install -y nodejs npm
+            if test -n "$FEDPUNK_AUTO_TAIL_SAVE"
+                set -gx FEDPUNK_AUTO_TAIL $FEDPUNK_AUTO_TAIL_SAVE
+            end
+        end
+
+        # Install npm packages
+        for pkg in $npm_packages
+            ui-spin --title "  Installing npm: $pkg..." --tail 3 -- sudo npm install -g $pkg
+        end
     end
 
     # Flatpak packages (requires flatpak module as dependency)
