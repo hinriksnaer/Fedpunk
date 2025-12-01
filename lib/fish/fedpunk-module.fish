@@ -237,7 +237,13 @@ function fedpunk-module-install-packages
     # DNF packages
     set -l dnf_packages (yaml-get-list "$module_yaml" "packages" "dnf")
     if test -n "$dnf_packages"
-        ui-spin --title "  Installing DNF packages..." --tail 8 -- sudo dnf install -y $dnf_packages
+        # DNF output is too complex for tail mode, use simple spinner
+        set -l FEDPUNK_AUTO_TAIL_SAVE $FEDPUNK_AUTO_TAIL
+        set -e FEDPUNK_AUTO_TAIL
+        ui-spin --title "  Installing DNF packages..." -- sudo dnf install -y $dnf_packages
+        if test -n "$FEDPUNK_AUTO_TAIL_SAVE"
+            set -gx FEDPUNK_AUTO_TAIL $FEDPUNK_AUTO_TAIL_SAVE
+        end
     end
 
     # Cargo packages
