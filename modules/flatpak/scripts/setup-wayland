@@ -1,0 +1,13 @@
+#!/usr/bin/env fish
+# Configure global Wayland support for all Flatpak applications
+
+source "$FEDPUNK_ROOT/lib/fish/ui.fish"
+
+ui-info "Configuring Wayland support for Flatpak applications..."
+
+# Set global user-level overrides for Wayland
+ui-spin --title "Enabling Wayland socket access..." -- flatpak override --user --socket=wayland
+ui-spin --title "Setting Electron Ozone platform..." -- flatpak override --user --env=ELECTRON_OZONE_PLATFORM_HINT=auto
+
+ui-success "Wayland support configured for all Flatpak applications"
+ui-info "Note: Restart any running Flatpak apps for changes to take effect"

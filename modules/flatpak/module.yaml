@@ -7,6 +7,7 @@ lifecycle:
   before: []
   after:
     - setup-flathub
+    - setup-wayland
 
 packages:
   dnf:
