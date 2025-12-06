@@ -60,7 +60,10 @@ function _discover_functions --argument-names cmd
         end
     end
 
-    printf '%s\n' $found | sort -u
+    # Only output if we have results
+    if test (count $found) -gt 0
+        printf '%s\n' $found | sort -u
+    end
 end
 
 # Get function description from --description flag in definition
@@ -165,8 +168,37 @@ function _main
     # Source command files
     _source_command $cmd
 
-    # No subcommand or help requested - show command help
-    if test -z "$subcmd"; or contains -- "$subcmd" help --help -h
+    # Check if this is a standalone command (no subcommands)
+    set -l subcommands (_discover_functions $cmd)
+    set -l has_subcommands false
+    # Check if we actually have subcommands (non-empty and not just whitespace)
+    for subcmd_name in $subcommands
+        if test -n "$subcmd_name"
+            set has_subcommands true
+            break
+        end
+    end
+
+    # No subcommand provided
+    if test -z "$subcmd"
+        # If command has no subcommands, execute the group function
+        if test "$has_subcommands" = false
+            if functions -q "$cmd"
+                $cmd $args
+                return $status
+            else
+                echo "Error: Command '$cmd' has no implementation" >&2
+                return 1
+            end
+        else
+            # Has subcommands, show help
+            _show_command_help $cmd
+            return 0
+        end
+    end
+
+    # Help requested
+    if contains -- "$subcmd" help --help -h
         _show_command_help $cmd
         return 0
     end

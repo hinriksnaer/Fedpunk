@@ -1,15 +1,17 @@
 # Sync configuration command
 
-function sync --description "Pull latest changes and apply"
+function sync --description "Pull latest changes from git"
     if contains -- "$argv[1]" --help -h
-        printf "Sync dotfiles from git and apply changes\n"
+        printf "Pull latest Fedpunk changes from git\n"
         printf "\n"
         printf "Usage: fedpunk sync\n"
         printf "\n"
         printf "This will:\n"
         printf "  1. Check for uncommitted local changes\n"
         printf "  2. Pull latest from git origin\n"
-        printf "  3. Apply configuration using chezmoi\n"
+        printf "\n"
+        printf "Note: Configs are already live via stow symlinks.\n"
+        printf "Run 'fedpunk apply' to deploy/update modules.\n"
         return 0
     end
 
@@ -27,7 +29,7 @@ function sync --description "Pull latest changes and apply"
 
     # Check for uncommitted changes
     if not git diff-index --quiet HEAD -- 2>/dev/null
-        printf "⚠️  Warning: You have uncommitted local changes\n"
+        printf "Warning: You have uncommitted local changes\n"
         printf "\n"
         git status --short
         printf "\n"
@@ -41,36 +43,19 @@ function sync --description "Pull latest changes and apply"
     end
 
     # Pull latest changes
-    printf "→ Pulling latest changes from origin...\n"
+    printf "Pulling latest changes from origin...\n"
     if git pull
-        printf "✓ Git pull successful\n"
+        printf "Git pull successful\n"
     else
-        printf "✗ Git pull failed\n" >&2
+        printf "Error: Git pull failed\n" >&2
         cd "$original_dir"
         return 1
-    end
-
-    printf "\n"
-
-    # Apply chezmoi changes
-    printf "→ Applying configuration changes...\n"
-    if command -v chezmoi >/dev/null 2>&1
-        if chezmoi apply
-            printf "✓ Configuration applied\n"
-        else
-            printf "✗ Chezmoi apply failed\n" >&2
-            cd "$original_dir"
-            return 1
-        end
-    else
-        printf "⚠️  Chezmoi not installed, skipping config apply\n"
     end
 
     cd "$original_dir"
 
     printf "\n"
-    printf "✓ Sync complete!\n"
+    printf "Sync complete!\n"
     printf "\n"
-    printf "Note: Profile and theme changes are already active.\n"
-    printf "Run 'exec fish' to reload your shell if needed.\n"
+    printf "Run 'fedpunk apply' to deploy/update modules.\n"
 end

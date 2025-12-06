@@ -1,12 +1,16 @@
 # Apply configuration command
 
-function apply --description "Apply current configuration"
+function apply --description "Apply configuration changes"
     if contains -- "$argv[1]" --help -h
-        printf "Apply current configuration without git pull\n"
+        printf "Apply Fedpunk configuration changes\n"
         printf "\n"
         printf "Usage: fedpunk apply\n"
         printf "\n"
-        printf "This applies local configuration changes using chezmoi.\n"
+        printf "This will re-run the installer to deploy/update modules.\n"
+        printf "\n"
+        printf "Note: Configs are already live via stow symlinks.\n"
+        printf "This updates packages and runs module lifecycle hooks.\n"
+        printf "\n"
         printf "Use 'fedpunk sync' to pull from git first.\n"
         return 0
     end
@@ -14,23 +18,21 @@ function apply --description "Apply current configuration"
     printf "Applying Fedpunk configuration...\n"
     printf "\n"
 
-    printf "→ Applying configuration changes...\n"
-    if command -v chezmoi >/dev/null 2>&1
-        if chezmoi apply
-            printf "✓ Configuration applied\n"
-        else
-            printf "✗ Chezmoi apply failed\n" >&2
-            return 1
-        end
-    else
-        printf "✗ Chezmoi not installed\n" >&2
-        printf "  Install with: sudo dnf install chezmoi\n" >&2
+    # Check if install.fish exists
+    if not test -x "$FEDPUNK_ROOT/install.fish"
+        printf "Error: install.fish not found or not executable\n" >&2
         return 1
     end
 
-    printf "\n"
-    printf "✓ Apply complete!\n"
-    printf "\n"
-    printf "Note: This only applies local changes.\n"
-    printf "Run 'fedpunk sync' to pull from git first.\n"
+    # Run installer
+    if fish "$FEDPUNK_ROOT/install.fish"
+        printf "\n"
+        printf "Apply complete!\n"
+        printf "\n"
+        printf "Run 'exec fish' to reload your shell if needed.\n"
+    else
+        printf "\n"
+        printf "Error: Installer failed\n" >&2
+        return 1
+    end
 end
