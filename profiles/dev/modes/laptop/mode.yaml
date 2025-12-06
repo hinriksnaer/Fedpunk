@@ -24,4 +24,5 @@ modules:
   - audio
   - multimedia
   - bluetui
+  - wifi
   - plugins/vertex-ai

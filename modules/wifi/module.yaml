@@ -1,0 +1,21 @@
+module:
+  name: wifi
+  description: WiFi network management with interactive selection
+  dependencies: []
+  priority: 10
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  dnf:
+    # NetworkManager and CLI tools
+    - NetworkManager
+    - NetworkManager-wifi
+  cargo: []
+  npm: []
+
+stow:
+  target: $HOME
+  conflicts: warn
