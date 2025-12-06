@@ -32,4 +32,18 @@ else
     echo "[fish/install] ✓ Fish is already your default shell" >&2
 end
 
+# Initialize default theme if not already set
+echo "[fish/install] Checking theme initialization..." >&2
+if not test -L "$HOME/.config/fedpunk/current/theme"
+    echo "[fish/install] Initializing default theme..." >&2
+    fedpunk theme use ayu-mirage
+    if test $status -eq 0
+        echo "[fish/install] ✓ Default theme initialized" >&2
+    else
+        echo "[fish/install] ✗ Failed to initialize theme (non-fatal)" >&2
+    end
+else
+    echo "[fish/install] ✓ Theme already initialized" >&2
+end
+
 echo "[fish/install] Script completed successfully" >&2
