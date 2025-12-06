@@ -28,4 +28,5 @@ modules:
   - zen-browser
   - nvidia
   - bluetui
+  - wifi
   - plugins/fancontrol
