@@ -11,7 +11,7 @@
 ╚═╝     ╚══════╝╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝
 </pre>
 
-### 🚀 A Modular Configuration Engine for Fedora
+### A Modular Configuration Engine for Fedora
 
 **Not just dotfiles. A complete system orchestration framework.**
 
@@ -21,43 +21,43 @@
 [![Fedora](https://img.shields.io/badge/Fedora-39+-blue.svg)](https://getfedora.org/)
 [![Fish Shell](https://img.shields.io/badge/Shell-Fish-green.svg)](https://fishshell.com/)
 
-[Quick Start](#-quick-start) • [Architecture](#-architecture) • [Features](#-why-fedpunk) • [Themes](#-themes) • [Documentation](#-documentation)
+[Quick Start](#quick-start) • [Architecture](#architecture) • [Features](#why-fedpunk) • [Themes](#themes) • [Documentation](#documentation)
 
 ---
 
-## 🎬 See It In Action
+## See It In Action
 
 [![Watch the demo](https://i.vimeocdn.com/video/2087154164-42913e946a9b98dc351ec6bb62ab47f5e651606ce934b35e2038324747d7cbfd-d_640)](https://vimeo.com/1140211449)
 
 *Click to watch: Live theme switching, keyboard-driven workflow, and seamless module deployment*
 
-### [▶️ **Watch Full Demo on Vimeo**](https://vimeo.com/1140211449)
+### [**Watch Full Demo on Vimeo**](https://vimeo.com/1140211449)
 
 </div>
 
 ---
 
-## 🎯 What is Fedpunk?
+## What is Fedpunk?
 
 Fedpunk is a **next-generation configuration management system** that transforms Fedora into a productivity powerhouse. Unlike traditional dotfile managers, Fedpunk provides:
 
-- 🏗️ **Modular Architecture** - Self-contained packages with automatic dependency resolution
-- 🎭 **Profile System** - Multiple environments (desktop/container/work) from a single codebase
-- 🔌 **Plugin Framework** - Extend profiles with custom modules scoped to your workflow
-- ⚡ **Lifecycle Hooks** - Execute scripts at any stage of deployment (before/after/install/update)
-- 🔗 **GNU Stow Integration** - Instant config deployment via symlinks (no generation step)
-- 🎨 **Live Theme Engine** - 12 themes that update across all apps without reloading
-- 🐟 **Fish-First** - Modern shell with intelligent completions and powerful scripting
+- **Modular Architecture** - Self-contained packages with automatic dependency resolution
+- **Profile System** - Multiple environments (desktop/container/work) from a single codebase
+- **Plugin Framework** - Extend profiles with custom modules scoped to your workflow
+- **Lifecycle Hooks** - Execute scripts at any stage of deployment (before/after/install/update)
+- **GNU Stow Integration** - Instant config deployment via symlinks (no generation step)
+- **Live Theme Engine** - 12 themes that update across all apps without reloading
+- **Fish-First** - Modern shell with intelligent completions and powerful scripting
 
 **The result?** A keyboard-driven Hyprland environment with vim-style navigation, seamless theming, and a curated development toolset—all deployable in one command.
 
 ---
 
-## ✨ Architecture Highlights
+## Architecture Highlights
 
 **v0.3.0** features a revolutionary modular system:
 
-### 🎁 Module System
+### Module System
 Every package is now self-contained with its own metadata, dependencies, and lifecycle:
 
 ```fish
@@ -78,7 +78,7 @@ fedpunk module list             # See all available modules
 fedpunk module info fish        # Inspect module details
 ```
 
-### 🎭 Profiles & Modes
+### Profiles & Modes
 
 **Three profiles for different use cases:**
 
@@ -123,7 +123,7 @@ fish install.fish --profile default --mode desktop
 fish install.fish --profile default --mode container
 ```
 
-### 🔌 Plugin System
+### Plugin System
 Profile-scoped modules for personal/work-specific customization:
 
 ```
@@ -140,7 +140,7 @@ profiles/dev/
 fedpunk module deploy plugins/dev-extras
 ```
 
-### ⚙️ Automatic Dependency Resolution
+### Automatic Dependency Resolution
 Modules declare their dependencies—the system handles the rest:
 
 ```yaml
@@ -155,32 +155,32 @@ module:
 
 ---
 
-## 🔥 Why Fedpunk?
+## Why Fedpunk?
 
 ### For Developers
-- ⌨️ **Keyboard-First** - Vim-style navigation system-wide (H/J/K/L everywhere)
-- 🚀 **Zero Context Switching** - Terminal, editor, and compositor share keybindings
-- 🎨 **Distraction-Free** - Tiling WM, minimal UI, focus on code
-- 🔄 **Instant Reload** - Live config changes via symlinks (no rebuild)
-- 🐳 **Container-Ready** - Terminal-only mode for devcontainers
+- **Keyboard-First** - Vim-style navigation system-wide (H/J/K/L everywhere)
+- **Zero Context Switching** - Terminal, editor, and compositor share keybindings
+- **Distraction-Free** - Tiling WM, minimal UI, focus on code
+- **Instant Reload** - Live config changes via symlinks (no rebuild)
+- **Container-Ready** - Terminal-only mode for devcontainers
 
 ### For Power Users
-- 🎮 **Dual Layout Support** - Switch between dwindle (standard) and master (ultrawide)
-- 📊 **Live Metrics** - btop integration with theme-aware styling
-- 🔐 **Bitwarden CLI** - Vault management with SSH/Claude credential backup
-- 🎯 **Profile Switching** - Multiple personas, one config
-- 🔧 **Extensible** - Plugin system for unlimited customization
+- **Dual Layout Support** - Switch between dwindle (standard) and master (ultrawide)
+- **Live Metrics** - btop integration with theme-aware styling
+- **Bitwarden CLI** - Vault management with SSH/Claude credential backup
+- **Profile Switching** - Multiple personas, one config
+- **Extensible** - Plugin system for unlimited customization
 
 ### For System Architects
-- 📦 **Package Abstraction** - DNF, Cargo, NPM, Flatpak in one manifest
-- 🔗 **Dependency DAG** - Automatic resolution with cycle detection
-- 🎣 **Lifecycle Hooks** - Full control over deployment stages
-- 🗂️ **Modular Design** - Each component is independently deployable
-- 🧪 **Testable** - Deploy individual modules in isolation
+- **Package Abstraction** - DNF, Cargo, NPM, Flatpak in one manifest
+- **Dependency DAG** - Automatic resolution with cycle detection
+- **Lifecycle Hooks** - Full control over deployment stages
+- **Modular Design** - Each component is independently deployable
+- **Testable** - Deploy individual modules in isolation
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### One-Command Install
 
@@ -214,7 +214,7 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 
 ---
 
-## 🎨 Themes
+## Themes
 
 **12 carefully curated themes with instant live-reload:**
 
@@ -276,7 +276,7 @@ Window layout preferences survive theme changes—no flickering, no disruption.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 Fedpunk uses a **layered module system** with profile-based customization:
 
@@ -314,11 +314,11 @@ Fedpunk uses a **layered module system** with profile-based customization:
 7. **Lifecycle: after** - Post-deployment (plugins, services)
 
 **Why GNU Stow?**
-- ✅ Instant deployment (symlinks, not copies)
-- ✅ Live config changes (edit once, active everywhere)
-- ✅ Modular by design (multiple packages → same directory)
-- ✅ Simple, standard tool (no custom abstractions)
-- ✅ Easy rollback (unstow module)
+- Instant deployment (symlinks, not copies)
+- Live config changes (edit once, active everywhere)
+- Modular by design (multiple packages → same directory)
+- Simple, standard tool (no custom abstractions)
+- Easy rollback (unstow module)
 
 ### Key Design Decisions
 
@@ -336,7 +336,7 @@ Modules are self-documenting—no manual dependency tracking required.
 
 ---
 
-## 📋 What You Get
+## What You Get
 
 ### Core Development Tools
 | Tool | Purpose | Config Location |
@@ -372,7 +372,7 @@ Modules are self-documenting—no manual dependency tracking required.
 
 ---
 
-## ⌨️ Keybindings
+## Keybindings
 
 ### System Keybinding Philosophy
 
@@ -445,7 +445,7 @@ Modules are self-documenting—no manual dependency tracking required.
 
 ---
 
-## 🛠️ Module Management
+## Module Management
 
 ### CLI Commands
 
@@ -550,7 +550,7 @@ modules:
 
 ---
 
-## 🎁 Built-in Integrations
+## Built-in Integrations
 
 ### Bitwarden CLI
 Password management with custom vault commands:
@@ -609,7 +609,7 @@ Neovim integration with Claude:
 
 ---
 
-## 🔄 Updates & Maintenance
+## Updates & Maintenance
 
 ### Update System
 
@@ -650,7 +650,7 @@ exec fish                        # Restart shell
 
 ---
 
-## 🐳 Container/Server Deployment
+## Container/Server Deployment
 
 ### Terminal-Only Mode
 
@@ -703,7 +703,7 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 **Complete documentation in [`docs/`](docs/):**
 
@@ -724,7 +724,7 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 
 ---
 
-## ⚙️ System Requirements
+## System Requirements
 
 - **OS:** Fedora Linux 39+
 - **Arch:** x86_64
@@ -734,7 +734,7 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -779,34 +779,34 @@ All installation logs saved to `/tmp/fedpunk-install-*.log`
 
 ---
 
-## 🎯 Philosophy
+## Philosophy
 
 Fedpunk is built on core principles:
 
-**🎹 Keyboard-First**
+**Keyboard-First**
 Mouse is optional. Every action accessible via keybindings with consistent, memorable patterns.
 
-**🎨 Consistency**
+**Consistency**
 Similar operations use similar key combinations. Learn once, apply everywhere.
 
-**📖 Vim-Inspired**
+**Vim-Inspired**
 H/J/K/L navigation throughout the system. Window manager, editor, terminal multiplexer—all speak the same language.
 
-**🧩 Modular**
+**Modular**
 Components are independently deployable and composable. Mix and match to build your perfect setup.
 
-**🐟 Fish-Powered**
+**Fish-Powered**
 Leverage Fish's modern features: intelligent completions, readable syntax, powerful scripting.
 
-**✨ Aesthetic**
+**Aesthetic**
 Beautiful themes that work across all applications. Consistency breeds focus.
 
-**⚡ Productive**
+**Productive**
 Optimized for developer workflows. Less time configuring, more time creating.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions!
 
@@ -817,18 +817,18 @@ We welcome contributions!
 5. Submit a pull request
 
 **Areas for contribution:**
-- 🎨 New themes
-- 📦 Additional modules
-- 🪟 Window rules and keybindings
-- 📝 Documentation improvements
-- 🐛 Bug fixes
-- ✨ New features
+- New themes
+- Additional modules
+- Window rules and keybindings
+- Documentation improvements
+- Bug fixes
+- New features
 
 **See:** [`docs/development/contributing.md`](docs/development/contributing.md)
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [omarchy](https://github.com/basecamp/omarchy) - Theming framework inspiration
 - [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Fedora-Hyprland) - Package references
@@ -839,7 +839,7 @@ We welcome contributions!
 
 ---
 
-## 📄 License
+## License
 
 MIT License - See [LICENSE](LICENSE) file for details
 
@@ -847,7 +847,7 @@ MIT License - See [LICENSE](LICENSE) file for details
 
 <div align="center">
 
-## 🚀 Ready to Transform Your Workflow?
+## Ready to Transform Your Workflow?
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
@@ -855,6 +855,6 @@ curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | 
 
 **Fedpunk** - *Where modular configuration meets keyboard-driven productivity*
 
-⭐ **Star this repo** if you find it useful!
+**Star this repo** if you find it useful!
 
 </div>
