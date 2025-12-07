@@ -134,7 +134,8 @@ set -l desktop_theme_mappings \
     ".fedpunk-foot.ini|foot.ini:$HOME/.config/foot/theme.ini" \
     "rofi.rasi:$HOME/.config/rofi/theme.rasi" \
     "mako.ini:$HOME/.config/mako/theme.conf" \
-    "waybar.css:$HOME/.config/waybar/theme.css"
+    "waybar.css:$HOME/.config/waybar/theme.css" \
+    "hyprlock.conf:$HOME/.config/hypr/hyprlock-theme.conf"
 
 # Apply desktop theme files (symlinks)
 info "Linking desktop application themes"

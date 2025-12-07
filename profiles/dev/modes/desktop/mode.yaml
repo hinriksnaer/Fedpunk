@@ -23,6 +23,7 @@ modules:
   - kitty
   - rofi
   - hyprland
+  - hyprlock
   - audio
   - multimedia
   - zen-browser

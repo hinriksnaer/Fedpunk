@@ -49,6 +49,7 @@ modules/*/config/.config/*/theme.css
 modules/btop/config/.config/btop/themes/active.theme
 modules/rofi/config/.config/rofi/theme.rasi
 modules/hyprland/config/.config/hypr/active-theme.conf
+modules/hyprlock/config/.config/hypr/hyprlock-theme.conf
 modules/yazi/config/.config/yazi/theme.toml
 
 # Wallpaper directory (runtime-generated)

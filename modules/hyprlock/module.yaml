@@ -1,0 +1,14 @@
+module:
+  name: hyprlock
+  description: Minimal and elegant lock screen for Hyprland
+  dependencies:
+    - hyprland
+  priority: 20
+
+packages:
+  dnf:
+    - hyprlock
+
+stow:
+  target: $HOME
+  conflicts: warn

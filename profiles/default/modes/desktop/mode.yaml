@@ -28,6 +28,7 @@ modules:
   - kitty
   - rofi
   - hyprland
+  - hyprlock
   - firefox
   - bluetui
   - wifi
