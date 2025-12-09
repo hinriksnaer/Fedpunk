@@ -30,16 +30,17 @@ TARBALL_NAME="fedpunk-${VERSION}"
 # Clean up any existing tarball
 rm -rf "/tmp/${TARBALL_NAME}" "/tmp/${TARBALL_NAME}.tar.gz"
 
-# Create clean copy for tarball
+# Create clean copy for tarball (excluding certain directories)
 mkdir -p "/tmp/${TARBALL_NAME}"
-rsync -a \
-  --exclude='.git' \
-  --exclude='.devcontainer' \
-  --exclude='test' \
-  --exclude='*.log' \
-  --exclude='.active-config' \
-  --exclude='profiles/dev' \
-  ./ "/tmp/${TARBALL_NAME}/"
+
+# Copy files using tar to preserve permissions and exclude patterns
+tar --exclude='.git' \
+    --exclude='.devcontainer' \
+    --exclude='test' \
+    --exclude='*.log' \
+    --exclude='.active-config' \
+    --exclude='profiles/dev' \
+    -cf - . | tar -xf - -C "/tmp/${TARBALL_NAME}/"
 
 # Create tarball
 cd /tmp
