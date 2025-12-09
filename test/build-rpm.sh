@@ -10,9 +10,9 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "=== Fedpunk RPM Build Script ==="
 echo ""
 
-# Get version and commit from spec file
+# Get version from spec file
 VERSION=$(grep "^Version:" "$REPO_ROOT/fedpunk.spec" | awk '{print $2}')
-# Get current commit hash (or HEAD if not in git)
+# Get current commit hash for reference
 COMMIT=$(cd "$REPO_ROOT" && git rev-parse HEAD 2>/dev/null || echo "HEAD")
 SHORTCOMMIT=${COMMIT:0:7}
 
@@ -21,7 +21,7 @@ echo ""
 
 # Install build dependencies
 echo "Installing build dependencies..."
-dnf install -y rpm-build rpmdevtools git fish stow yq gum 2>&1 | grep -v "^$"
+dnf install -y rpm-build rpmdevtools git fish stow yq gum jq 2>&1 | grep -v "^$"
 
 # Set up RPM build tree
 echo ""
@@ -33,10 +33,10 @@ echo ""
 echo "Creating source tarball..."
 cd "$REPO_ROOT"
 
-# Tarball name should match what spec expects: fedpunk-<commit>.tar.gz
-TARBALL_NAME="fedpunk-${COMMIT}.tar.gz"
-# Directory inside tarball: fedpunk/
-DIR_NAME="fedpunk"
+# Tarball name should match what spec expects: fedpunk-{version}.tar.gz
+TARBALL_NAME="fedpunk-${VERSION}.tar.gz"
+# Directory inside tarball: fedpunk-{version}/
+DIR_NAME="fedpunk-${VERSION}"
 
 # Clean up any existing tarball
 rm -rf "/tmp/${DIR_NAME}" "/tmp/${TARBALL_NAME}"
@@ -65,8 +65,7 @@ echo "Source tarball created: ~/rpmbuild/SOURCES/${TARBALL_NAME}"
 echo ""
 echo "Building RPM package..."
 cd "$REPO_ROOT"
-# Pass commit hash as macro to spec file
-rpmbuild -ba --define "commit ${COMMIT}" fedpunk.spec
+rpmbuild -ba fedpunk.spec
 
 # Find the built RPM
 RPM_FILE=$(find ~/rpmbuild/RPMS -name "fedpunk-*.rpm" -type f | head -n1)
