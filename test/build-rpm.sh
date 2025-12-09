@@ -33,13 +33,13 @@ echo ""
 echo "Creating source tarball..."
 cd "$REPO_ROOT"
 
-# Tarball name should match what spec expects: fedpunk-<shortcommit>.tar.gz
-TARBALL_NAME="fedpunk-${SHORTCOMMIT}"
-# Directory inside tarball should match spec %autosetup: Fedpunk-<commit>
-DIR_NAME="Fedpunk-${COMMIT}"
+# Tarball name should match what spec expects: fedpunk-<commit>.tar.gz
+TARBALL_NAME="fedpunk-${COMMIT}.tar.gz"
+# Directory inside tarball: fedpunk/
+DIR_NAME="fedpunk"
 
 # Clean up any existing tarball
-rm -rf "/tmp/${DIR_NAME}" "/tmp/${TARBALL_NAME}.tar.gz"
+rm -rf "/tmp/${DIR_NAME}" "/tmp/${TARBALL_NAME}"
 
 # Create clean copy for tarball (excluding certain directories)
 mkdir -p "/tmp/${DIR_NAME}"
@@ -55,11 +55,11 @@ tar --exclude='.git' \
 
 # Create tarball
 cd /tmp
-tar czf "${TARBALL_NAME}.tar.gz" "${DIR_NAME}/"
+tar czf "${TARBALL_NAME}" "${DIR_NAME}/"
 
 # Move to RPM sources
-mv "${TARBALL_NAME}.tar.gz" ~/rpmbuild/SOURCES/
-echo "Source tarball created: ~/rpmbuild/SOURCES/${TARBALL_NAME}.tar.gz"
+mv "${TARBALL_NAME}" ~/rpmbuild/SOURCES/
+echo "Source tarball created: ~/rpmbuild/SOURCES/${TARBALL_NAME}"
 
 # Build RPM
 echo ""
