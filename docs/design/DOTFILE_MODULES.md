@@ -2,7 +2,7 @@
 
 ## Overview
 
-Custom modular dotfile management system using GNU Stow for deployment. Replaces chezmoi with a more flexible, modular approach.
+Custom modular dotfile management system using GNU Stow for deployment. Supports built-in modules, profile plugins, external modules from git URLs, and parameter injection.
 
 ## Architecture
 
@@ -10,66 +10,144 @@ Custom modular dotfile management system using GNU Stow for deployment. Replaces
 
 ```
 modules/<package>/
-├── module.toml          # Module metadata, dependencies, lifecycle config
+├── module.yaml          # Module metadata, dependencies, parameters
 ├── config/              # Dotfiles to be stowed to $HOME
 │   └── .config/...     # Follows XDG directory structure
+├── cli/                 # CLI commands (optional)
+│   └── <package>/
+│       └── <package>.fish
 └── scripts/             # Optional lifecycle hooks
-    ├── install         # System package installation
-    ├── update          # Update packages/plugins
+    ├── install         # System package installation (lifecycle hook name)
     ├── before          # Pre-deployment hook
     └── after           # Post-deployment hook
 ```
 
-### Module TOML Schema
+### Module YAML Schema
 
-```toml
-[module]
-name = "fish"
-description = "Fish shell with modern tooling"
-version = "1.0.0"
-dependencies = ["starship", "fisher"]  # Other modules required
-priority = 10  # Execution order (lower = earlier)
+```yaml
+module:
+  name: fish
+  description: Fish shell with modern tooling
+  version: 1.0.0
+  dependencies:
+    - rust      # Other modules required
+  priority: 10  # Execution order (lower = earlier)
 
-[lifecycle]
-# Declares which lifecycle hooks are implemented
-install = true   # Has scripts/install
-update = true    # Has scripts/update
-before = true    # Has scripts/before
-after = true     # Has scripts/after
+# Optional: Define module parameters
+parameters:
+  default_shell:
+    type: string
+    description: Default shell path
+    default: /usr/bin/fish
+    required: false
 
-[packages]
-# System packages to install
-dnf = ["fish"]
-cargo = []
-npm = []
-flatpak = []
+  enable_vi_mode:
+    type: boolean
+    description: Enable vi keybindings
+    default: false
 
-[profile]
-# Default availability in profiles
-default = true
-desktop = true
-container = true
+lifecycle:
+  before: []  # Lifecycle hook names
+  after: []
 
-[stow]
-# Stow-specific configuration
-target = "$HOME"
-conflicts = "warn"  # warn, skip, or overwrite
+packages:
+  dnf:
+    - fish
+  cargo: []
+  npm: []
+
+stow:
+  target: $HOME
+  conflicts: warn  # warn, skip, or overwrite
 ```
 
 ### Profile Integration
 
 ```
 profiles/dev/
-├── fedpunk.toml         # Profile metadata (existing)
-└── modules.toml         # Module toggles
+├── modes/
+│   ├── desktop/
+│   │   └── mode.yaml    # Module list for desktop mode
+│   └── container/
+│       └── mode.yaml    # Module list for container mode
+└── plugins/             # Profile-specific modules
+    └── my-plugin/
+        ├── module.yaml
+        └── config/
 
-# modules.toml example:
-[modules]
-fish = true
-neovim = true
-tmux = true
-hyprland = false  # Disabled in this profile
-kitty = false
+# mode.yaml example:
+mode:
+  name: desktop
+  description: Full desktop environment
+
+modules:
+  - essentials
+  - neovim
+  - tmux
+  - hyprland
+  - plugins/my-plugin           # Profile plugin
+  - ~/gits/custom-module        # Local path
+  - https://github.com/org/module.git  # External module
+
+  # With parameters
+  - module: https://github.com/org/jira.git
+    params:
+      team_name: "platform"
+      jira_url: "https://company.atlassian.net"
+```
+
+### External Modules
+
+Modules can be referenced from:
+- **Built-in**: `modules/<name>/`
+- **Profile plugins**: `plugins/<name>` (relative to profile)
+- **Local paths**: `~/gits/module` or `/absolute/path`
+- **Git URLs**: `https://github.com/org/repo.git` or `git@github.com:org/repo.git`
+
+**External module cache:**
+```
+~/.fedpunk/cache/external/
+├── github.com/
+│   └── org/
+│       └── repo/
+│           ├── module.yaml
+│           ├── config/
+│           └── cli/
+```
+
+### Parameter System
+
+Modules define parameters, profiles provide values, and fedpunk generates Fish config:
+
+**Module defines:**
+```yaml
+# module.yaml
+parameters:
+  api_endpoint:
+    type: string
+    required: true
+    default: "https://api.example.com"
+```
+
+**Profile provides:**
+```yaml
+# mode.yaml
+modules:
+  - module: my-api-tool
+    params:
+      api_endpoint: "https://custom.api.com"
+```
+
+**Fedpunk generates:**
+```fish
+# ~/.config/fish/conf.d/fedpunk-module-params.fish
+set -gx FEDPUNK_PARAM_MY_API_TOOL_API_ENDPOINT "https://custom.api.com"
+```
+
+**Module accesses:**
+```fish
+# cli/my-api-tool/my-api-tool.fish
+echo $FEDPUNK_PARAM_MY_API_TOOL_API_ENDPOINT
 ```
 
 ## Lifecycle Execution Model

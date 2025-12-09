@@ -58,17 +58,35 @@ Fedpunk is a **next-generation configuration management system** that transforms
 **v0.3.0** features a revolutionary modular system:
 
 ### Module System
-Every package is now self-contained with its own metadata, dependencies, and lifecycle:
+Every package is self-contained with metadata, dependencies, and lifecycle hooks. Modules can be built-in, local, or external (git URLs):
 
 ```fish
 modules/neovim/
-├── module.yaml          # Metadata & dependencies
+├── module.yaml          # Metadata, dependencies & parameters
 ├── config/              # Dotfiles (stowed to $HOME)
 │   └── .config/nvim/
+├── cli/                 # CLI commands (optional)
+│   └── neovim/
 └── scripts/             # Lifecycle hooks
     ├── install          # Custom installation logic
     ├── before           # Pre-deployment
     └── after            # Post-deployment (plugins, etc)
+```
+
+**External modules** work seamlessly:
+```yaml
+# profiles/dev/modes/desktop/mode.yaml
+modules:
+  - essentials                                    # Built-in module
+  - plugins/neovim-custom                         # Profile plugin
+  - ~/gits/my-custom-module                       # Local path
+  - https://github.com/org/module.git             # External git URL
+
+  # With parameters
+  - module: https://github.com/org/jira-module.git
+    params:
+      team_name: "platform"
+      jira_url: "https://company.atlassian.net"
 ```
 
 **Deploy anything:**
