@@ -10,9 +10,13 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "=== Fedpunk RPM Build Script ==="
 echo ""
 
-# Get version from spec file
+# Get version and commit from spec file
 VERSION=$(grep "^Version:" "$REPO_ROOT/fedpunk.spec" | awk '{print $2}')
-echo "Building Fedpunk v${VERSION}"
+# Get current commit hash (or HEAD if not in git)
+COMMIT=$(cd "$REPO_ROOT" && git rev-parse HEAD 2>/dev/null || echo "HEAD")
+SHORTCOMMIT=${COMMIT:0:7}
+
+echo "Building Fedpunk v${VERSION} (${SHORTCOMMIT})"
 echo ""
 
 # Install build dependencies
@@ -28,13 +32,17 @@ rpmdev-setuptree
 echo ""
 echo "Creating source tarball..."
 cd "$REPO_ROOT"
-TARBALL_NAME="fedpunk-${VERSION}"
+
+# Tarball name should match what spec expects: fedpunk-<shortcommit>.tar.gz
+TARBALL_NAME="fedpunk-${SHORTCOMMIT}"
+# Directory inside tarball should match spec %autosetup: Fedpunk-<commit>
+DIR_NAME="Fedpunk-${COMMIT}"
 
 # Clean up any existing tarball
-rm -rf "/tmp/${TARBALL_NAME}" "/tmp/${TARBALL_NAME}.tar.gz"
+rm -rf "/tmp/${DIR_NAME}" "/tmp/${TARBALL_NAME}.tar.gz"
 
 # Create clean copy for tarball (excluding certain directories)
-mkdir -p "/tmp/${TARBALL_NAME}"
+mkdir -p "/tmp/${DIR_NAME}"
 
 # Copy files using tar to preserve permissions and exclude patterns
 tar --exclude='.git' \
@@ -43,11 +51,11 @@ tar --exclude='.git' \
     --exclude='*.log' \
     --exclude='.active-config' \
     --exclude='profiles/dev' \
-    -cf - . | tar -xf - -C "/tmp/${TARBALL_NAME}/"
+    -cf - . | tar -xf - -C "/tmp/${DIR_NAME}/"
 
 # Create tarball
 cd /tmp
-tar czf "${TARBALL_NAME}.tar.gz" "${TARBALL_NAME}/"
+tar czf "${TARBALL_NAME}.tar.gz" "${DIR_NAME}/"
 
 # Move to RPM sources
 mv "${TARBALL_NAME}.tar.gz" ~/rpmbuild/SOURCES/
@@ -57,7 +65,8 @@ echo "Source tarball created: ~/rpmbuild/SOURCES/${TARBALL_NAME}.tar.gz"
 echo ""
 echo "Building RPM package..."
 cd "$REPO_ROOT"
-rpmbuild -ba fedpunk.spec
+# Pass commit hash as macro to spec file
+rpmbuild -ba --define "commit ${COMMIT}" fedpunk.spec
 
 # Find the built RPM
 RPM_FILE=$(find ~/rpmbuild/RPMS -name "fedpunk-*.rpm" -type f | head -n1)
