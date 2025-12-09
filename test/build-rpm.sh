@@ -19,53 +19,25 @@ SHORTCOMMIT=${COMMIT:0:7}
 echo "Building Fedpunk v${VERSION} (${SHORTCOMMIT})"
 echo ""
 
-# Install build dependencies
+# Install build dependencies (including rpkg for template processing)
 echo "Installing build dependencies..."
-dnf install -y rpm-build rpmdevtools git fish stow yq gum jq 2>&1 | grep -v "^$"
+dnf install -y rpm-build rpmdevtools rpkg git fish stow yq gum jq 2>&1 | grep -v "^$"
 
 # Set up RPM build tree
 echo ""
 echo "Setting up RPM build tree..."
 rpmdev-setuptree
 
-# Create source tarball
+# Build SRPM and RPM using rpkg (handles {{{ }}} template syntax)
 echo ""
-echo "Creating source tarball..."
+echo "Building RPM package with rpkg..."
 cd "$REPO_ROOT"
 
-# Tarball name should match what spec expects: fedpunk-{version}.tar.gz
-TARBALL_NAME="fedpunk-${VERSION}.tar.gz"
-# Directory inside tarball: fedpunk-{version}/
-DIR_NAME="fedpunk-${VERSION}"
-
-# Clean up any existing tarball
-rm -rf "/tmp/${DIR_NAME}" "/tmp/${TARBALL_NAME}"
-
-# Create clean copy for tarball (excluding certain directories)
-mkdir -p "/tmp/${DIR_NAME}"
-
-# Copy files using tar to preserve permissions and exclude patterns
-tar --exclude='.git' \
-    --exclude='.devcontainer' \
-    --exclude='test' \
-    --exclude='*.log' \
-    --exclude='.active-config' \
-    --exclude='profiles/dev' \
-    -cf - . | tar -xf - -C "/tmp/${DIR_NAME}/"
-
-# Create tarball
-cd /tmp
-tar czf "${TARBALL_NAME}" "${DIR_NAME}/"
-
-# Move to RPM sources
-mv "${TARBALL_NAME}" ~/rpmbuild/SOURCES/
-echo "Source tarball created: ~/rpmbuild/SOURCES/${TARBALL_NAME}"
-
-# Build RPM
-echo ""
-echo "Building RPM package..."
-cd "$REPO_ROOT"
-rpmbuild -ba fedpunk.spec
+# rpkg will automatically:
+# 1. Process {{{ git_dir_pack }}} to create tarball from git
+# 2. Process {{{ git_dir_setup_macro }}} in %prep
+# 3. Build the SRPM and RPM
+rpkg local
 
 # Find the built RPM
 RPM_FILE=$(find ~/rpmbuild/RPMS -name "fedpunk-*.rpm" -type f | head -n1)
