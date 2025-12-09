@@ -8,7 +8,7 @@ source "$lib_dir/ui.fish"
 
 function external-module-cache-dir
     # Get the cache directory for external modules
-    echo "$HOME/.fedpunk/cache/external"
+    echo "$FEDPUNK_USER/cache/external"
 end
 
 function external-module-get-cache-path

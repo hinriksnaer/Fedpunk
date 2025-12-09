@@ -40,7 +40,7 @@ function module-resolve-path
         end
 
         # Otherwise, treat as relative to active profile (for plugins/*)
-        set -l active_config_link "$FEDPUNK_ROOT/.active-config"
+        set -l active_config_link "$FEDPUNK_USER/.active-config"
         if test -L "$active_config_link"
             set -l active_profile_dir (readlink -f "$active_config_link")
             set -l module_path "$active_profile_dir/$module_name"
@@ -61,7 +61,7 @@ function module-resolve-path
     # Check if it's a plugin reference (starts with "plugins/")
     if string match -q "plugins/*" $module_name
         # Get active profile
-        set -l active_config_link "$FEDPUNK_ROOT/.active-config"
+        set -l active_config_link "$FEDPUNK_USER/.active-config"
 
         if test -L "$active_config_link"
             set -l active_profile_dir (readlink -f "$active_config_link")
@@ -81,7 +81,7 @@ function module-resolve-path
         end
     else
         # Regular module in base modules directory
-        set -l module_dir "$FEDPUNK_ROOT/modules/$module_name"
+        set -l module_dir "$FEDPUNK_SYSTEM/modules/$module_name"
 
         if test -d "$module_dir"
             echo "$module_dir"

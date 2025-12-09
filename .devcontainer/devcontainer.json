@@ -5,8 +5,10 @@
   },
   "runArgs": [
     "--name", "fed-test",
-    "--network", "host"
+    "--network", "host",
+    "--userns=keep-id"
   ],
   "workspaceFolder": "/home/dev/workspace",
-  "remoteUser": "dev"
+  "remoteUser": "dev",
+  "updateRemoteUserUID": false
 }
