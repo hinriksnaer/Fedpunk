@@ -108,7 +108,13 @@ if not set -q FEDPUNK_SYSTEM
     source /usr/share/fedpunk/lib/fish/paths.fish
 end
 
-# Run install.fish
+# Handle subcommands (currently only 'install' is supported)
+# Skip the 'install' subcommand if present and pass remaining args
+if test (count $argv) -gt 0; and test "$argv[1]" = "install"
+    set -e argv[1]  # Remove 'install' from arguments
+end
+
+# Run install.fish with remaining arguments
 exec /usr/share/fedpunk/install.fish $argv
 EOF
 chmod 0755 %{buildroot}%{_bindir}/fedpunk
