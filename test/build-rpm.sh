@@ -4,11 +4,14 @@
 
 set -euo pipefail
 
+# Get repo root directory (resolve once at start)
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
 echo "=== Fedpunk RPM Build Script ==="
 echo ""
 
 # Get version from spec file
-VERSION=$(grep "^Version:" fedpunk.spec | awk '{print $2}')
+VERSION=$(grep "^Version:" "$REPO_ROOT/fedpunk.spec" | awk '{print $2}')
 echo "Building Fedpunk v${VERSION}"
 echo ""
 
@@ -24,7 +27,7 @@ rpmdev-setuptree
 # Create source tarball
 echo ""
 echo "Creating source tarball..."
-cd "$(dirname "$0")/.."  # Go to repo root
+cd "$REPO_ROOT"
 TARBALL_NAME="fedpunk-${VERSION}"
 
 # Clean up any existing tarball
@@ -53,7 +56,7 @@ echo "Source tarball created: ~/rpmbuild/SOURCES/${TARBALL_NAME}.tar.gz"
 # Build RPM
 echo ""
 echo "Building RPM package..."
-cd "$(dirname "$0")/.."  # Go to repo root
+cd "$REPO_ROOT"
 rpmbuild -ba fedpunk.spec
 
 # Find the built RPM
