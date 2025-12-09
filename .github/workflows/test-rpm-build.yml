@@ -22,14 +22,10 @@ jobs:
 
       - name: Build RPM package
         run: |
-          cd /workspace
-          cp -r $GITHUB_WORKSPACE /workspace
-          cd /workspace
           bash test/build-rpm.sh
 
       - name: Test RPM installation
         run: |
-          cd /workspace
           bash test/test-rpm-install.sh
 
       - name: Upload RPM artifact
