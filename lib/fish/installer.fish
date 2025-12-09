@@ -13,36 +13,59 @@ source "$lib_dir/param-injector.fish"
 
 function installer-select-profile
     # Select profile interactively or from flag
-    set -l profiles_dir "$FEDPUNK_ROOT/profiles"
+    # Returns profile name on first line, profile path on second line
 
-    if not test -d "$profiles_dir"
-        ui-error "No profiles directory found"
-        return 1
+    # List available profiles from both system and user directories
+    set -l available_profiles
+    set -l profile_paths
+
+    # Check system profiles
+    if test -d "$FEDPUNK_SYSTEM/profiles"
+        for profile_dir in $FEDPUNK_SYSTEM/profiles/*
+            if test -d "$profile_dir"
+                set -l profile_name (basename "$profile_dir")
+                set -a available_profiles $profile_name
+                set -a profile_paths "$profile_dir"
+            end
+        end
     end
 
-    # List available profiles
-    set -l available_profiles
-    for profile_dir in $profiles_dir/*
-        if test -d "$profile_dir"
-            set -a available_profiles (basename "$profile_dir")
+    # Check user profiles (may override system profiles)
+    if test -d "$FEDPUNK_USER/profiles"
+        for profile_dir in $FEDPUNK_USER/profiles/*
+            if test -d "$profile_dir"
+                set -l profile_name (basename "$profile_dir")
+                # Check if already in list (user overrides system)
+                if not contains $profile_name $available_profiles
+                    set -a available_profiles $profile_name
+                    set -a profile_paths "$profile_dir"
+                else
+                    # Replace system path with user path
+                    set -l index (contains -i $profile_name $available_profiles)
+                    set profile_paths[$index] "$profile_dir"
+                end
+            end
         end
     end
 
     if test (count $available_profiles) -eq 0
-        ui-error "No profiles found in $profiles_dir"
+        ui-error "No profiles found"
         return 1
     end
 
     # If only one profile, use it
     if test (count $available_profiles) -eq 1
         echo $available_profiles[1]
+        echo $profile_paths[1]
         return 0
     end
 
     # Interactive selection
     ui-info "Available profiles:" >&2
-    for profile in $available_profiles
-        set -l profile_yaml "$profiles_dir/$profile/fedpunk.yaml"
+    for i in (seq 1 (count $available_profiles))
+        set -l profile $available_profiles[$i]
+        set -l profile_dir $profile_paths[$i]
+        set -l profile_yaml "$profile_dir/fedpunk.yaml"
         if test -f "$profile_yaml"
             set -l description (yaml-get-value "$profile_yaml" "profile" "description")
             echo "  • $profile - $description" >&2
@@ -59,13 +82,17 @@ function installer-select-profile
         return 1
     end
 
+    # Find the path for selected profile
+    set -l index (contains -i $selected $available_profiles)
     echo $selected
+    echo $profile_paths[$index]
 end
 
 function installer-select-mode
     # Select mode interactively or from flag
     set -l profile $argv[1]
-    set -l modes_dir "$FEDPUNK_ROOT/profiles/$profile/modes"
+    set -l profile_dir $argv[2]
+    set -l modes_dir "$profile_dir/modes"
 
     if not test -d "$modes_dir"
         ui-error "No modes directory found for profile: $profile"
@@ -119,8 +146,9 @@ function installer-load-modules
     # Load module list from mode configuration
     # Returns just the module references (for display), not params
     set -l profile $argv[1]
-    set -l mode $argv[2]
-    set -l mode_file "$FEDPUNK_ROOT/profiles/$profile/modes/$mode/mode.yaml"
+    set -l profile_dir $argv[2]
+    set -l mode $argv[3]
+    set -l mode_file "$profile_dir/modes/$mode/mode.yaml"
 
     if not test -f "$mode_file"
         ui-error "Mode file not found: $mode_file"
@@ -270,13 +298,36 @@ function installer-run
     echo ""
 
     # Select profile
+    set -l profile_dir ""
     if test -z "$profile"
         if test "$non_interactive" = "true"
-            set profile "dev"  # Default
+            # Default profile - check both locations
+            if test -d "$FEDPUNK_USER/profiles/dev"
+                set profile "dev"
+                set profile_dir "$FEDPUNK_USER/profiles/dev"
+            else if test -d "$FEDPUNK_SYSTEM/profiles/default"
+                set profile "default"
+                set profile_dir "$FEDPUNK_SYSTEM/profiles/default"
+            else
+                ui-error "No default profile found"
+                return 1
+            end
             ui-info "Using default profile: $profile"
         else
-            set profile (installer-select-profile)
+            set -l profile_result (installer-select-profile)
             or return 1
+            set profile $profile_result[1]
+            set profile_dir $profile_result[2]
+        end
+    else
+        # Profile specified via flag - resolve its path
+        if test -d "$FEDPUNK_USER/profiles/$profile"
+            set profile_dir "$FEDPUNK_USER/profiles/$profile"
+        else if test -d "$FEDPUNK_SYSTEM/profiles/$profile"
+            set profile_dir "$FEDPUNK_SYSTEM/profiles/$profile"
+        else
+            ui-error "Profile not found: $profile"
+            return 1
         end
     end
 
@@ -293,7 +344,7 @@ function installer-run
             end
             ui-info "Auto-detected mode: $mode"
         else
-            set mode (installer-select-mode $profile)
+            set mode (installer-select-mode $profile $profile_dir)
             or return 1
         end
     end
@@ -303,7 +354,7 @@ function installer-run
     # Load modules
     echo ""
     ui-info "Loading module configuration..."
-    set -l modules (installer-load-modules $profile $mode)
+    set -l modules (installer-load-modules $profile $profile_dir $mode)
     set -l load_status $status
 
     if test $load_status -ne 0
@@ -333,15 +384,15 @@ function installer-run
     # Set up active profile symlink BEFORE deploying modules (plugins need this)
     echo ""
     ui-info "Setting up active profile..."
-    set -l active_config "$FEDPUNK_ROOT/.active-config"
+    set -l active_config "$FEDPUNK_USER/.active-config"
     rm -f "$active_config"
-    ln -s "$FEDPUNK_ROOT/profiles/$profile" "$active_config"
+    ln -s "$profile_dir" "$active_config"
     ui-success "Active profile: $profile"
 
     # Fetch external modules
     echo ""
     ui-section "External Modules"
-    set -l mode_file "$FEDPUNK_ROOT/profiles/$profile/modes/$mode/mode.yaml"
+    set -l mode_file "$profile_dir/modes/$mode/mode.yaml"
     installer-fetch-external-modules "$mode_file"
     or begin
         ui-error "Failed to fetch external modules"
@@ -369,14 +420,14 @@ function installer-run
         ui-info "Setting up mode configuration..."
 
         # Create active mode configuration for Hyprland (if hypr.conf exists)
-        set -l mode_hypr_conf "$FEDPUNK_ROOT/profiles/$profile/modes/$mode/hypr.conf"
+        set -l mode_hypr_conf "$profile_dir/modes/$mode/hypr.conf"
         if test -f "$mode_hypr_conf"
             set -l active_mode_conf "$HOME/.config/hypr/active-mode.conf"
             echo "# Active Mode Configuration (runtime-generated)" > "$active_mode_conf"
             echo "# Sources mode-specific Hyprland overrides" >> "$active_mode_conf"
             echo "# Mode: $mode" >> "$active_mode_conf"
             echo "" >> "$active_mode_conf"
-            echo "source = $FEDPUNK_ROOT/profiles/$profile/modes/$mode/hypr.conf" >> "$active_mode_conf"
+            echo "source = $mode_hypr_conf" >> "$active_mode_conf"
             ui-success "Active mode configured: $mode"
 
             # Reload Hyprland if it's running

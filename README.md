@@ -200,7 +200,19 @@ module:
 
 ## Quick Start
 
-### One-Command Install
+### DNF Install (COPR - Unstable) ⚡ NEW!
+
+**Bleeding-edge builds from main branch** - for early adopters and testers:
+
+```bash
+sudo dnf copr enable hinriksnaer/fedpunk-unstable
+sudo dnf install fedpunk
+fedpunk install
+```
+
+⚠️ **Warning:** Unstable builds may contain bugs. See [COPR installation guide](docs/installation/copr-unstable.md) for details.
+
+### Git Clone Install (Traditional)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/main/boot.sh | bash
