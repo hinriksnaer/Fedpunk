@@ -7,6 +7,9 @@ set -l lib_dir (dirname (status -f))
 source "$lib_dir/ui.fish"
 source "$lib_dir/yaml-parser.fish"
 source "$lib_dir/fedpunk-module.fish"
+source "$lib_dir/module-ref-parser.fish"
+source "$lib_dir/external-modules.fish"
+source "$lib_dir/param-injector.fish"
 
 function installer-select-profile
     # Select profile interactively or from flag
@@ -114,6 +117,7 @@ end
 
 function installer-load-modules
     # Load module list from mode configuration
+    # Returns just the module references (for display), not params
     set -l profile $argv[1]
     set -l mode $argv[2]
     set -l mode_file "$FEDPUNK_ROOT/profiles/$profile/modes/$mode/mode.yaml"
@@ -123,7 +127,40 @@ function installer-load-modules
         return 1
     end
 
-    yaml-get-array "$mode_file" ".modules[]"
+    # Use new parser to get module references
+    module-ref-list-all "$mode_file"
+end
+
+function installer-fetch-external-modules
+    # Fetch all external modules from mode configuration
+    set -l mode_file $argv[1]
+
+    if not test -f "$mode_file"
+        ui-error "Mode file not found: $mode_file"
+        return 1
+    end
+
+    ui-info "Checking for external modules..."
+
+    set -l modules (module-ref-list-all "$mode_file")
+    set -l external_count 0
+
+    for module_ref in $modules
+        if module-ref-is-url "$module_ref"
+            set external_count (math $external_count + 1)
+            ui-info "Fetching: $module_ref"
+            external-module-fetch "$module_ref"
+            or return 1
+        end
+    end
+
+    if test $external_count -eq 0
+        ui-info "No external modules to fetch"
+    else
+        ui-success "Fetched $external_count external module(s)"
+    end
+
+    return 0
 end
 
 function installer-deploy-modules
@@ -300,6 +337,27 @@ function installer-run
     rm -f "$active_config"
     ln -s "$FEDPUNK_ROOT/profiles/$profile" "$active_config"
     ui-success "Active profile: $profile"
+
+    # Fetch external modules
+    echo ""
+    ui-section "External Modules"
+    set -l mode_file "$FEDPUNK_ROOT/profiles/$profile/modes/$mode/mode.yaml"
+    installer-fetch-external-modules "$mode_file"
+    or begin
+        ui-error "Failed to fetch external modules"
+        return 1
+    end
+
+    # Generate parameter configuration
+    echo ""
+    ui-section "Module Parameters"
+    ui-info "Generating parameter configuration..."
+    param-generate-fish-config "$mode_file"
+    or begin
+        ui-error "Failed to generate parameter configuration"
+        return 1
+    end
+    ui-success "Parameters configured"
 
     # Deploy modules
     echo ""
