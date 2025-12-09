@@ -5,7 +5,12 @@
 set -euo pipefail
 
 # Get repo root directory (resolve once at start)
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# In GitHub Actions, use GITHUB_WORKSPACE if available
+if [ -n "${GITHUB_WORKSPACE:-}" ]; then
+    REPO_ROOT="$GITHUB_WORKSPACE"
+else
+    REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
 
 echo "=== Fedpunk RPM Build Script ==="
 echo ""
@@ -33,6 +38,16 @@ rpmdev-setuptree
 echo ""
 echo "Creating source tarball..."
 cd "$REPO_ROOT"
+
+# Verify we're in a git repository
+echo "Current directory: $(pwd)"
+echo "Checking git repository status..."
+if [ ! -d ".git" ]; then
+    echo "ERROR: Not in a git repository root (.git not found)"
+    echo "Directory contents:"
+    ls -la
+    exit 1
+fi
 
 # Create tarball with proper directory structure for %autosetup
 TARBALL="$HOME/rpmbuild/SOURCES/fedpunk-${VERSION}.tar.gz"
