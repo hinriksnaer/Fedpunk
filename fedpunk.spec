@@ -115,7 +115,7 @@ chmod 0755 %{buildroot}%{_bindir}/fedpunk
 
 %files
 %license LICENSE
-%doc README.md ARCHITECTURE.md
+%doc README.md
 %doc docs/
 
 %{_datadir}/%{name}/
