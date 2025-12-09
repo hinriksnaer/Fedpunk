@@ -5,6 +5,115 @@ Anything you put here won't cause merge conflicts when pulling updates.
 
 **Note:** The profile system supports multiple profiles (e.g., `profiles/work/`, `profiles/gaming/`), but you can start with just `dev/` for your development setup.
 
+## Module System
+
+Fedpunk uses a powerful module system that supports:
+- **Built-in modules** - Shipped with fedpunk (in `modules/`)
+- **Profile plugins** - Custom modules specific to your profile (in `profiles/dev/plugins/`)
+- **External modules** - Modules from git repositories or local paths
+
+### Profile Plugins
+
+Create custom modules in `profiles/dev/plugins/`:
+
+```
+profiles/dev/plugins/my-tool/
+├── module.yaml          # Module definition
+├── config/              # Dotfiles to stow
+│   └── .config/my-tool/
+├── cli/                 # CLI commands (optional)
+│   └── my-tool/
+│       └── my-tool.fish
+└── scripts/             # Lifecycle hooks
+    └── install
+```
+
+**Example module.yaml:**
+```yaml
+module:
+  name: my-tool
+  description: My custom tool
+  dependencies: []
+  priority: 10
+
+parameters:
+  api_key:
+    type: string
+    description: API key for my tool
+    required: true
+
+lifecycle:
+  before: []
+  after: []
+
+packages:
+  dnf:
+    - some-package
+
+stow:
+  target: $HOME
+  conflicts: warn
+```
+
+**Use in mode.yaml:**
+```yaml
+modules:
+  - essentials
+  - plugins/my-tool  # Reference your plugin
+```
+
+### External Modules
+
+Reference external modules via git URLs or local paths:
+
+```yaml
+# profiles/dev/modes/desktop/mode.yaml
+modules:
+  # Local path
+  - ~/gits/my-custom-module
+
+  # Git URL
+  - https://github.com/org/module.git
+
+  # With parameters
+  - module: https://github.com/org/jira-module.git
+    params:
+      team_name: "platform"
+      api_token: "secret"
+```
+
+External modules are cached to `~/.fedpunk/cache/external/` and work exactly like built-in modules.
+
+### Module Parameters
+
+Modules can accept parameters for configuration:
+
+**In module.yaml:**
+```yaml
+parameters:
+  api_endpoint:
+    type: string
+    description: API endpoint URL
+    required: true
+    default: "https://api.example.com"
+```
+
+**In mode.yaml:**
+```yaml
+modules:
+  - module: ~/gits/my-module
+    params:
+      api_endpoint: "https://custom.api.com"
+```
+
+**Access in module:**
+```fish
+# Parameters available as environment variables
+echo $FEDPUNK_PARAM_MY_MODULE_API_ENDPOINT
+```
+
+Parameters are auto-generated to `~/.config/fish/conf.d/fedpunk-module-params.fish`.
+
 ## What Goes Here?
 
 ### `profiles/dev/themes/`
