@@ -10,8 +10,8 @@ Summary:        Modular configuration engine for Fedora with Hyprland and Fish s
 
 License:        MIT
 URL:            https://github.com/hinriksnaer/Fedpunk
-# For unstable builds, COPR will use the commit tarball
-Source0:        %{url}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
+# COPR's dist-git will provide the source tarball
+Source0:        %{name}-%{commit}.tar.gz
 
 BuildArch:      noarch
 
@@ -40,8 +40,14 @@ Fedora into a productivity powerhouse. It provides:
 - Keyboard-driven Hyprland environment
 
 %prep
-# GitHub creates tarballs with format: Fedpunk-<commit>/
-%autosetup -n Fedpunk-%{commit}
+# COPR's dist-git creates tarballs as: fedpunk/
+# Use -c to create the build directory and -n to specify source dir name
+%autosetup -c -n %{name}-%{version}
+# Move contents from fedpunk/ subdirectory to build root
+if [ -d fedpunk ]; then
+    mv fedpunk/* fedpunk/.* . 2>/dev/null || true
+    rmdir fedpunk
+fi
 
 %build
 # Nothing to build - pure Fish scripts
