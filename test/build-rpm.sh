@@ -19,25 +19,40 @@ SHORTCOMMIT=${COMMIT:0:7}
 echo "Building Fedpunk v${VERSION} (${SHORTCOMMIT})"
 echo ""
 
-# Install build dependencies (including rpkg for template processing)
+# Install build dependencies
 echo "Installing build dependencies..."
-dnf install -y rpm-build rpmdevtools rpkg git fish stow yq gum jq 2>&1 | grep -v "^$"
+dnf install -y rpm-build rpmdevtools git fish stow yq gum jq 2>&1 | grep -v "^$"
 
 # Set up RPM build tree
 echo ""
 echo "Setting up RPM build tree..."
 rpmdev-setuptree
 
-# Build SRPM and RPM using rpkg (handles {{{ }}} template syntax)
+# For CI builds: Create tarball manually and use a modified spec
+# For COPR builds: rpkg handles everything via templates
 echo ""
-echo "Building RPM package with rpkg..."
+echo "Creating source tarball..."
 cd "$REPO_ROOT"
 
-# rpkg will automatically:
-# 1. Process {{{ git_dir_pack }}} to create tarball from git
-# 2. Process {{{ git_dir_setup_macro }}} in %prep
-# 3. Build the SRPM and RPM
-rpkg local
+# Create tarball with proper directory structure for %autosetup
+TARBALL="$HOME/rpmbuild/SOURCES/fedpunk-${VERSION}.tar.gz"
+git archive --format=tar.gz --prefix=fedpunk-${VERSION}/ -o "$TARBALL" HEAD
+
+echo "Source tarball created: $TARBALL"
+echo ""
+
+# Create a modified spec file that doesn't use rpkg templates
+SPEC_WORK="$HOME/rpmbuild/SPECS/fedpunk.spec"
+cp "$REPO_ROOT/fedpunk.spec" "$SPEC_WORK"
+
+# Replace rpkg templates with static values for CI builds
+# Source0: {{{ git_dir_pack }}} -> fedpunk-%{version}.tar.gz
+# %prep: {{{ git_dir_setup_macro }}} -> %autosetup
+sed -i 's/{{{ git_dir_pack }}}/fedpunk-%{version}.tar.gz/' "$SPEC_WORK"
+sed -i 's/{{{ git_dir_setup_macro }}}/%autosetup/' "$SPEC_WORK"
+
+echo "Building RPM packages..."
+rpmbuild -ba "$SPEC_WORK"
 
 # Find the built RPM
 RPM_FILE=$(find ~/rpmbuild/RPMS -name "fedpunk-*.rpm" -type f | head -n1)
