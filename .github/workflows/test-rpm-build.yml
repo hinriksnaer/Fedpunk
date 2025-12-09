@@ -1,0 +1,68 @@
+name: Test RPM Build and Installation
+
+on:
+  push:
+    branches: [ main, feature/copr-packaging ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test-rpm:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+      options: --privileged
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for commit hash
+
+      - name: Build RPM package
+        run: |
+          cd /workspace
+          cp -r $GITHUB_WORKSPACE /workspace
+          cd /workspace
+          bash test/build-rpm.sh
+
+      - name: Test RPM installation
+        run: |
+          cd /workspace
+          bash test/test-rpm-install.sh
+
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: fedpunk-rpm
+          path: ~/rpmbuild/RPMS/noarch/fedpunk-*.rpm
+          retention-days: 30
+
+      - name: Upload SRPM artifact
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: fedpunk-srpm
+          path: ~/rpmbuild/SRPMS/fedpunk-*.src.rpm
+          retention-days: 30
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "=== RPM Build and Test Summary ==="
+          if [ -f ~/rpmbuild/RPMS/noarch/fedpunk-*.rpm ]; then
+            ls -lh ~/rpmbuild/RPMS/noarch/fedpunk-*.rpm
+            echo "✅ RPM build successful"
+          else
+            echo "✗ RPM build failed"
+            exit 1
+          fi
+
+          if [ -d "$HOME/.local/share/fedpunk" ]; then
+            echo "✅ Installation test successful"
+          else
+            echo "✗ Installation test failed"
+            exit 1
+          fi

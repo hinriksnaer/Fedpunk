@@ -1,11 +1,17 @@
+# Commit hash for unstable builds (set by COPR or manually)
+%{!?commit: %global commit HEAD}
+%global shortcommit %(c=%{commit}; echo ${c:0:7})
+%global build_date %(date +%%Y%%m%%d)
+
 Name:           fedpunk
 Version:        0.5.0
-Release:        1%{?dist}
+Release:        0.1.%{build_date}git%{shortcommit}%{?dist}
 Summary:        Modular configuration engine for Fedora with Hyprland and Fish shell
 
 License:        MIT
 URL:            https://github.com/hinriksnaer/Fedpunk
-Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
+# For unstable builds, COPR will use the commit tarball
+Source0:        %{url}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
 
 BuildArch:      noarch
 
@@ -33,7 +39,8 @@ Fedora into a productivity powerhouse. It provides:
 - Keyboard-driven Hyprland environment
 
 %prep
-%autosetup -n %{name}-%{version}
+# GitHub creates tarballs with format: Fedpunk-<commit>/
+%autosetup -n Fedpunk-%{commit}
 
 %build
 # Nothing to build - pure Fish scripts
@@ -118,13 +125,23 @@ chmod 0755 %{buildroot}%{_bindir}/fedpunk
 %post
 # Create user space on first install
 if [ $1 -eq 1 ]; then
-    echo "Fedpunk installed to /usr/share/fedpunk"
+    echo "=========================================="
+    echo "Fedpunk (UNSTABLE) installed successfully"
+    echo "=========================================="
+    echo ""
+    echo "WARNING: This is a bleeding-edge build from the main branch."
+    echo "Expect bugs and breaking changes. Use at your own risk!"
+    echo ""
+    echo "Installation location: /usr/share/fedpunk"
     echo ""
     echo "To complete installation, run:"
     echo "  fedpunk install"
     echo ""
-    echo "Or for container/server mode:"
+    echo "For container/server mode:"
     echo "  fedpunk install --mode container"
+    echo ""
+    echo "Report issues: https://github.com/hinriksnaer/Fedpunk/issues"
+    echo "=========================================="
 fi
 
 %postun
@@ -136,10 +153,11 @@ if [ $1 -eq 0 ]; then
 fi
 
 %changelog
-* Mon Dec 09 2024 Your Name <email@example.com> - 0.5.0-1
-- Initial RPM packaging
+* Mon Dec 09 2024 Hinrik Gudmundsson <email@example.com> - 0.5.0-0.1
+- Initial unstable RPM packaging for COPR
+- Bleeding-edge builds from main branch
 - Modular architecture with external module support
 - Profile system with modes (desktop/container)
 - Plugin framework for extensibility
 - 12 themes with live reload
-- Auto-detecting installation paths
+- Auto-detecting installation paths (DNF vs git clone)
