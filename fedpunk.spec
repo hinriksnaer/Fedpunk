@@ -39,9 +39,10 @@ Fedora into a productivity powerhouse. It provides:
 - Keyboard-driven Hyprland environment
 
 %prep
-# COPR/rpkg: use git_dir_setup_macro
-# Local builds: expands to %autosetup
-{{{ git_dir_setup_macro }}}
+# For COPR/rpkg builds: rpkg creates tarballs with directory Fedpunk-{commit_hash}
+# For local builds: we create fedpunk-{version}
+# Use -n . to work in current directory after extraction
+%autosetup -n .
 
 %build
 # Nothing to build - pure Fish scripts
