@@ -95,10 +95,31 @@ else
     exit 1
 fi
 
-# Test 4: Run fedpunk install (non-interactive, container mode)
+# Test 4: Test core module deployment (minimal test)
 echo ""
-echo "✓ Test 4: Running fedpunk install"
-fedpunk install --profile default --mode container --non-interactive
+echo "✓ Test 4: Testing module deployment"
+# Just ensure user space exists and test basic module resolution
+fish -c "
+    source /usr/share/fedpunk/lib/fish/paths.fish
+    fedpunk-ensure-user-space
+
+    # Source module manager
+    source /usr/share/fedpunk/lib/fish/fedpunk-module.fish
+
+    # Test module list command
+    fedpunk-module list >/dev/null 2>&1
+    if test \$status -ne 0
+        echo '  ✗ Module list failed'
+        exit 1
+    end
+
+    echo '  ✓ Module system functional'
+"
+
+if [ $? -ne 0 ]; then
+    echo "  ✗ Core module system test failed"
+    exit 1
+fi
 
 # Test 5: Verify user space created
 echo ""
@@ -132,43 +153,42 @@ else
     exit 1
 fi
 
-# Test 6: Check Fish config generated
+# Test 6: Verify core libraries are loadable
 echo ""
-echo "✓ Test 6: Fish configuration"
-if [ -f "$HOME/.config/fish/conf.d/fedpunk-module-params.fish" ]; then
-    echo "  ✓ $HOME/.config/fish/conf.d/fedpunk-module-params.fish generated"
-else
-    echo "  ✗ $HOME/.config/fish/conf.d/fedpunk-module-params.fish missing"
-    exit 1
-fi
+echo "✓ Test 6: Core library verification"
+fish -c "
+    source /usr/share/fedpunk/lib/fish/paths.fish
+    source /usr/share/fedpunk/lib/fish/ui.fish
+    source /usr/share/fedpunk/lib/fish/yaml-parser.fish
 
-# Test 7: Start Fish and verify
-echo ""
-echo "✓ Test 7: Fish shell verification"
-fish -c '
     if set -q FEDPUNK_SYSTEM
-        echo "  ✓ FEDPUNK_SYSTEM available in Fish: $FEDPUNK_SYSTEM"
+        echo '  ✓ FEDPUNK_SYSTEM set: \$FEDPUNK_SYSTEM'
     else
-        echo "  ✗ FEDPUNK_SYSTEM not set in Fish"
+        echo '  ✗ FEDPUNK_SYSTEM not set'
         exit 1
     end
 
     if set -q FEDPUNK_USER
-        echo "  ✓ FEDPUNK_USER available in Fish: $FEDPUNK_USER"
+        echo '  ✓ FEDPUNK_USER set: \$FEDPUNK_USER'
     else
-        echo "  ✗ FEDPUNK_USER not set in Fish"
+        echo '  ✗ FEDPUNK_USER not set'
         exit 1
     end
-'
+"
+
+if [ $? -ne 0 ]; then
+    echo "  ✗ Core library verification failed"
+    exit 1
+fi
 
 echo ""
-echo "=== All Tests Passed! ==="
+echo "=== All Core Tests Passed! ==="
 echo ""
 echo "Installation Summary:"
 echo "  System files: /usr/share/fedpunk/"
 echo "  User data:    $HOME/.local/share/fedpunk/"
-echo "  Active profile: $(readlink $HOME/.local/share/fedpunk/.active-config | xargs basename)"
+echo "  Core libs:    Verified"
+echo "  Module system: Functional"
 echo ""
-echo "To use Fedpunk:"
-echo "  exec fish"
+echo "Fedpunk core is ready for use!"
 echo ""

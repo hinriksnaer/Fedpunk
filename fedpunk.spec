@@ -20,6 +20,7 @@ Requires:       fish
 Requires:       stow
 Requires:       git
 Requires:       yq
+Requires:       jq
 
 # UI dependencies
 Requires:       gum
