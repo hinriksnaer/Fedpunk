@@ -1,10 +1,10 @@
-# Build date for unstable builds
-%global build_date %(date +%%Y%%m%%d)
+# Build timestamp for unstable builds (includes time for unique versions)
+%global build_timestamp %(date +%%Y%%m%%d.%%H%%M%%S)
 %global branch unstable
 
 Name:           fedpunk
 Version:        0.5.0
-Release:        0.%{build_date}.%{branch}%{?dist}
+Release:        0.%{build_timestamp}.%{branch}%{?dist}
 Summary:        Modular configuration engine for Fedora with Hyprland and Fish shell
 
 License:        MIT
