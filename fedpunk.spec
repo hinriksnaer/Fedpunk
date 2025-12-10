@@ -1,20 +1,16 @@
 # Build date for unstable builds
 %global build_date %(date +%%Y%%m%%d)
-
-# Git commit for traceability
-%global commit %(git rev-parse HEAD 2>/dev/null || echo "0")
-%global shortcommit %(c=%{commit}; echo ${c:0:7})
+%global branch unstable
 
 Name:           fedpunk
 Version:        0.5.0
-Release:        0.1.%{build_date}git%{shortcommit}%{?dist}
+Release:        0.%{build_date}.%{branch}%{?dist}
 Summary:        Modular configuration engine for Fedora with Hyprland and Fish shell
 
 License:        MIT
 URL:            https://github.com/hinriksnaer/Fedpunk
-# For COPR/rpkg builds: use git_dir_pack macro
-# For local builds: falls back to standard tarball
-Source0:        {{{ git_dir_pack }}}
+# GitHub automatic tarball for branch builds
+Source0:        https://github.com/hinriksnaer/Fedpunk/archive/refs/heads/%{branch}.tar.gz
 
 BuildArch:      noarch
 
@@ -43,17 +39,8 @@ Fedora into a productivity powerhouse. It provides:
 - Keyboard-driven Hyprland environment
 
 %prep
-# rpkg's git_dir_pack creates a tarball with a top-level directory named after the repo
-# Use %setup with -c and -n to create a known directory, then move contents up
-%setup -q -c -n %{name}-%{version}
-# Move contents from the Fedpunk directory up one level
-mv Fedpunk/* .
-# Move hidden files too
-shopt -s dotglob
-mv Fedpunk/.* . 2>/dev/null || true
-shopt -u dotglob
-# Remove the now-empty directory
-rmdir Fedpunk
+# GitHub creates tarballs with directory name: Fedpunk-{branch}
+%autosetup -n Fedpunk-%{branch}
 
 %build
 # Nothing to build - pure Fish scripts
