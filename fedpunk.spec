@@ -74,7 +74,12 @@ for cmd_dir in cli/*; do
     if [ -d "$cmd_dir" ]; then
         cmd_name=$(basename "$cmd_dir")
         install -d %{buildroot}%{_datadir}/%{name}/cli/"$cmd_name"
-        install -m 0755 "$cmd_dir"/*.fish %{buildroot}%{_datadir}/%{name}/cli/"$cmd_name"/
+        # Install each .fish file individually to ensure permissions are set
+        for fish_file in "$cmd_dir"/*.fish; do
+            if [ -f "$fish_file" ]; then
+                install -m 0755 "$fish_file" %{buildroot}%{_datadir}/%{name}/cli/"$cmd_name"/
+            fi
+        done
     fi
 done
 
