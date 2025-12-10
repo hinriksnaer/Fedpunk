@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # WiFi management commands
 
 function wifi --description "WiFi network management"
@@ -330,3 +331,6 @@ function forget --description "Forget a saved WiFi network"
         printf "Cancelled\n"
     end
 end
+
+# Execute the command
+wifi $argv

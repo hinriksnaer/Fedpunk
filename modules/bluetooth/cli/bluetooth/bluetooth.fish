@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Bluetooth management commands
 
 function bluetooth --description "Bluetooth management"
@@ -235,3 +236,6 @@ function gui --description "Open Bluetooth GUI manager"
     disown
     printf "Launched Bluetooth Manager (blueman)\n"
 end
+
+# Execute the command
+bluetooth $argv

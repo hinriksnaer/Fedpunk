@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # VM testing commands for Fedpunk development
 
 set -g VM_DIR "$HOME/VMs"
@@ -570,3 +571,6 @@ function test-install --description "Show install instructions for VM"
     printf "\n"
     printf "  curl -fsSL https://raw.githubusercontent.com/hinriksnaer/Fedpunk/%s/boot.sh | FEDPUNK_REF=%s FEDPUNK_TERMINAL_ONLY=1 bash\n" "$branch" "$branch"
 end
+
+# Execute the command
+vm $argv

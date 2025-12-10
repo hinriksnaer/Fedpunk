@@ -2,8 +2,8 @@
 # Fedpunk Configuration Linker
 # Replaces GNU Stow with state-tracked symlink management
 
-# State file location
-set -g LINKER_STATE_FILE "$FEDPUNK_ROOT/.linker-state.json"
+# State file location (user-writable)
+set -g LINKER_STATE_FILE "$FEDPUNK_USER/.linker-state.json"
 
 # Initialize state file if it doesn't exist
 function linker-init
@@ -354,7 +354,7 @@ function linker-list-files
 end
 
 # Deploy module CLI commands
-# Deploys module/cli/ or plugin/cli/ to $FEDPUNK_ROOT/cli/
+# Deploys module/cli/ or plugin/cli/ to $FEDPUNK_USER/cli/
 function linker-deploy-cli
     set -l module_name $argv[1]
     set -l module_dir $argv[2]
@@ -377,7 +377,7 @@ function linker-deploy-cli
         end
 
         set -l cmd_name (basename "$src_item")
-        set -l target_dir "$FEDPUNK_ROOT/cli/$cmd_name"
+        set -l target_dir "$FEDPUNK_USER/cli/$cmd_name"
 
         # Check for command directory conflict
         if test -d "$target_dir"; and not test -L "$target_dir"
@@ -433,7 +433,7 @@ function linker-remove-cli
 
     # Get all CLI directories owned by this module
     set -l cli_dirs (jq -r --arg module "$module_name" \
-        --arg prefix "$FEDPUNK_ROOT/cli/" \
+        --arg prefix "$FEDPUNK_USER/cli/" \
         '.files | to_entries[] | select(.value.module == $module) | select(.key | startswith($prefix)) | .key' \
         "$LINKER_STATE_FILE")
 
@@ -450,7 +450,7 @@ function linker-remove-cli
             linker-state-remove "$target"
             set count (math $count + 1)
         else if test -e "$target"
-            echo "  ⚠️  Not a symlink: "(string replace "$FEDPUNK_ROOT/" "" "$target")
+            echo "  ⚠️  Not a symlink: "(string replace "$FEDPUNK_USER/" "" "$target")
         end
     end
 

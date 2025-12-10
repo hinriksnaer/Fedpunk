@@ -69,22 +69,12 @@ cp -r profiles/example %{buildroot}%{_datadir}/%{name}/profiles/
 # Install themes
 cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
 
-# Install CLI commands and ensure they're executable
-for cmd_dir in cli/*; do
-    if [ -d "$cmd_dir" ]; then
-        cmd_name=$(basename "$cmd_dir")
-        install -d %{buildroot}%{_datadir}/%{name}/cli/"$cmd_name"
-        # Install each .fish file individually to ensure permissions are set
-        for fish_file in "$cmd_dir"/*.fish; do
-            if [ -f "$fish_file" ]; then
-                install -m 0755 "$fish_file" %{buildroot}%{_datadir}/%{name}/cli/"$cmd_name"/
-            fi
-        done
-    fi
-done
+# Install CLI commands (symlinked to user space at runtime)
+cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
 
 # Install main installer script
-install -m 0755 install.fish %{buildroot}%{_datadir}/%{name}/install.fish
+cp install.fish %{buildroot}%{_datadir}/%{name}/install.fish
+chmod 0755 %{buildroot}%{_datadir}/%{name}/install.fish
 
 # Create /etc/profile.d script to set environment variables
 cat > %{buildroot}%{_sysconfdir}/profile.d/fedpunk.sh << 'EOF'
@@ -119,6 +109,30 @@ if not set -q FEDPUNK_SYSTEM
     source /usr/share/fedpunk/lib/fish/paths.fish
 end
 
+# Initialize system CLI commands on first run
+function __fedpunk_init_cli
+    # Ensure user CLI directory exists
+    mkdir -p "$FEDPUNK_USER/cli"
+
+    # Symlink system CLI commands if not already done
+    for system_cmd in $FEDPUNK_SYSTEM/cli/*/
+        if not test -d "$system_cmd"
+            continue
+        end
+
+        set -l cmd_name (basename "$system_cmd")
+        set -l target "$FEDPUNK_USER/cli/$cmd_name"
+
+        # Create symlink if it doesn't exist
+        if not test -e "$target"
+            ln -sf "$system_cmd" "$target"
+        end
+    end
+end
+
+# Auto-initialize CLI on first run (fast - only creates symlinks if needed)
+__fedpunk_init_cli
+
 # Show help if no arguments
 if test (count $argv) -eq 0
     echo "Fedpunk - Modular configuration engine for Fedora"
@@ -150,8 +164,8 @@ if test "$subcommand" = "install"
     exec /usr/share/fedpunk/install.fish $argv
 end
 
-# For all other commands, check if CLI command exists
-set cli_cmd "$FEDPUNK_SYSTEM/cli/$subcommand/$subcommand.fish"
+# Look for command in user CLI directory (includes system + module commands)
+set cli_cmd "$FEDPUNK_USER/cli/$subcommand/$subcommand.fish"
 
 if test -f "$cli_cmd"
     # Run the CLI command

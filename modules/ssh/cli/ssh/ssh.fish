@@ -163,3 +163,6 @@ function test-connection --description "Test SSH connection to a host"
     ssh -v -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=no $host_name exit 2>&1 | grep -E "^(debug1: Connecting|debug1: Connection established|debug1: Authentication succeeded)"
 end
 
+# Execute the command
+ssh $argv
+

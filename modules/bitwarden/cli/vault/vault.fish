@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Bitwarden vault management commands
 
 function vault --description "Bitwarden vault management"
@@ -882,3 +883,6 @@ function gh-restore --description "Restore GitHub CLI auth"
         return 1
     end
 end
+
+# Execute the command
+vault $argv
