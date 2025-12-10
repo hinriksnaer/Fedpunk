@@ -69,10 +69,14 @@ cp -r profiles/example %{buildroot}%{_datadir}/%{name}/profiles/
 # Install themes
 cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
 
-# Install CLI commands
-cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
-# Ensure all CLI command files are executable
-find %{buildroot}%{_datadir}/%{name}/cli -name '*.fish' -type f -exec chmod 0755 {} \;
+# Install CLI commands and ensure they're executable
+for cmd_dir in cli/*; do
+    if [ -d "$cmd_dir" ]; then
+        cmd_name=$(basename "$cmd_dir")
+        install -d %{buildroot}%{_datadir}/%{name}/cli/"$cmd_name"
+        install -m 0755 "$cmd_dir"/*.fish %{buildroot}%{_datadir}/%{name}/cli/"$cmd_name"/
+    fi
+done
 
 # Install main installer script
 install -m 0755 install.fish %{buildroot}%{_datadir}/%{name}/install.fish
