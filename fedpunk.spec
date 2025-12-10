@@ -84,6 +84,8 @@ cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
 
 # Install CLI commands
 cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
+# Ensure all CLI command files are executable
+find %{buildroot}%{_datadir}/%{name}/cli -name '*.fish' -type f -exec chmod 0755 {} \;
 
 # Install main installer script
 install -m 0755 install.fish %{buildroot}%{_datadir}/%{name}/install.fish
