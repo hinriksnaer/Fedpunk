@@ -1,8 +1,8 @@
 #!/usr/bin/env fish
-# Fedpunk Installer
-# Orchestrates module deployment using profile/mode configuration
+# Fedpunk Installer (Simplified wrapper for new deployment system)
+# Use 'fedpunk deploy profile' instead
 
-# Get the directory where this script is located (works regardless of cwd)
+# Get the directory where this script is located
 set -l script_dir (dirname (status -f))
 
 # Source path detection library
@@ -13,22 +13,24 @@ if not test -f "$script_dir/lib/fish/paths.fish"
 end
 source "$script_dir/lib/fish/paths.fish"
 
-# Auto-detect installation type and set up paths
-# This sources paths.fish which runs fedpunk-setup-paths automatically
-# Result: FEDPUNK_SYSTEM, FEDPUNK_USER, FEDPUNK_ROOT are now set
-
-# Ensure user space exists (auto-creates on first run)
+# Ensure user space exists
 fedpunk-ensure-user-space
 
-# Verify installer library exists
-if not test -f "$FEDPUNK_SYSTEM/lib/fish/installer.fish"
-    echo "Error: Could not find installer library at $FEDPUNK_SYSTEM/lib/fish/installer.fish" >&2
-    echo "Please ensure you're running from a complete Fedpunk installation" >&2
+# Source deployer library
+if not test -f "$FEDPUNK_SYSTEM/lib/fish/deployer.fish"
+    echo "Error: Could not find deployer library at $FEDPUNK_SYSTEM/lib/fish/deployer.fish" >&2
     exit 1
 end
+source "$FEDPUNK_SYSTEM/lib/fish/deployer.fish"
 
-# Source installer library (use absolute path)
-source "$FEDPUNK_SYSTEM/lib/fish/installer.fish"
+# Show deprecation notice
+echo "╔════════════════════════════════════════════════════════╗"
+echo "║  Fedpunk Installer                                     ║"
+echo "╚════════════════════════════════════════════════════════╝"
+echo ""
+echo "Note: 'fedpunk install' is now a wrapper for:"
+echo "  fedpunk deploy profile"
+echo ""
 
-# Run installer with arguments
-installer-run $argv
+# Deploy profile with provided arguments
+deployer-deploy-profile $argv

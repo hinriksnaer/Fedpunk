@@ -84,6 +84,8 @@ cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
 
 # Install CLI commands
 cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
+# Ensure all CLI command files are executable
+find %{buildroot}%{_datadir}/%{name}/cli -name '*.fish' -type f -exec chmod 0755 {} \;
 
 # Install main installer script
 install -m 0755 install.fish %{buildroot}%{_datadir}/%{name}/install.fish
@@ -128,14 +130,16 @@ if test (count $argv) -eq 0
     echo "Usage: fedpunk <command> [options]"
     echo ""
     echo "Commands:"
-    echo "  install    Install Fedpunk (run initial setup)"
-    echo "  init       Initialize Fedpunk in current directory"
-    echo "  apply      Apply current profile configuration"
-    echo "  sync       Sync configuration changes"
-    echo "  theme      Manage themes"
+    echo "  deploy     Deploy profiles and modules (recommended)"
+    echo "  install    Install Fedpunk (legacy, use 'deploy' instead)"
+    echo "  apply      Apply current configuration"
+    echo "  config     Manage configuration"
     echo "  profile    Manage profiles"
     echo "  module     Manage modules"
+    echo "  theme      Manage themes"
     echo "  doctor     Run system diagnostics"
+    echo "  init       Initialize Fedpunk in current directory"
+    echo "  sync       Sync configuration changes"
     echo "  wallpaper  Manage wallpapers"
     echo ""
     echo "Run 'fedpunk <command> --help' for more information on a command."
@@ -184,12 +188,14 @@ if [ $1 -eq 1 ]; then
     echo "Expect bugs and breaking changes. Use at your own risk!"
     echo ""
     echo "Installation location: /usr/share/fedpunk"
+    echo "Configuration: ~/.config/fedpunk/fedpunk.yaml"
     echo ""
-    echo "To complete installation, run:"
+    echo "Quick start:"
+    echo "  fedpunk deploy profile         # Interactive setup"
+    echo "  fedpunk deploy profile default --mode container"
+    echo ""
+    echo "Or use traditional installer:"
     echo "  fedpunk install"
-    echo ""
-    echo "For container/server mode:"
-    echo "  fedpunk install --mode container"
     echo ""
     echo "Report issues: https://github.com/hinriksnaer/Fedpunk/issues"
     echo "=========================================="

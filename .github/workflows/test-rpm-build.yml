@@ -2,9 +2,9 @@ name: Test RPM Build and Installation
 
 on:
   push:
-    branches: [ main, feature/copr-packaging ]
+    branches: [ main, unstable, feature/copr-packaging ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, unstable ]
   workflow_dispatch:
 
 jobs:
