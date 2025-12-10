@@ -114,21 +114,53 @@ EOF
 # Create fedpunk wrapper script in /usr/bin
 cat > %{buildroot}%{_bindir}/fedpunk << 'EOF'
 #!/usr/bin/env fish
-# Fedpunk command wrapper
+# Fedpunk CLI - Main entry point
 
 # Source paths library if not already loaded
 if not set -q FEDPUNK_SYSTEM
     source /usr/share/fedpunk/lib/fish/paths.fish
 end
 
-# Handle subcommands (currently only 'install' is supported)
-# Skip the 'install' subcommand if present and pass remaining args
-if test (count $argv) -gt 0; and test "$argv[1]" = "install"
-    set -e argv[1]  # Remove 'install' from arguments
+# Show help if no arguments
+if test (count $argv) -eq 0
+    echo "Fedpunk - Modular configuration engine for Fedora"
+    echo ""
+    echo "Usage: fedpunk <command> [options]"
+    echo ""
+    echo "Commands:"
+    echo "  install    Install Fedpunk (run initial setup)"
+    echo "  init       Initialize Fedpunk in current directory"
+    echo "  apply      Apply current profile configuration"
+    echo "  sync       Sync configuration changes"
+    echo "  theme      Manage themes"
+    echo "  profile    Manage profiles"
+    echo "  module     Manage modules"
+    echo "  doctor     Run system diagnostics"
+    echo "  wallpaper  Manage wallpapers"
+    echo ""
+    echo "Run 'fedpunk <command> --help' for more information on a command."
+    exit 0
 end
 
-# Run install.fish with remaining arguments
-exec /usr/share/fedpunk/install.fish $argv
+set subcommand $argv[1]
+
+# Special case: 'install' runs the installer
+if test "$subcommand" = "install"
+    set -e argv[1]  # Remove 'install' from arguments
+    exec /usr/share/fedpunk/install.fish $argv
+end
+
+# For all other commands, check if CLI command exists
+set cli_cmd "$FEDPUNK_SYSTEM/cli/$subcommand/$subcommand.fish"
+
+if test -f "$cli_cmd"
+    # Run the CLI command
+    exec $cli_cmd $argv[2..-1]
+else
+    echo "Error: Unknown command '$subcommand'"
+    echo "Run 'fedpunk' to see available commands."
+    exit 1
+end
 EOF
 chmod 0755 %{buildroot}%{_bindir}/fedpunk
 
