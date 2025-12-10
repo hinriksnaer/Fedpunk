@@ -1,9 +1,13 @@
 # Build date for unstable builds
 %global build_date %(date +%%Y%%m%%d)
 
+# Git commit for traceability
+%global commit %(git rev-parse HEAD 2>/dev/null || echo "0")
+%global shortcommit %(c=%{commit}; echo ${c:0:7})
+
 Name:           fedpunk
 Version:        0.5.0
-Release:        0.1.%{build_date}%{?dist}
+Release:        0.1.%{build_date}git%{shortcommit}%{?dist}
 Summary:        Modular configuration engine for Fedora with Hyprland and Fish shell
 
 License:        MIT
@@ -39,9 +43,17 @@ Fedora into a productivity powerhouse. It provides:
 - Keyboard-driven Hyprland environment
 
 %prep
-# For COPR/rpkg builds: use git_dir_setup_macro to handle extraction
-# For local/CI builds: use %autosetup (build script replaces this template)
-{{{ git_dir_setup_macro }}}
+# rpkg's git_dir_pack creates a tarball with a top-level directory named after the repo
+# Use %setup with -c and -n to create a known directory, then move contents up
+%setup -q -c -n %{name}-%{version}
+# Move contents from the Fedpunk directory up one level
+mv Fedpunk/* .
+# Move hidden files too
+shopt -s dotglob
+mv Fedpunk/.* . 2>/dev/null || true
+shopt -u dotglob
+# Remove the now-empty directory
+rmdir Fedpunk
 
 %build
 # Nothing to build - pure Fish scripts
