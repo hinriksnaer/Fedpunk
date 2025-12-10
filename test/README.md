@@ -6,22 +6,32 @@ Test suite for validating Fedpunk RPM packaging and installation.
 
 ## Quick Start
 
-### Run All Tests (Recommended)
+### Run COPR Mode Tests (Recommended)
 
 ```bash
 # In devcontainer or Fedora container
-bash test/run-all-tests.sh
+bash test/run-all-tests.sh copr
 ```
 
-This runs both the build and installation tests in sequence.
+This builds and tests using rpkg, exactly like COPR does. **This is now the default mode.**
+
+### Run All Test Modes
+
+```bash
+bash test/run-all-tests.sh both    # Both COPR and legacy modes
+bash test/run-all-tests.sh legacy  # Legacy mode only
+```
 
 ### Run Individual Tests
 
 ```bash
-# Build RPM only
+# COPR mode - replicates COPR build process (recommended)
+bash test/build-rpm-copr-mode.sh
+
+# Legacy mode - template replacement for quick testing
 bash test/build-rpm.sh
 
-# Test installation only (requires RPM to be built first)
+# Test installation (works with either build)
 bash test/test-rpm-install.sh
 ```
 
@@ -36,11 +46,18 @@ Every push to `main` or PR targeting `main` triggers the RPM build and test work
 **Workflow:** `.github/workflows/test-rpm-build.yml`
 
 **What it does:**
-1. Checks out code in Fedora 43 container
-2. Runs `test/build-rpm.sh` to build the RPM
-3. Runs `test/test-rpm-install.sh` to validate installation
-4. Uploads built RPM and SRPM as artifacts (30-day retention)
-5. Blocks merge if tests fail
+1. **Validate COPR Spec** (Primary):
+   - Validates spec file with `test/build-rpm-copr-mode.sh` (rpkg)
+   - Ensures rpkg can process templates
+   - Uploads SRPM artifact as `fedpunk-srpm-copr`
+   - **Fast validation - no full build**
+
+2. **Build & Test RPM** (Secondary):
+   - Builds full RPM using `test/build-rpm.sh` (legacy mode)
+   - Tests installation
+   - Uploads artifacts as `fedpunk-rpm-legacy` and `fedpunk-srpm-legacy`
+
+**Both jobs must pass** before merge is allowed. COPR validation ensures COPR builds will work. Legacy mode ensures the package actually installs correctly.
 
 **View results:**
 - https://github.com/hinriksnaer/Fedpunk/actions
@@ -70,29 +87,56 @@ podman run -it --rm \
 
 ---
 
-## Test Suite Details
+## Test Modes
 
-### build-rpm.sh
+### COPR Mode (Recommended) - build-rpm-copr-mode.sh
 
-**Purpose:** Build RPM package from source
+**Purpose:** Validate spec file with rpkg (ensures COPR builds will work)
+
+**How it works:**
+- Uses rpkg to process spec file templates: `{{{ git_dir_pack }}}` and `{{{ git_dir_setup_macro }}}`
+- Builds SRPM with: `rpkg srpm`
+- **Validates templates only - does NOT build binary RPM**
+
+**Why use this:**
+- ✅ Validates spec file templates COPR will use
+- ✅ Catches COPR-specific issues before pushing to main
+- ✅ Fast validation (no full RPM build needed)
+- ✅ Ensures `.copr/Makefile` and templates work correctly
+
+**Steps:**
+1. Install rpkg (minimal dependencies)
+2. Verify git repository
+3. Run `rpkg srpm` to create SRPM (processes templates)
+4. Validate SRPM was created successfully
+5. Exit (binary RPM build tested in legacy mode)
+
+### Legacy Mode - build-rpm.sh
+
+**Purpose:** Build RPM for quick local testing without rpkg
+
+**How it works:**
+- Modifies spec file to replace rpkg templates with static values
+- Creates tarball manually with `git archive`
+- Builds with standard `rpmbuild`
+
+**Why use this:**
+- ✅ Works without rpkg dependency
+- ✅ Good for quick local development
+- ✅ Compatible with older build tools
 
 **Steps:**
 1. Install build dependencies (rpm-build, rpmdevtools, git, fish, stow, yq, gum)
-2. Set up RPM build tree (`~/rpmbuild/`)
-3. Create source tarball from current code
-4. Build RPM using `fedpunk.spec`
-5. Output RPM and SRPM locations
+2. Create source tarball with `git archive`
+3. Replace `{{{ git_dir_pack }}}` → `fedpunk-%{version}.tar.gz`
+4. Replace `{{{ git_dir_setup_macro }}}` → `%autosetup`
+5. Build RPM with `rpmbuild -ba`
 
-**Success criteria:**
-- RPM builds without errors
-- Binary RPM created in `~/rpmbuild/RPMS/noarch/`
-- Source RPM created in `~/rpmbuild/SRPMS/`
+**Important:** CI and COPR use different code paths in this mode. Use COPR mode to validate before merging.
 
-**Output:**
-```
-Binary RPM: ~/rpmbuild/RPMS/noarch/fedpunk-0.5.0-0.1.20241209gitabcd123.fc43.noarch.rpm
-Source RPM: ~/rpmbuild/SRPMS/fedpunk-0.5.0-0.1.20241209gitabcd123.fc43.src.rpm
-```
+---
+
+## Test Suite Details
 
 ### test-rpm-install.sh
 
