@@ -1,9 +1,13 @@
 # Build date for unstable builds
 %global build_date %(date +%%Y%%m%%d)
 
+# Git commit for traceability
+%global commit %(git rev-parse HEAD 2>/dev/null || echo "0")
+%global shortcommit %(c=%{commit}; echo ${c:0:7})
+
 Name:           fedpunk
 Version:        0.5.0
-Release:        0.1.%{build_date}%{?dist}
+Release:        0.1.%{build_date}git%{shortcommit}%{?dist}
 Summary:        Modular configuration engine for Fedora with Hyprland and Fish shell
 
 License:        MIT
@@ -39,9 +43,17 @@ Fedora into a productivity powerhouse. It provides:
 - Keyboard-driven Hyprland environment
 
 %prep
-# For COPR/rpkg builds: use git_dir_setup_macro to handle extraction
-# For local/CI builds: use %autosetup (build script replaces this template)
-{{{ git_dir_setup_macro }}}
+# rpkg's git_dir_pack creates a tarball with a top-level directory named after the repo
+# Use %setup with -c and -n to create a known directory, then move contents up
+%setup -q -c -n %{name}-%{version}
+# Move contents from the Fedpunk directory up one level
+mv Fedpunk/* .
+# Move hidden files too
+shopt -s dotglob
+mv Fedpunk/.* . 2>/dev/null || true
+shopt -u dotglob
+# Remove the now-empty directory
+rmdir Fedpunk
 
 %build
 # Nothing to build - pure Fish scripts
@@ -102,21 +114,53 @@ EOF
 # Create fedpunk wrapper script in /usr/bin
 cat > %{buildroot}%{_bindir}/fedpunk << 'EOF'
 #!/usr/bin/env fish
-# Fedpunk command wrapper
+# Fedpunk CLI - Main entry point
 
 # Source paths library if not already loaded
 if not set -q FEDPUNK_SYSTEM
     source /usr/share/fedpunk/lib/fish/paths.fish
 end
 
-# Handle subcommands (currently only 'install' is supported)
-# Skip the 'install' subcommand if present and pass remaining args
-if test (count $argv) -gt 0; and test "$argv[1]" = "install"
-    set -e argv[1]  # Remove 'install' from arguments
+# Show help if no arguments
+if test (count $argv) -eq 0
+    echo "Fedpunk - Modular configuration engine for Fedora"
+    echo ""
+    echo "Usage: fedpunk <command> [options]"
+    echo ""
+    echo "Commands:"
+    echo "  install    Install Fedpunk (run initial setup)"
+    echo "  init       Initialize Fedpunk in current directory"
+    echo "  apply      Apply current profile configuration"
+    echo "  sync       Sync configuration changes"
+    echo "  theme      Manage themes"
+    echo "  profile    Manage profiles"
+    echo "  module     Manage modules"
+    echo "  doctor     Run system diagnostics"
+    echo "  wallpaper  Manage wallpapers"
+    echo ""
+    echo "Run 'fedpunk <command> --help' for more information on a command."
+    exit 0
 end
 
-# Run install.fish with remaining arguments
-exec /usr/share/fedpunk/install.fish $argv
+set subcommand $argv[1]
+
+# Special case: 'install' runs the installer
+if test "$subcommand" = "install"
+    set -e argv[1]  # Remove 'install' from arguments
+    exec /usr/share/fedpunk/install.fish $argv
+end
+
+# For all other commands, check if CLI command exists
+set cli_cmd "$FEDPUNK_SYSTEM/cli/$subcommand/$subcommand.fish"
+
+if test -f "$cli_cmd"
+    # Run the CLI command
+    exec $cli_cmd $argv[2..-1]
+else
+    echo "Error: Unknown command '$subcommand'"
+    echo "Run 'fedpunk' to see available commands."
+    exit 1
+end
 EOF
 chmod 0755 %{buildroot}%{_bindir}/fedpunk
 

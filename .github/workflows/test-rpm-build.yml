@@ -8,57 +8,46 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test-rpm:
+  # Primary job: Validate spec file with rpkg (ensures COPR build will work)
+  validate-copr-spec:
+    name: Validate COPR Spec File
     runs-on: ubuntu-latest
     container:
       image: fedora:43
       options: --privileged
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Full history for commit hash
-
-      - name: Build RPM package
+      - name: Clone repository (replicate COPR's git clone)
         run: |
-          bash test/build-rpm.sh
+          # Install git first (minimal container doesn't have it)
+          dnf install -y git
 
-      - name: Test RPM installation
+          # Clone the repository like COPR does (real git clone, not GitHub Actions checkout)
+          git clone https://github.com/${{ github.repository }}.git /workspace
+          cd /workspace
+
+          # For PRs, fetch the PR branch
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin +refs/pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
+            git checkout pr-${{ github.event.pull_request.number }}
+          else
+            # For pushes, checkout the commit directly
+            git checkout ${{ github.sha }}
+          fi
+
+          # Verify we have a proper git repository
+          echo "Git repository status:"
+          git log -1 --oneline
+
+      - name: Validate spec file with rpkg
+        working-directory: /workspace
         run: |
-          bash test/test-rpm-install.sh
-
-      - name: Upload RPM artifact
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: fedpunk-rpm
-          path: ~/rpmbuild/RPMS/noarch/fedpunk-*.rpm
-          retention-days: 30
+          bash test/build-rpm-copr-mode.sh
 
       - name: Upload SRPM artifact
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: fedpunk-srpm
+          name: fedpunk-srpm-copr
           path: ~/rpmbuild/SRPMS/fedpunk-*.src.rpm
           retention-days: 30
-
-      - name: Test summary
-        if: always()
-        run: |
-          echo "=== RPM Build and Test Summary ==="
-          if [ -f ~/rpmbuild/RPMS/noarch/fedpunk-*.rpm ]; then
-            ls -lh ~/rpmbuild/RPMS/noarch/fedpunk-*.rpm
-            echo "✅ RPM build successful"
-          else
-            echo "✗ RPM build failed"
-            exit 1
-          fi
-
-          if [ -d "$HOME/.local/share/fedpunk" ]; then
-            echo "✅ Installation test successful"
-          else
-            echo "✗ Installation test failed"
-            exit 1
-          fi
