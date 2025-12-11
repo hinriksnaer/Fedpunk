@@ -7,7 +7,8 @@ if not functions -q cli-dispatch
 end
 
 function config --description "Manage Fedpunk configuration"
-    cli-dispatch config "$FEDPUNK_CLI/config" $argv
+    set -l cmd_dir (dirname (status --current-filename))
+    cli-dispatch config $cmd_dir $argv
 end
 
 function show --description "Show current configuration"
