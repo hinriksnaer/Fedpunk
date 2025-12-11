@@ -158,6 +158,48 @@ end
 # Dispatch Logic
 # ============================================================================
 
+function cli-auto-dispatch --argument-names cmd_name
+    # Simplified dispatch that auto-detects command directory
+    #
+    # Automatically determines the command directory by looking at where
+    # the calling function is defined. Uses the directory containing the
+    # first .fish file that defines a function matching cmd_name.
+    #
+    # Args:
+    #   cmd_name: Command name (must match a function name)
+    #   ...: Remaining args are command arguments
+    #
+    # Returns: Exit code from subcommand or error
+    #
+    # Example:
+    #   function mymodule --description "My module commands"
+    #       cli-auto-dispatch mymodule $argv
+    #   end
+
+    # Auto-detect command directory by finding where the function is defined
+    set -l cmd_dir
+
+    # Search common locations for the command file
+    for base_dir in "$FEDPUNK_CLI" "$FEDPUNK_SYSTEM/modules/*/cli" "$FEDPUNK_USER/.active-config/plugins/*/cli"
+        for file in $base_dir/**/$cmd_name.fish $base_dir/$cmd_name/$cmd_name.fish
+            if test -f "$file"
+                if grep -q "^function $cmd_name\\s" "$file" 2>/dev/null
+                    set cmd_dir (dirname "$file")
+                    break 2
+                end
+            end
+        end
+    end
+
+    # Fallback: if not found, assume current directory
+    if test -z "$cmd_dir"
+        set cmd_dir (pwd)
+    end
+
+    # Call standard dispatch with detected directory
+    cli-dispatch $cmd_name $cmd_dir $argv[2..-1]
+end
+
 function cli-dispatch --argument-names cmd_name cmd_dir
     # Standard dispatch logic for auto-discovery commands
     #
