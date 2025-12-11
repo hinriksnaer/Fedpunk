@@ -7,13 +7,21 @@ function config --description "Manage Fedpunk configuration"
         printf "\n"
         printf "Config file: ~/.config/fedpunk/fedpunk.yaml\n"
         printf "\n"
-        printf "Usage:\n"
-        printf "  fedpunk config show    # Show current configuration\n"
-        printf "  fedpunk config edit    # Edit configuration file\n"
-        printf "  fedpunk config path    # Show config file path\n"
+        printf "Usage: fedpunk config <subcommand> [options]\n"
+        printf "\n"
+        printf "Subcommands:\n"
+        printf "  show    Show current configuration\n"
+        printf "  edit    Edit configuration file\n"
+        printf "  path    Show config file path\n"
+        printf "\n"
+        printf "Run 'fedpunk config <subcommand> --help' for more information.\n"
         return 0
     end
-    _show_command_help config
+
+    # No subcommand provided, show help
+    printf "Usage: fedpunk config <subcommand> [options]\n"
+    printf "Run 'fedpunk config --help' for available subcommands.\n"
+    return 1
 end
 
 function show --description "Show current configuration"

@@ -6,9 +6,24 @@ function profile --description "Profile management"
         printf "Profile management for Fedpunk\n"
         printf "\n"
         printf "Profiles define which modules and configurations are deployed.\n"
+        printf "\n"
+        printf "Usage: fedpunk profile <subcommand> [options]\n"
+        printf "\n"
+        printf "Subcommands:\n"
+        printf "  list       List available profiles\n"
+        printf "  current    Show active profile\n"
+        printf "  activate   Activate a profile\n"
+        printf "  select     Select profile interactively\n"
+        printf "  create     Create new profile from template\n"
+        printf "\n"
+        printf "Run 'fedpunk profile <subcommand> --help' for more information.\n"
         return 0
     end
-    _show_command_help profile
+
+    # No subcommand provided, show help
+    printf "Usage: fedpunk profile <subcommand> [options]\n"
+    printf "Run 'fedpunk profile --help' for available subcommands.\n"
+    return 1
 end
 
 function list --description "List available profiles"

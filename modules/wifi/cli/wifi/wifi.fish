@@ -8,7 +8,7 @@ function wifi --description "WiFi network management"
         printf "Scan, connect, and manage WiFi networks.\n"
         return 0
     end
-    _show_command_help wifi
+    printf "Usage: fedpunk wifi <subcommand> [options]\n"; printf "Run 'fedpunk wifi --help' for available subcommands.\n"; return 1
 end
 
 # Check if nmcli is available

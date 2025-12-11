@@ -9,7 +9,7 @@ function ssh --description "SSH key and configuration management"
         printf "Manage SSH keys, hosts, and connections.\n"
         return 0
     end
-    _show_command_help ssh
+    printf "Usage: fedpunk ssh <subcommand> [options]\n"; printf "Run 'fedpunk ssh --help' for available subcommands.\n"; return 1
 end
 
 function load --description "Load SSH keys into agent"

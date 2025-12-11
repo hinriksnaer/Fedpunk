@@ -142,29 +142,17 @@ if test (count $argv) -eq 0
     echo "Usage: fedpunk <command> [options]"
     echo ""
     echo "Commands:"
-    echo "  deploy     Deploy profiles and modules (recommended)"
-    echo "  install    Install Fedpunk (legacy, use 'deploy' instead)"
+    echo "  deploy     Deploy profiles and modules"
     echo "  apply      Apply current configuration"
     echo "  config     Manage configuration"
     echo "  profile    Manage profiles"
     echo "  module     Manage modules"
-    echo "  theme      Manage themes"
-    echo "  doctor     Run system diagnostics"
-    echo "  init       Initialize Fedpunk in current directory"
-    echo "  sync       Sync configuration changes"
-    echo "  wallpaper  Manage wallpapers"
     echo ""
     echo "Run 'fedpunk <command> --help' for more information on a command."
     exit 0
 end
 
 set subcommand $argv[1]
-
-# Special case: 'install' runs the installer
-if test "$subcommand" = "install"
-    set -e argv[1]  # Remove 'install' from arguments
-    exec /usr/share/fedpunk/install.fish $argv
-end
 
 # Look for command in user CLI directory (includes system + module commands)
 set cli_cmd "$FEDPUNK_USER/cli/$subcommand/$subcommand.fish"

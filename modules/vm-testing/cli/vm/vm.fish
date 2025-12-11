@@ -12,7 +12,7 @@ function vm --description "VM testing environment"
         printf "Create and manage test VMs for installation testing.\n"
         return 0
     end
-    _show_command_help vm
+    printf "Usage: fedpunk vm <subcommand> [options]\n"; printf "Run 'fedpunk vm --help' for available subcommands.\n"; return 1
 end
 
 function _vm_exists

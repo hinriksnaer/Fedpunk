@@ -8,7 +8,7 @@ function bluetooth --description "Bluetooth management"
         printf "Control Bluetooth devices and connections.\n"
         return 0
     end
-    _show_command_help bluetooth
+    printf "Usage: fedpunk bluetooth <subcommand> [options]\n"; printf "Run 'fedpunk bluetooth --help' for available subcommands.\n"; return 1
 end
 
 # Check if bluetoothctl is available

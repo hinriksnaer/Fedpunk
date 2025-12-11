@@ -6,9 +6,24 @@ function module --description "Module management"
         printf "Module management for Fedpunk\n"
         printf "\n"
         printf "Modules are self-contained packages of configuration, packages, and scripts.\n"
+        printf "\n"
+        printf "Usage: fedpunk module <subcommand> [options]\n"
+        printf "\n"
+        printf "Subcommands:\n"
+        printf "  list       List available modules\n"
+        printf "  info       Show module information\n"
+        printf "  deploy     Deploy a module\n"
+        printf "  remove     Remove a module\n"
+        printf "  state      Show deployed modules\n"
+        printf "\n"
+        printf "Run 'fedpunk module <subcommand> --help' for more information.\n"
         return 0
     end
-    _show_command_help module
+
+    # No subcommand provided, show help
+    printf "Usage: fedpunk module <subcommand> [options]\n"
+    printf "Run 'fedpunk module --help' for available subcommands.\n"
+    return 1
 end
 
 # Source the module library

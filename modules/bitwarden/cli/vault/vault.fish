@@ -8,7 +8,7 @@ function vault --description "Bitwarden vault management"
         printf "Securely manage passwords, SSH keys, and tokens.\n"
         return 0
     end
-    _show_command_help vault
+    printf "Usage: fedpunk vault <subcommand> [options]\n"; printf "Run 'fedpunk vault --help' for available subcommands.\n"; return 1
 end
 
 # Ensure Bitwarden CLI is available
