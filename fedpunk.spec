@@ -62,9 +62,8 @@ cp -r lib/fish/* %{buildroot}%{_datadir}/%{name}/lib/fish/
 # Install built-in modules
 cp -r modules/* %{buildroot}%{_datadir}/%{name}/modules/
 
-# Install system profiles (default and example, NOT dev)
+# Install system profiles (only default)
 cp -r profiles/default %{buildroot}%{_datadir}/%{name}/profiles/
-cp -r profiles/example %{buildroot}%{_datadir}/%{name}/profiles/
 
 # Install themes
 cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/

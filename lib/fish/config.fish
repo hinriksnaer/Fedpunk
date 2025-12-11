@@ -106,3 +106,31 @@ function fedpunk-config-update-metadata
 
     yq -i ".last_deployed = \"$timestamp\"" "$config_file"
 end
+
+function fedpunk-config-add-module
+    # Add a module to the enabled list
+    # Usage: fedpunk-config-add-module <module-name>
+
+    set -l module_name $argv[1]
+
+    if test -z "$module_name"
+        echo "Error: Module name required" >&2
+        return 1
+    end
+
+    if not fedpunk-config-exists
+        fedpunk-config-init
+    end
+
+    set -l config_file (fedpunk-config-path)
+
+    # Check if module is already in enabled list
+    set -l current_modules (yq '.modules.enabled[]' "$config_file" 2>/dev/null)
+    if contains $module_name $current_modules
+        # Already enabled, nothing to do
+        return 0
+    end
+
+    # Add to enabled modules list
+    yq -i ".modules.enabled += [\"$module_name\"]" "$config_file"
+end

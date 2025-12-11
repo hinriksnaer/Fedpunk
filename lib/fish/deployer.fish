@@ -18,7 +18,7 @@ source "$lib_dir/param-injector.fish"
 #
 
 function deployer-deploy-module
-    # Deploy a single module
+    # Deploy a single module and add it to config
     # Usage: deployer-deploy-module <name-or-git-url>
     # Supports: local module names, git URLs
     # Examples:
@@ -34,8 +34,25 @@ function deployer-deploy-module
 
     ui-info "Deploying module: $module_ref"
 
+    # Ensure config exists
+    if not functions -q fedpunk-config-exists
+        source "$FEDPUNK_SYSTEM/lib/fish/config.fish"
+    end
+
+    if not fedpunk-config-exists
+        fedpunk-config-init
+    end
+
+    # Add module to config (creates config if needed)
+    fedpunk-config-add-module "$module_ref"
+
     # Use existing fedpunk-module deploy (already handles local + git)
-    fedpunk-module deploy "$module_ref"
+    if fedpunk-module deploy "$module_ref"
+        ui-info "Module added to configuration"
+        return 0
+    else
+        return 1
+    end
 end
 
 #
