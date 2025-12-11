@@ -143,7 +143,6 @@ if test (count $argv) -eq 0
     echo ""
     echo "Commands:"
     echo "  deploy     Deploy profiles and modules"
-    echo "  apply      Apply current configuration"
     echo "  config     Manage configuration"
     echo "  profile    Manage profiles"
     echo "  module     Manage modules"
