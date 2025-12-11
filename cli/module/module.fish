@@ -21,24 +21,15 @@ function module --description "Module management"
         return 0
     end
 
-    # Dispatch to subcommand
+    # Dispatch to subcommand (Fish calls functions by name)
     set -l subcommand $argv[1]
 
-    switch $subcommand
-        case list
-            list $argv[2..-1]
-        case info
-            info $argv[2..-1]
-        case deploy
-            deploy $argv[2..-1]
-        case remove
-            remove $argv[2..-1]
-        case state
-            state $argv[2..-1]
-        case '*'
-            printf "Unknown subcommand: $subcommand\n" >&2
-            printf "Run 'fedpunk module --help' for available subcommands.\n" >&2
-            return 1
+    if functions -q $subcommand
+        $subcommand $argv[2..-1]
+    else
+        printf "Unknown subcommand: $subcommand\n" >&2
+        printf "Run 'fedpunk module --help' for available subcommands.\n" >&2
+        return 1
     end
 end
 

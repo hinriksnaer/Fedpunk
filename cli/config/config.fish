@@ -19,20 +19,15 @@ function config --description "Manage Fedpunk configuration"
         return 0
     end
 
-    # Dispatch to subcommand
+    # Dispatch to subcommand (Fish calls functions by name)
     set -l subcommand $argv[1]
 
-    switch $subcommand
-        case show
-            show $argv[2..-1]
-        case edit
-            edit $argv[2..-1]
-        case path
-            path $argv[2..-1]
-        case '*'
-            printf "Unknown subcommand: $subcommand\n" >&2
-            printf "Run 'fedpunk config --help' for available subcommands.\n" >&2
-            return 1
+    if functions -q $subcommand
+        $subcommand $argv[2..-1]
+    else
+        printf "Unknown subcommand: $subcommand\n" >&2
+        printf "Run 'fedpunk config --help' for available subcommands.\n" >&2
+        return 1
     end
 end
 

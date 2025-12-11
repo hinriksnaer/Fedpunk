@@ -21,24 +21,15 @@ function profile --description "Profile management"
         return 0
     end
 
-    # Dispatch to subcommand
+    # Dispatch to subcommand (Fish calls functions by name)
     set -l subcommand $argv[1]
 
-    switch $subcommand
-        case list
-            list $argv[2..-1]
-        case current
-            current $argv[2..-1]
-        case activate
-            activate $argv[2..-1]
-        case select
-            select $argv[2..-1]
-        case create
-            create $argv[2..-1]
-        case '*'
-            printf "Unknown subcommand: $subcommand\n" >&2
-            printf "Run 'fedpunk profile --help' for available subcommands.\n" >&2
-            return 1
+    if functions -q $subcommand
+        $subcommand $argv[2..-1]
+    else
+        printf "Unknown subcommand: $subcommand\n" >&2
+        printf "Run 'fedpunk profile --help' for available subcommands.\n" >&2
+        return 1
     end
 end
 
