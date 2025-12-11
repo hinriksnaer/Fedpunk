@@ -82,16 +82,15 @@ function fedpunk-config-init
     end
 
     # Create initial config with null values
-    echo "# Fedpunk Configuration
-# Auto-generated on "(date)
-
-"profile: null
-mode: null
-modules:
-  enabled: []
-  disabled: []
-params: {}
-last_deployed: null" > "$config_file"
+    printf "# Fedpunk Configuration\n" > "$config_file"
+    printf "# Auto-generated on %s\n\n" (date) >> "$config_file"
+    printf "profile: null\n" >> "$config_file"
+    printf "mode: null\n" >> "$config_file"
+    printf "modules:\n" >> "$config_file"
+    printf "  enabled: []\n" >> "$config_file"
+    printf "  disabled: []\n" >> "$config_file"
+    printf "params: {}\n" >> "$config_file"
+    printf "last_deployed: null\n" >> "$config_file"
 end
 
 function fedpunk-config-update-metadata
