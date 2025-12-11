@@ -1,36 +1,14 @@
 #!/usr/bin/env fish
 # Module management commands
 
-function module --description "Module management"
-    # Show help if no args or --help
-    if test (count $argv) -eq 0; or contains -- "$argv[1]" --help -h
-        printf "Module management for Fedpunk\n"
-        printf "\n"
-        printf "Modules are self-contained packages of configuration, packages, and scripts.\n"
-        printf "\n"
-        printf "Usage: fedpunk module <subcommand> [options]\n"
-        printf "\n"
-        printf "Subcommands:\n"
-        printf "  list       List available modules\n"
-        printf "  info       Show module information\n"
-        printf "  deploy     Deploy a module\n"
-        printf "  remove     Remove a module\n"
-        printf "  state      Show deployed modules\n"
-        printf "\n"
-        printf "Run 'fedpunk module <subcommand> --help' for more information.\n"
-        return 0
-    end
+# Source CLI dispatch library
+if not functions -q cli-dispatch
+    source "$FEDPUNK_ROOT/lib/fish/cli-dispatch.fish"
+end
 
-    # Dispatch to subcommand (Fish calls functions by name)
-    set -l subcommand $argv[1]
-
-    if functions -q $subcommand
-        $subcommand $argv[2..-1]
-    else
-        printf "Unknown subcommand: $subcommand\n" >&2
-        printf "Run 'fedpunk module --help' for available subcommands.\n" >&2
-        return 1
-    end
+function module --description "Module management for Fedpunk"
+    set -l cmd_dir (dirname (status --current-filename))
+    cli-dispatch module $cmd_dir $argv
 end
 
 # Source the module library

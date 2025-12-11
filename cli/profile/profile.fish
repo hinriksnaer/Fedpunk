@@ -1,35 +1,14 @@
 #!/usr/bin/env fish
 # Profile management commands
 
-function profile --description "Profile management"
-    # Show help if no args or --help
-    if test (count $argv) -eq 0; or contains -- "$argv[1]" --help -h
-        printf "Profile management for Fedpunk\n"
-        printf "\n"
-        printf "Profiles define which modules and configurations are deployed.\n"
-        printf "\n"
-        printf "Usage: fedpunk profile <subcommand> [options]\n"
-        printf "\n"
-        printf "Subcommands:\n"
-        printf "  list       List available profiles\n"
-        printf "  current    Show active profile\n"
-        printf "  deploy     Deploy a profile\n"
-        printf "  select     Select profile interactively\n"
-        printf "\n"
-        printf "Run 'fedpunk profile <subcommand> --help' for more information.\n"
-        return 0
-    end
+# Source CLI dispatch library
+if not functions -q cli-dispatch
+    source "$FEDPUNK_ROOT/lib/fish/cli-dispatch.fish"
+end
 
-    # Dispatch to subcommand (Fish calls functions by name)
-    set -l subcommand $argv[1]
-
-    if functions -q $subcommand
-        $subcommand $argv[2..-1]
-    else
-        printf "Unknown subcommand: $subcommand\n" >&2
-        printf "Run 'fedpunk profile --help' for available subcommands.\n" >&2
-        return 1
-    end
+function profile --description "Profile management for Fedpunk"
+    set -l cmd_dir (dirname (status --current-filename))
+    cli-dispatch profile $cmd_dir $argv
 end
 
 function list --description "List available profiles"
