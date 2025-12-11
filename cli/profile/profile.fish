@@ -13,9 +13,8 @@ function profile --description "Profile management"
         printf "Subcommands:\n"
         printf "  list       List available profiles\n"
         printf "  current    Show active profile\n"
-        printf "  activate   Activate a profile\n"
+        printf "  deploy     Deploy a profile\n"
         printf "  select     Select profile interactively\n"
-        printf "  create     Create new profile from template\n"
         printf "\n"
         printf "Run 'fedpunk profile <subcommand> --help' for more information.\n"
         return 0
@@ -85,33 +84,25 @@ function current --description "Show active profile"
     end
 end
 
-function activate --description "Activate a profile"
+function deploy --description "Deploy a profile"
     if contains -- "$argv[1]" --help -h
-        printf "Activate a profile by name\n"
+        printf "Deploy a profile and its modules\n"
         printf "\n"
-        printf "Usage: fedpunk profile activate <name>\n"
+        printf "Usage: fedpunk profile deploy <name> [options]\n"
         printf "\n"
         printf "Examples:\n"
-        printf "  fedpunk profile activate dev\n"
-        printf "  fedpunk profile activate default\n"
+        printf "  fedpunk profile deploy default\n"
+        printf "  fedpunk profile deploy default --mode container\n"
         return 0
     end
 
-    set -l profile_name $argv[1]
-    if test -z "$profile_name"
-        printf "Error: Profile name required\n" >&2
-        printf "Usage: fedpunk profile activate <name>\n" >&2
-        return 1
+    # Source deployer library
+    if not functions -q deployer-deploy-profile
+        source "$FEDPUNK_SYSTEM/lib/fish/deployer.fish"
     end
 
-    # Delegate to existing script
-    set -l script "$HOME/.local/bin/fedpunk-activate-profile"
-    if test -x "$script"
-        exec $script $profile_name
-    else
-        printf "Error: fedpunk-activate-profile not found\n" >&2
-        return 1
-    end
+    # Deploy profile with all arguments
+    deployer-deploy-profile $argv
 end
 
 function select --description "Select profile interactively"
@@ -176,8 +167,8 @@ function select --description "Select profile interactively"
     # Remove " (active)" marker if present
     set -l profile_name (string replace " (active)" "" "$selected")
 
-    # Activate the selected profile
-    activate $profile_name
+    # Deploy the selected profile
+    deploy $profile_name
 end
 
 function create --description "Create new profile from template"
@@ -245,12 +236,12 @@ function create --description "Create new profile from template"
     printf "✓ Profile created: %s\n" "$new_profile_path"
     printf "\n"
 
-    # Ask if they want to activate it now
-    if gum confirm "Activate this profile now?"
-        activate $new_profile_name
+    # Ask if they want to deploy it now
+    if gum confirm "Deploy this profile now?"
+        deploy $new_profile_name
     else
-        printf "Profile created but not activated.\n"
-        printf "To activate later, run: fedpunk profile activate %s\n" "$new_profile_name"
+        printf "Profile created but not deployed.\n"
+        printf "To deploy later, run: fedpunk profile deploy %s\n" "$new_profile_name"
     end
 end
 
