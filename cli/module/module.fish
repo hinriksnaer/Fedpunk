@@ -1,16 +1,6 @@
 #!/usr/bin/env fish
 # Module management commands
 
-# Source CLI dispatch library
-if not functions -q cli-dispatch
-    source "$FEDPUNK_ROOT/lib/fish/cli-dispatch.fish"
-end
-
-function module --description "Module management for Fedpunk"
-    set -l cmd_dir (dirname (status --current-filename))
-    cli-dispatch module $cmd_dir $argv
-end
-
 # Source the module library
 function _ensure_module_lib
     if not functions -q fedpunk-module

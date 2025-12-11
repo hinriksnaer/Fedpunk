@@ -1,16 +1,6 @@
 #!/usr/bin/env fish
 # Config command - manage Fedpunk configuration
 
-# Source CLI dispatch library
-if not functions -q cli-dispatch
-    source "$FEDPUNK_ROOT/lib/fish/cli-dispatch.fish"
-end
-
-function config --description "Manage Fedpunk configuration"
-    set -l cmd_dir (dirname (status --current-filename))
-    cli-dispatch config $cmd_dir $argv
-end
-
 function show --description "Show current configuration"
     if contains -- "$argv[1]" --help -h
         printf "Show current configuration\n"

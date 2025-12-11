@@ -1,16 +1,6 @@
 #!/usr/bin/env fish
 # Profile management commands
 
-# Source CLI dispatch library
-if not functions -q cli-dispatch
-    source "$FEDPUNK_ROOT/lib/fish/cli-dispatch.fish"
-end
-
-function profile --description "Profile management for Fedpunk"
-    set -l cmd_dir (dirname (status --current-filename))
-    cli-dispatch profile $cmd_dir $argv
-end
-
 function list --description "List available profiles"
     if contains -- "$argv[1]" --help -h
         printf "List all available profiles\n"
