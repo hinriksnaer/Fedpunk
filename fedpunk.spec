@@ -141,11 +141,53 @@ if test (count $argv) -eq 0
     echo ""
     echo "Usage: fedpunk <command> [options]"
     echo ""
-    echo "Commands:"
-    echo "  apply      Apply current configuration"
-    echo "  config     Manage configuration"
-    echo "  profile    Manage profiles"
-    echo "  module     Manage modules"
+
+    # Core commands (hardcoded order)
+    set -l core_commands apply config profile module
+
+    # Discover all available commands
+    set -l all_commands
+    for cmd_dir in $FEDPUNK_USER/cli/*/
+        if test -d "$cmd_dir"
+            set -l cmd_name (basename "$cmd_dir")
+            set -a all_commands $cmd_name
+        end
+    end
+
+    # Separate core and module commands
+    set -l module_commands
+    for cmd in $all_commands
+        if not contains $cmd $core_commands
+            set -a module_commands $cmd
+        end
+    end
+
+    # Display core commands
+    echo "Core Commands:"
+    for cmd in $core_commands
+        if contains $cmd $all_commands
+            switch $cmd
+                case apply
+                    echo "  apply      Apply current configuration"
+                case config
+                    echo "  config     Manage configuration"
+                case profile
+                    echo "  profile    Manage profiles"
+                case module
+                    echo "  module     Manage modules"
+            end
+        end
+    end
+
+    # Display module commands if any
+    if test (count $module_commands) -gt 0
+        echo ""
+        echo "Module Commands:"
+        for cmd in $module_commands
+            echo "  $cmd"
+        end
+    end
+
     echo ""
     echo "Run 'fedpunk <command> --help' for more information on a command."
     exit 0
