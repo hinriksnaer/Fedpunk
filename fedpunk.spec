@@ -60,11 +60,14 @@ install -d %{buildroot}%{_bindir}
 # Install core libraries
 cp -r lib/fish/* %{buildroot}%{_datadir}/%{name}/lib/fish/
 
-# Install built-in modules
-cp -r modules/* %{buildroot}%{_datadir}/%{name}/modules/
+# Install core modules only (minimal system)
+for module in ssh essentials claude bluetui; do
+    cp -r modules/$module %{buildroot}%{_datadir}/%{name}/modules/
+done
 
-# Install system profiles (only default)
+# Install system profiles (default + desktop)
 cp -r profiles/default %{buildroot}%{_datadir}/%{name}/profiles/
+cp -r profiles/desktop %{buildroot}%{_datadir}/%{name}/profiles/
 
 # Install themes
 cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
