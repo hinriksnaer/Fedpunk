@@ -223,6 +223,3 @@ function create --description "Create new profile from template"
         printf "To deploy later, run: fedpunk profile deploy %s\n" "$new_profile_name"
     end
 end
-
-# Execute the command
-profile $argv

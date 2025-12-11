@@ -38,6 +38,3 @@ function apply --description "Apply Fedpunk configuration"
         return 1
     end
 end
-
-# Execute the command
-apply $argv

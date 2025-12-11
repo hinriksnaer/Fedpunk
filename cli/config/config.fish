@@ -79,6 +79,3 @@ function path --description "Show config file path"
 
     fedpunk-config-path
 end
-
-# Execute the command
-config $argv
