@@ -117,8 +117,11 @@ function __fedpunk_init_cli
     mkdir -p "$FEDPUNK_USER/cli"
 
     # Clean up stale system CLI symlinks (pointing to removed commands)
-    for user_cmd in $FEDPUNK_USER/cli/*/
-        if not test -d "$user_cmd"
+    for user_cmd_dir in $FEDPUNK_USER/cli/*/
+        # Remove trailing slash for proper symlink testing
+        set -l user_cmd (string replace -r '/$' '' "$user_cmd_dir")
+
+        if not test -e "$user_cmd"
             continue
         end
 
