@@ -1,0 +1,23 @@
+# Desktop Profile - Container Mode
+# Minimal environment for testing desktop modules in containers
+
+mode:
+  name: container
+  description: Minimal environment for container/development use
+
+modules:
+  # Core System
+  - essentials
+  - ssh
+  - claude
+
+  # Terminal Tools
+  - plugins/neovim
+  - plugins/tmux
+  - plugins/yazi
+  - plugins/btop
+
+  # Development
+  - plugins/gh
+  - plugins/lazygit
+  - plugins/fish
