@@ -39,8 +39,8 @@ Fedora into a productivity powerhouse. It provides:
 - Keyboard-driven Hyprland environment
 
 %prep
-# GitHub creates tarballs with directory name: Fedpunk-{branch}
-%autosetup -n Fedpunk-%{branch}
+# Use -n . to support both COPR (Fedpunk-{branch}) and rpkg local (Fedpunk-{commit}-dirty)
+%autosetup -n .
 
 %build
 # Nothing to build - pure Fish scripts
