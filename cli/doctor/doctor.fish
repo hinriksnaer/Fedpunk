@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Doctor command for system diagnostics and dispatcher verification
 
 function doctor --description "System diagnostics and health checks"
@@ -70,3 +71,6 @@ end
 function _secret
     printf "This should never be callable via dispatcher\n"
 end
+
+# Execute the command
+doctor $argv

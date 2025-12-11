@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Module management commands
 
 function module --description "Module management"
@@ -157,3 +158,6 @@ function state --description "Show deployed modules"
         printf "Module state tracking requires the linker\n"
     end
 end
+
+# Execute the command
+module $argv

@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Deploy command - deploy profiles and modules
 
 function deploy --description "Deploy profiles and modules"
@@ -45,3 +46,6 @@ function deploy --description "Deploy profiles and modules"
             return 1
     end
 end
+
+# Execute the command
+deploy $argv

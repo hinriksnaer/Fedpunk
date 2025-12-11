@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Theme management commands
 
 function theme --description "Theme management"
@@ -153,3 +154,6 @@ function refresh --description "Refresh current theme"
         return 1
     end
 end
+
+# Execute the command
+theme $argv

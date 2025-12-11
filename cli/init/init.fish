@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Init setup wizard command
 
 function init --description "Interactive setup wizard"
@@ -78,3 +79,6 @@ function _configure_git
     printf "\n"
     printf "Git configuration updated!\n"
 end
+
+# Execute the command
+init $argv

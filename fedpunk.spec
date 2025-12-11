@@ -71,6 +71,8 @@ cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
 
 # Install CLI commands (symlinked to user space at runtime)
 cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
+# Make all CLI scripts executable
+find %{buildroot}%{_datadir}/%{name}/cli -name "*.fish" -exec chmod 0755 {} \;
 
 # Install main installer script
 cp install.fish %{buildroot}%{_datadir}/%{name}/install.fish

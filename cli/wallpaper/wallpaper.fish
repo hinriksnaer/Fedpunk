@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Wallpaper management commands
 
 function wallpaper --description "Wallpaper management"
@@ -53,3 +54,6 @@ function next --description "Switch to next wallpaper"
         return 1
     end
 end
+
+# Execute the command
+wallpaper $argv

@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Sync configuration command
 
 function sync --description "Pull latest changes from git"
@@ -59,3 +60,6 @@ function sync --description "Pull latest changes from git"
     printf "\n"
     printf "Run 'fedpunk apply' to deploy/update modules.\n"
 end
+
+# Execute the command
+sync $argv

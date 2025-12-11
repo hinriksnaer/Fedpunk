@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Apply configuration command
 
 function apply --description "Apply configuration changes"
@@ -33,3 +34,6 @@ function apply --description "Apply configuration changes"
         return 1
     end
 end
+
+# Execute the command
+apply $argv

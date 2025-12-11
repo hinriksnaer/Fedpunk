@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Config command - manage Fedpunk configuration
 
 function config --description "Manage Fedpunk configuration"
@@ -83,3 +84,6 @@ function path --description "Show config file path"
 
     fedpunk-config-path
 end
+
+# Execute the command
+config $argv

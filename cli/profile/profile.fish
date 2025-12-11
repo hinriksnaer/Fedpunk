@@ -1,3 +1,4 @@
+#!/usr/bin/env fish
 # Profile management commands
 
 function profile --description "Profile management"
@@ -230,3 +231,6 @@ function create --description "Create new profile from template"
         printf "To activate later, run: fedpunk profile activate %s\n" "$new_profile_name"
     end
 end
+
+# Execute the command
+profile $argv
