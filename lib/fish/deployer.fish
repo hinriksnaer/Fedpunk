@@ -65,7 +65,7 @@ function deployer-prompt-profile
         set -a profile_names $name
     end
 
-    ui-info "Available profiles:"
+    ui-info "Available profiles:" >&2
     set -l selected (ui-choose --header "Select profile:" $profile_choices)
 
     if test -z "$selected"
@@ -110,7 +110,7 @@ function deployer-prompt-mode
         return 0
     end
 
-    ui-info "Available modes for $profile_name:"
+    ui-info "Available modes for $profile_name:" >&2
     set -l selected (ui-choose --header "Select mode:" $modes)
 
     if test -z "$selected"
@@ -233,7 +233,7 @@ function deployer-deploy-from-config
 
     if not fedpunk-config-exists
         ui-error "No configuration file found"
-        ui-info "Run 'fedpunk deploy profile' first to create configuration"
+        ui-info "Run 'fedpunk profile deploy <name>' first to create configuration"
         return 1
     end
 
@@ -242,13 +242,13 @@ function deployer-deploy-from-config
 
     if test -z "$profile"
         ui-error "No profile saved in configuration"
-        ui-info "Run 'fedpunk deploy profile' to set a profile"
+        ui-info "Run 'fedpunk profile deploy <name>' to set a profile"
         return 1
     end
 
     if test -z "$mode"
         ui-error "No mode saved in configuration"
-        ui-info "Run 'fedpunk deploy profile --mode <mode>' to set a mode"
+        ui-info "Run 'fedpunk profile deploy <name> --mode <mode>' to set a mode"
         return 1
     end
 
