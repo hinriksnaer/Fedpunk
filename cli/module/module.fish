@@ -90,12 +90,17 @@ function deploy --description "Deploy a module"
         return 0
     end
 
-    _ensure_module_lib
+    # Source deployer library
+    if not functions -q deployer-deploy-module
+        source "$FEDPUNK_SYSTEM/lib/fish/deployer.fish"
+    end
 
     set -l module_name $argv[1]
 
     # If no module specified, show TUI selector
     if test -z "$module_name"
+        _ensure_module_lib
+
         # Build list of modules
         set -l modules_dir "$FEDPUNK_ROOT/modules"
         set -l module_list
@@ -140,7 +145,8 @@ function deploy --description "Deploy a module"
         end
     end
 
-    fedpunk-module deploy $module_name
+    # Use deployer to deploy and update config
+    deployer-deploy-module $module_name
 end
 
 function remove --description "Remove a module"
