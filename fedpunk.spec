@@ -39,8 +39,10 @@ Fedora into a productivity powerhouse. It provides:
 - Keyboard-driven Hyprland environment
 
 %prep
-# Use -n . to support both COPR (Fedpunk-{branch}) and rpkg local (Fedpunk-{commit}-dirty)
-%autosetup -n .
+# Use -T to skip auto-extraction, then manually extract stripping the top-level dir
+# Works for both COPR (Fedpunk-{branch}) and rpkg local (Fedpunk-{commit}-dirty)
+%setup -q -c -T
+tar --strip-components=1 -xzf %{SOURCE0}
 
 %build
 # Nothing to build - pure Fish scripts
