@@ -121,10 +121,6 @@ function __fedpunk_init_cli
         # Remove trailing slash for proper symlink testing
         set -l user_cmd (string replace -r '/$' '' "$user_cmd_dir")
 
-        if not test -e "$user_cmd"
-            continue
-        end
-
         set -l cmd_name (basename "$user_cmd")
         set -l system_cmd "$FEDPUNK_SYSTEM/cli/$cmd_name"
 
