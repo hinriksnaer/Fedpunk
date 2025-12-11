@@ -116,6 +116,26 @@ function __fedpunk_init_cli
     # Ensure user CLI directory exists
     mkdir -p "$FEDPUNK_USER/cli"
 
+    # Clean up stale system CLI symlinks (pointing to removed commands)
+    for user_cmd in $FEDPUNK_USER/cli/*/
+        if not test -d "$user_cmd"
+            continue
+        end
+
+        set -l cmd_name (basename "$user_cmd")
+        set -l system_cmd "$FEDPUNK_SYSTEM/cli/$cmd_name"
+
+        # If it's a symlink to a system command that no longer exists, remove it
+        if test -L "$user_cmd"
+            set -l link_target (readlink "$user_cmd")
+            if string match -q "$FEDPUNK_SYSTEM/cli/*" "$link_target"
+                if not test -d "$system_cmd"
+                    rm "$user_cmd"
+                end
+            end
+        end
+    end
+
     # Symlink system CLI commands if not already done
     for system_cmd in $FEDPUNK_SYSTEM/cli/*/
         if not test -d "$system_cmd"
@@ -142,7 +162,7 @@ if test (count $argv) -eq 0
     echo "Usage: fedpunk <command> [options]"
     echo ""
 
-    # Core commands (hardcoded order)
+    # Core commands with descriptions (in preferred order)
     set -l core_commands apply config profile module
 
     # Discover all available commands
@@ -154,16 +174,10 @@ if test (count $argv) -eq 0
         end
     end
 
-    # Separate core and module commands
-    set -l module_commands
-    for cmd in $all_commands
-        if not contains $cmd $core_commands
-            set -a module_commands $cmd
-        end
-    end
+    # Display all commands
+    echo "Commands:"
 
-    # Display core commands
-    echo "Core Commands:"
+    # First show core commands with descriptions
     for cmd in $core_commands
         if contains $cmd $all_commands
             switch $cmd
@@ -179,11 +193,9 @@ if test (count $argv) -eq 0
         end
     end
 
-    # Display module commands if any
-    if test (count $module_commands) -gt 0
-        echo ""
-        echo "Module Commands:"
-        for cmd in $module_commands
+    # Then show module-provided commands
+    for cmd in $all_commands
+        if not contains $cmd $core_commands
             echo "  $cmd"
         end
     end
