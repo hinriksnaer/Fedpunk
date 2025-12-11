@@ -2,7 +2,8 @@
 # Module management commands
 
 function module --description "Module management"
-    if contains -- "$argv[1]" --help -h
+    # Show help if no args or --help
+    if test (count $argv) -eq 0; or contains -- "$argv[1]" --help -h
         printf "Module management for Fedpunk\n"
         printf "\n"
         printf "Modules are self-contained packages of configuration, packages, and scripts.\n"
@@ -20,10 +21,25 @@ function module --description "Module management"
         return 0
     end
 
-    # No subcommand provided, show help
-    printf "Usage: fedpunk module <subcommand> [options]\n"
-    printf "Run 'fedpunk module --help' for available subcommands.\n"
-    return 1
+    # Dispatch to subcommand
+    set -l subcommand $argv[1]
+
+    switch $subcommand
+        case list
+            list $argv[2..-1]
+        case info
+            info $argv[2..-1]
+        case deploy
+            deploy $argv[2..-1]
+        case remove
+            remove $argv[2..-1]
+        case state
+            state $argv[2..-1]
+        case '*'
+            printf "Unknown subcommand: $subcommand\n" >&2
+            printf "Run 'fedpunk module --help' for available subcommands.\n" >&2
+            return 1
+    end
 end
 
 # Source the module library

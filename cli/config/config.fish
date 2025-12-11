@@ -2,7 +2,8 @@
 # Config command - manage Fedpunk configuration
 
 function config --description "Manage Fedpunk configuration"
-    if contains -- "$argv[1]" --help -h
+    # Show help if no args or --help
+    if test (count $argv) -eq 0; or contains -- "$argv[1]" --help -h
         printf "Manage Fedpunk configuration\n"
         printf "\n"
         printf "Config file: ~/.config/fedpunk/fedpunk.yaml\n"
@@ -18,10 +19,21 @@ function config --description "Manage Fedpunk configuration"
         return 0
     end
 
-    # No subcommand provided, show help
-    printf "Usage: fedpunk config <subcommand> [options]\n"
-    printf "Run 'fedpunk config --help' for available subcommands.\n"
-    return 1
+    # Dispatch to subcommand
+    set -l subcommand $argv[1]
+
+    switch $subcommand
+        case show
+            show $argv[2..-1]
+        case edit
+            edit $argv[2..-1]
+        case path
+            path $argv[2..-1]
+        case '*'
+            printf "Unknown subcommand: $subcommand\n" >&2
+            printf "Run 'fedpunk config --help' for available subcommands.\n" >&2
+            return 1
+    end
 end
 
 function show --description "Show current configuration"

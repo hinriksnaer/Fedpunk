@@ -2,7 +2,8 @@
 # Profile management commands
 
 function profile --description "Profile management"
-    if contains -- "$argv[1]" --help -h
+    # Show help if no args or --help
+    if test (count $argv) -eq 0; or contains -- "$argv[1]" --help -h
         printf "Profile management for Fedpunk\n"
         printf "\n"
         printf "Profiles define which modules and configurations are deployed.\n"
@@ -20,10 +21,25 @@ function profile --description "Profile management"
         return 0
     end
 
-    # No subcommand provided, show help
-    printf "Usage: fedpunk profile <subcommand> [options]\n"
-    printf "Run 'fedpunk profile --help' for available subcommands.\n"
-    return 1
+    # Dispatch to subcommand
+    set -l subcommand $argv[1]
+
+    switch $subcommand
+        case list
+            list $argv[2..-1]
+        case current
+            current $argv[2..-1]
+        case activate
+            activate $argv[2..-1]
+        case select
+            select $argv[2..-1]
+        case create
+            create $argv[2..-1]
+        case '*'
+            printf "Unknown subcommand: $subcommand\n" >&2
+            printf "Run 'fedpunk profile --help' for available subcommands.\n" >&2
+            return 1
+    end
 end
 
 function list --description "List available profiles"
