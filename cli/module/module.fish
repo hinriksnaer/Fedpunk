@@ -1,6 +1,11 @@
 #!/usr/bin/env fish
 # Module management commands
 
+# Main function - required for bin to discover this command
+function module --description "Manage modules"
+    # No-op: bin handles subcommand routing
+end
+
 # Source the module library
 function _ensure_module_lib
     if not functions -q fedpunk-module

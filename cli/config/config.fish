@@ -1,6 +1,11 @@
 #!/usr/bin/env fish
 # Config command - manage Fedpunk configuration
 
+# Main function - required for bin to discover this command
+function config --description "Manage configuration"
+    # No-op: bin handles subcommand routing
+end
+
 function show --description "Show current configuration"
     if contains -- "$argv[1]" --help -h
         printf "Show current configuration\n"

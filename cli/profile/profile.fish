@@ -1,6 +1,11 @@
 #!/usr/bin/env fish
 # Profile management commands
 
+# Main function - required for bin to discover this command
+function profile --description "Manage profiles"
+    # No-op: bin handles subcommand routing
+end
+
 function list --description "List available profiles"
     if contains -- "$argv[1]" --help -h
         printf "List all available profiles\n"
