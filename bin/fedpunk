@@ -32,9 +32,19 @@ end
 
 # Discover all available commands (directories in cli/)
 function _discover_commands
+    # Check system CLI commands
     for dir in $FEDPUNK_CLI/*/
         if test -d "$dir"
             basename "$dir"
+        end
+    end
+
+    # Check user CLI commands (module-provided)
+    if test -d "$FEDPUNK_USER/cli"
+        for dir in $FEDPUNK_USER/cli/*/
+            if test -d "$dir"
+                basename "$dir"
+            end
         end
     end
 end
@@ -42,7 +52,16 @@ end
 # Discover public functions in a command directory
 # Returns functions that don't start with underscore
 function _discover_functions --argument-names cmd
-    set -l cmd_dir "$FEDPUNK_CLI/$cmd"
+    # Find command directory (check system then user)
+    set -l cmd_dir ""
+    if test -d "$FEDPUNK_CLI/$cmd"
+        set cmd_dir "$FEDPUNK_CLI/$cmd"
+    else if test -d "$FEDPUNK_USER/cli/$cmd"
+        set cmd_dir "$FEDPUNK_USER/cli/$cmd"
+    else
+        return 1
+    end
+
     set -l found
 
     for file in $cmd_dir/*.fish
@@ -68,7 +87,15 @@ end
 
 # Get function description from --description flag in definition
 function _get_description --argument-names cmd fn
-    set -l cmd_dir "$FEDPUNK_CLI/$cmd"
+    # Find command directory (check system then user)
+    set -l cmd_dir ""
+    if test -d "$FEDPUNK_CLI/$cmd"
+        set cmd_dir "$FEDPUNK_CLI/$cmd"
+    else if test -d "$FEDPUNK_USER/cli/$cmd"
+        set cmd_dir "$FEDPUNK_USER/cli/$cmd"
+    else
+        return 1
+    end
 
     for file in $cmd_dir/*.fish
         test -f "$file"; or continue
@@ -158,15 +185,22 @@ function _main
         return 0
     end
 
-    # Check command exists
-    if not test -d "$FEDPUNK_CLI/$cmd"
+    # Check command exists (in system or user space)
+    set -l cmd_dir ""
+    if test -d "$FEDPUNK_CLI/$cmd"
+        set cmd_dir "$FEDPUNK_CLI/$cmd"
+    else if test -d "$FEDPUNK_USER/cli/$cmd"
+        set cmd_dir "$FEDPUNK_USER/cli/$cmd"
+    else
         echo "Unknown command: $cmd" >&2
         echo "Run 'fedpunk help' for available commands" >&2
         return 1
     end
 
-    # Source command files
-    _source_command $cmd
+    # Source command files from whichever location we found
+    for file in $cmd_dir/*.fish
+        test -f "$file"; and source "$file"
+    end
 
     # Check if this is a standalone command (no subcommands)
     set -l subcommands (_discover_functions $cmd)

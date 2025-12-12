@@ -18,8 +18,14 @@ function module-resolve-path
             echo "$cache_path"
             return 0
         else
-            echo "External module not cached: $module_name (run 'fedpunk external sync')" >&2
-            return 1
+            # Auto-fetch external module
+            set -l fetched_path (external-module-fetch "$module_name")
+            if test $status -eq 0
+                echo "$fetched_path"
+                return 0
+            else
+                return 1
+            end
         end
     end
 

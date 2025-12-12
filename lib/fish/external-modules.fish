@@ -48,7 +48,7 @@ function external-module-fetch
 
     if test -d "$cache_path"
         # Already cloned, pull latest
-        ui-info "Updating external module: $url"
+        ui-info "Updating external module: $url" >&2
         pushd "$cache_path" >/dev/null
         git pull --quiet
         or begin
@@ -59,7 +59,7 @@ function external-module-fetch
         popd >/dev/null
     else
         # Clone the repository
-        ui-info "Fetching external module: $url"
+        ui-info "Fetching external module: $url" >&2
         git clone --quiet "$url" "$cache_path"
         or begin
             ui-error "Failed to clone external module: $url"

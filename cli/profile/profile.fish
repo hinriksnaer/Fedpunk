@@ -1,13 +1,9 @@
+#!/usr/bin/env fish
 # Profile management commands
 
-function profile --description "Profile management"
-    if contains -- "$argv[1]" --help -h
-        printf "Profile management for Fedpunk\n"
-        printf "\n"
-        printf "Profiles define which modules and configurations are deployed.\n"
-        return 0
-    end
-    _show_command_help profile
+# Main function - required for bin to discover this command
+function profile --description "Manage profiles"
+    # No-op: bin handles subcommand routing
 end
 
 function list --description "List available profiles"
@@ -18,26 +14,30 @@ function list --description "List available profiles"
         return 0
     end
 
-    set -l profiles_dir "$FEDPUNK_ROOT/profiles"
-    if not test -d "$profiles_dir"
-        printf "No profiles directory found\n" >&2
-        return 1
+    # Source profile-discovery library
+    if not functions -q profile-list-all
+        source "$FEDPUNK_SYSTEM/lib/fish/profile-discovery.fish"
     end
 
-    printf "Available profiles:\n"
-    for profile_dir in $profiles_dir/*/
-        if test -d "$profile_dir"
-            set -l profile_name (basename "$profile_dir")
-            set -l active_marker ""
+    # Source config library for active profile
+    if not functions -q fedpunk-config-get
+        source "$FEDPUNK_SYSTEM/lib/fish/config.fish"
+    end
 
-            if test -L "$FEDPUNK_ROOT/.active-config"
-                set -l active_profile (basename (readlink "$FEDPUNK_ROOT/.active-config"))
-                if test "$profile_name" = "$active_profile"
-                    set active_marker " (active)"
-                end
-            end
-            printf "  • %s%s\n" "$profile_name" "$active_marker"
+    set -l active_profile (fedpunk-config-get "profile" 2>/dev/null)
+
+    printf "Available profiles:\n"
+    for line in (profile-list-all)
+        set -l parts (string split "|" -- $line)
+        set -l name $parts[1]
+        set -l source $parts[3]
+        set -l active_marker ""
+
+        if test "$name" = "$active_profile"
+            set active_marker " (active)"
         end
+
+        printf "  • %s [%s]%s\n" "$name" "$source" "$active_marker"
     end
 end
 
@@ -58,33 +58,25 @@ function current --description "Show active profile"
     end
 end
 
-function activate --description "Activate a profile"
+function deploy --description "Deploy a profile"
     if contains -- "$argv[1]" --help -h
-        printf "Activate a profile by name\n"
+        printf "Deploy a profile and its modules\n"
         printf "\n"
-        printf "Usage: fedpunk profile activate <name>\n"
+        printf "Usage: fedpunk profile deploy <name> [options]\n"
         printf "\n"
         printf "Examples:\n"
-        printf "  fedpunk profile activate dev\n"
-        printf "  fedpunk profile activate default\n"
+        printf "  fedpunk profile deploy default\n"
+        printf "  fedpunk profile deploy default --mode container\n"
         return 0
     end
 
-    set -l profile_name $argv[1]
-    if test -z "$profile_name"
-        printf "Error: Profile name required\n" >&2
-        printf "Usage: fedpunk profile activate <name>\n" >&2
-        return 1
+    # Source deployer library
+    if not functions -q deployer-deploy-profile
+        source "$FEDPUNK_SYSTEM/lib/fish/deployer.fish"
     end
 
-    # Delegate to existing script
-    set -l script "$HOME/.local/bin/fedpunk-activate-profile"
-    if test -x "$script"
-        exec $script $profile_name
-    else
-        printf "Error: fedpunk-activate-profile not found\n" >&2
-        return 1
-    end
+    # Deploy profile with all arguments
+    deployer-deploy-profile $argv
 end
 
 function select --description "Select profile interactively"
@@ -149,8 +141,8 @@ function select --description "Select profile interactively"
     # Remove " (active)" marker if present
     set -l profile_name (string replace " (active)" "" "$selected")
 
-    # Activate the selected profile
-    activate $profile_name
+    # Deploy the selected profile
+    deploy $profile_name
 end
 
 function create --description "Create new profile from template"
@@ -218,11 +210,11 @@ function create --description "Create new profile from template"
     printf "✓ Profile created: %s\n" "$new_profile_path"
     printf "\n"
 
-    # Ask if they want to activate it now
-    if gum confirm "Activate this profile now?"
-        activate $new_profile_name
+    # Ask if they want to deploy it now
+    if gum confirm "Deploy this profile now?"
+        deploy $new_profile_name
     else
-        printf "Profile created but not activated.\n"
-        printf "To activate later, run: fedpunk profile activate %s\n" "$new_profile_name"
+        printf "Profile created but not deployed.\n"
+        printf "To deploy later, run: fedpunk profile deploy %s\n" "$new_profile_name"
     end
 end
