@@ -56,15 +56,16 @@ git archive --format=tar.gz --prefix=fedpunk-${VERSION}/ -o "$TARBALL" HEAD
 echo "Source tarball created: $TARBALL"
 echo ""
 
-# Create a modified spec file that doesn't use rpkg templates
+# Create a modified spec file for local builds
 SPEC_WORK="$HOME/rpmbuild/SPECS/fedpunk.spec"
 cp "$REPO_ROOT/fedpunk.spec" "$SPEC_WORK"
 
-# Replace rpkg templates with static values for CI builds
-# Source0: {{{ git_dir_pack }}} -> fedpunk-%{version}.tar.gz
-# %prep: {{{ git_dir_setup_macro }}} -> %autosetup
-sed -i 's/{{{ git_dir_pack }}}/fedpunk-%{version}.tar.gz/' "$SPEC_WORK"
-sed -i 's/{{{ git_dir_setup_macro }}}/%autosetup/' "$SPEC_WORK"
+# Replace GitHub URL with local tarball path
+# Source0: https://github.com/.../unstable.tar.gz -> fedpunk-%{version}.tar.gz
+sed -i "s|Source0:.*|Source0:        fedpunk-%{version}.tar.gz|" "$SPEC_WORK"
+
+# Replace manual tar extraction with %autosetup
+sed -i '/^tar --strip-components=1/c\%autosetup' "$SPEC_WORK"
 
 echo "Building RPM packages..."
 rpmbuild -ba "$SPEC_WORK"

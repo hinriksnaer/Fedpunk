@@ -49,6 +49,7 @@ tar --strip-components=1 -xzf %{SOURCE0}
 %install
 # Create installation directories
 install -d %{buildroot}%{_datadir}/%{name}
+install -d %{buildroot}%{_datadir}/%{name}/bin
 install -d %{buildroot}%{_datadir}/%{name}/lib/fish
 install -d %{buildroot}%{_datadir}/%{name}/modules
 install -d %{buildroot}%{_datadir}/%{name}/profiles
@@ -81,6 +82,10 @@ find %{buildroot}%{_datadir}/%{name}/cli -name "*.fish" -exec chmod 0755 {} \;
 cp install.fish %{buildroot}%{_datadir}/%{name}/install.fish
 chmod 0755 %{buildroot}%{_datadir}/%{name}/install.fish
 
+# Install bin/fedpunk dispatcher
+cp bin/fedpunk %{buildroot}%{_datadir}/%{name}/bin/fedpunk
+chmod 0755 %{buildroot}%{_datadir}/%{name}/bin/fedpunk
+
 # Create /etc/profile.d script to set environment variables
 cat > %{buildroot}%{_sysconfdir}/profile.d/fedpunk.sh << 'EOF'
 # Fedpunk environment variables
@@ -104,122 +109,25 @@ if [ -d "$FEDPUNK_SYSTEM/cli" ]; then
 fi
 EOF
 
-# Create fedpunk wrapper script in /usr/bin
+# Create fedpunk wrapper script in /usr/bin that delegates to bin/fedpunk
 cat > %{buildroot}%{_bindir}/fedpunk << 'EOF'
 #!/usr/bin/env fish
-# Fedpunk CLI - Main entry point
+# Fedpunk CLI Wrapper - Delegates to the modular dispatcher
 
-# Source paths library if not already loaded
+# Set environment variables for the dispatcher
 if not set -q FEDPUNK_SYSTEM
-    source /usr/share/fedpunk/lib/fish/paths.fish
+    set -gx FEDPUNK_SYSTEM /usr/share/fedpunk
 end
 
-# Initialize system CLI commands on first run
-function __fedpunk_init_cli
-    # Ensure user CLI directory exists
-    mkdir -p "$FEDPUNK_USER/cli"
-
-    # Clean up stale system CLI symlinks (pointing to removed commands)
-    for user_cmd_dir in $FEDPUNK_USER/cli/*/
-        # Remove trailing slash for proper symlink testing
-        set -l user_cmd (string replace -r '/$' '' "$user_cmd_dir")
-
-        set -l cmd_name (basename "$user_cmd")
-        set -l system_cmd "$FEDPUNK_SYSTEM/cli/$cmd_name"
-
-        # If it's a symlink to a system command that no longer exists, remove it
-        if test -L "$user_cmd"
-            set -l link_target (readlink "$user_cmd")
-            if string match -q "$FEDPUNK_SYSTEM/cli/*" "$link_target"
-                if not test -d "$system_cmd"
-                    rm "$user_cmd"
-                end
-            end
-        end
-    end
-
-    # Symlink system CLI commands if not already done
-    for system_cmd in $FEDPUNK_SYSTEM/cli/*/
-        if not test -d "$system_cmd"
-            continue
-        end
-
-        set -l cmd_name (basename "$system_cmd")
-        set -l target "$FEDPUNK_USER/cli/$cmd_name"
-
-        # Create symlink if it doesn't exist
-        if not test -e "$target"
-            ln -sf "$system_cmd" "$target"
-        end
-    end
+if not set -q FEDPUNK_USER
+    set -gx FEDPUNK_USER $HOME/.local/share/fedpunk
 end
 
-# Auto-initialize CLI on first run (fast - only creates symlinks if needed)
-__fedpunk_init_cli
+# Set FEDPUNK_ROOT for backward compatibility with bin/fedpunk
+set -gx FEDPUNK_ROOT $FEDPUNK_SYSTEM
 
-# Show help if no arguments
-if test (count $argv) -eq 0
-    echo "Fedpunk - Modular configuration engine for Fedora"
-    echo ""
-    echo "Usage: fedpunk <command> [options]"
-    echo ""
-
-    # Core commands with descriptions (in preferred order)
-    set -l core_commands apply config profile module
-
-    # Discover all available commands
-    set -l all_commands
-    for cmd_dir in $FEDPUNK_USER/cli/*/
-        if test -d "$cmd_dir"
-            set -l cmd_name (basename "$cmd_dir")
-            set -a all_commands $cmd_name
-        end
-    end
-
-    # Display all commands
-    echo "Commands:"
-
-    # First show core commands with descriptions
-    for cmd in $core_commands
-        if contains $cmd $all_commands
-            switch $cmd
-                case apply
-                    echo "  apply      Apply current configuration"
-                case config
-                    echo "  config     Manage configuration"
-                case profile
-                    echo "  profile    Manage profiles"
-                case module
-                    echo "  module     Manage modules"
-            end
-        end
-    end
-
-    # Then show module-provided commands
-    for cmd in $all_commands
-        if not contains $cmd $core_commands
-            echo "  $cmd"
-        end
-    end
-
-    echo ""
-    echo "Run 'fedpunk <command> --help' for more information on a command."
-    exit 0
-end
-
-set subcommand $argv[1]
-
-# Look for command in user CLI directory (includes system + module commands)
-set cli_cmd "$FEDPUNK_USER/cli/$subcommand/$subcommand.fish"
-
-if test -f "$cli_cmd"
-    # Run the CLI command
-    exec $cli_cmd $argv[2..-1]
-else
-    echo "Error: Unknown command '$subcommand'"
-    echo "Run 'fedpunk' to see available commands."
-    exit 1
-end
+# Delegate to the modular dispatcher
+exec $FEDPUNK_SYSTEM/bin/fedpunk $argv
 EOF
 chmod 0755 %{buildroot}%{_bindir}/fedpunk
 
