@@ -244,31 +244,108 @@ function deployer-deploy-profile
 end
 
 function deployer-deploy-from-config
-    # Deploy based on saved configuration
+    # Deploy based on saved configuration in ~/.config/fedpunk/fedpunk.yaml
     # Usage: deployer-deploy-from-config
-    # Reads profile and mode from ~/.config/fedpunk/fedpunk.yaml
+    #
+    # Supports three workflows:
+    # 1. Profile + mode only (deploys profile's modules)
+    # 2. Modules only (deploys individual modules from modules.enabled)
+    # 3. Both (deploys profile + additional modules)
 
     if not fedpunk-config-exists
         ui-error "No configuration file found"
-        ui-info "Run 'fedpunk profile deploy <name>' first to create configuration"
+        ui-info "Run 'fedpunk profile deploy <name>' or 'fedpunk module deploy <name>' first"
         return 1
     end
 
     set -l profile (fedpunk-config-get "profile")
     set -l mode (fedpunk-config-get "mode")
 
-    if test -z "$profile"
-        ui-error "No profile saved in configuration"
-        ui-info "Run 'fedpunk profile deploy <name>' to set a profile"
-        return 1
+    # Check what's available in the config
+    set -l has_profile (test -n "$profile" -a "$profile" != "null"; and echo true; or echo false)
+    set -l has_mode (test -n "$mode" -a "$mode" != "null"; and echo true; or echo false)
+    set -l has_modules (fedpunk-config-list-enabled-modules >/dev/null 2>&1; and echo true; or echo false)
+
+    # Workflow 1: Profile + mode (may also have additional modules)
+    if test "$has_profile" = true -a "$has_mode" = true
+        ui-info "Deploying from profile configuration..."
+        ui-info "Profile: $profile"
+        ui-info "Mode: $mode"
+
+        # Deploy the profile
+        deployer-deploy-profile "$profile" --mode "$mode"
+        or return 1
+
+        # If there are also additional modules, deploy them
+        if test "$has_modules" = true
+            ui-info ""
+            ui-info "Deploying additional modules from configuration..."
+
+            # Generate parameter config for modules (if not already done)
+            param-generate-fish-config
+            or ui-warn "Failed to generate parameter configuration"
+
+            # Deploy each additional module
+            set -l module_refs (fedpunk-config-list-enabled-modules)
+            for module_ref in $module_refs
+                ui-info "Deploying: $module_ref"
+                if not fedpunk-module deploy "$module_ref"
+                    ui-error "Failed to deploy: $module_ref"
+                    return 1
+                end
+            end
+        end
+
+        # Update metadata
+        fedpunk-config-update-metadata
+
+        ui-success "Configuration applied successfully!"
+        return 0
     end
 
-    if test -z "$mode"
-        ui-error "No mode saved in configuration"
-        ui-info "Run 'fedpunk profile deploy <name> --mode <mode>' to set a mode"
-        return 1
+    # Workflow 2: Modules only (no profile)
+    if test "$has_modules" = true
+        ui-info "Deploying from module configuration..."
+
+        # Fetch external modules first
+        external-modules-fetch
+
+        # Generate parameter configuration from fedpunk.yaml
+        param-generate-fish-config
+        or ui-warn "Failed to generate parameter configuration"
+
+        # Deploy each module
+        set -l module_refs (fedpunk-config-list-enabled-modules)
+
+        if test -z "$module_refs"
+            ui-warn "No enabled modules found in configuration"
+            return 0
+        end
+
+        ui-info "Deploying "(count $module_refs)" module(s)..."
+
+        for module_ref in $module_refs
+            ui-info "Deploying: $module_ref"
+            if not fedpunk-module deploy "$module_ref"
+                ui-error "Failed to deploy: $module_ref"
+                return 1
+            end
+        end
+
+        # Update metadata
+        fedpunk-config-update-metadata
+
+        ui-success "Modules deployed successfully!"
+        return 0
     end
 
-    ui-info "Deploying from configuration..."
-    deployer-deploy-profile "$profile" --mode "$mode"
+    # Workflow 3: Nothing configured
+    ui-error "No valid configuration found"
+    ui-info "Configuration must have either:"
+    ui-info "  • profile + mode (for profile-based deployment)"
+    ui-info "  • modules.enabled (for module-based deployment)"
+    ui-info "  • both (for profile + additional modules)"
+    ui-info ""
+    ui-info "Run 'fedpunk profile deploy <name>' or 'fedpunk module deploy <name>'"
+    return 1
 end

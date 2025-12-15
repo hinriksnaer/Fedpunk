@@ -134,3 +134,45 @@ function fedpunk-config-add-module
     # Add to enabled modules list
     yq -i ".modules.enabled += [\"$module_name\"]" "$config_file"
 end
+
+function fedpunk-config-list-enabled-modules
+    # List all enabled module names/URLs from config (without params)
+    # Usage: fedpunk-config-list-enabled-modules
+    # Returns: List of module references (one per line), just names/URLs
+    # Params are handled separately by param-generate-fish-config
+    #
+    # Example output:
+    #   neovim
+    #   tmux
+    #   https://github.com/org/module.git
+
+    if not fedpunk-config-exists
+        return 1
+    end
+
+    set -l config_file (fedpunk-config-path)
+
+    # Get count of enabled modules
+    set -l count (yq '.modules.enabled | length' "$config_file" 2>/dev/null)
+
+    if test -z "$count" -o "$count" = "null" -o "$count" = "0"
+        return 1
+    end
+
+    # Parse each entry - could be string or object
+    set -l i 0
+    while test $i -lt $count
+        # Check if it's an object (has .module key)
+        set -l ref_type (yq ".modules.enabled[$i] | type" "$config_file" 2>/dev/null)
+
+        if test "$ref_type" = "!!map"
+            # It's an object, get the .module field
+            yq ".modules.enabled[$i].module" "$config_file" 2>/dev/null
+        else
+            # It's a simple string
+            yq ".modules.enabled[$i]" "$config_file" 2>/dev/null
+        end
+
+        set i (math $i + 1)
+    end
+end
