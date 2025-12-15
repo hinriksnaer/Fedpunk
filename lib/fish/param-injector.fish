@@ -23,8 +23,8 @@ function param-parse-module-at-index
     end
 
     # Get the module reference at the given index
-    # Build yq path without escaped brackets (Fish handles the interpolation)
-    set -l item_path "$modules_path[$index]"
+    # Build yq path - concatenate to avoid Fish array syntax interpretation
+    set -l item_path "$modules_path""[$index]"
     set -l ref_type (yq eval "$item_path | type" "$yaml_file" 2>/dev/null)
 
     # Handle empty/null ref_type
