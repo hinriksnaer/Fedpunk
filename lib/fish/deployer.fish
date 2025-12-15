@@ -220,13 +220,10 @@ function deployer-deploy-profile
 
     ui-info "Modules to deploy: $modules"
 
-    # Fetch external modules first
-    external-modules-fetch
-
     # Generate parameter configuration
-    param-generate-fish-config
+    param-generate-fish-config "$mode_file"
 
-    # Deploy each module
+    # Deploy each module (fetching happens automatically when needed)
     for module_name in (string split " " -- $modules)
         ui-info "Deploying module: $module_name"
         fedpunk-module deploy "$module_name"
@@ -307,14 +304,11 @@ function deployer-deploy-from-config
     if test "$has_modules" = true
         ui-info "Deploying from module configuration..."
 
-        # Fetch external modules first
-        external-modules-fetch
-
         # Generate parameter configuration from fedpunk.yaml
         param-generate-fish-config
         or ui-warn "Failed to generate parameter configuration"
 
-        # Deploy each module
+        # Deploy each module (fetching happens automatically in fedpunk-module deploy)
         set -l module_refs (fedpunk-config-list-enabled-modules)
 
         if test -z "$module_refs"

@@ -25,12 +25,21 @@ function param-parse-module-at-index
     # Get the module reference at the given index
     set -l ref_type (yq eval "$modules_path\[$index\] | type" "$yaml_file" 2>/dev/null)
 
+    # Handle empty/null ref_type
+    if test -z "$ref_type" -o "$ref_type" = "null" -o "$ref_type" = "!!null"
+        # Silently skip - module might not exist at this index
+        return 1
+    end
+
     switch "$ref_type"
         case "!!str"
             # Simple string reference (e.g., "essentials" or "https://...")
             set -l module_ref (yq eval "$modules_path\[$index\]" "$yaml_file" 2>/dev/null)
-            echo "$module_ref"
-            return 0
+            if test -n "$module_ref" -a "$module_ref" != "null"
+                echo "$module_ref"
+                return 0
+            end
+            return 1
 
         case "!!map"
             # Object with module and params
@@ -51,12 +60,8 @@ function param-parse-module-at-index
             end
             return 0
 
-        case "!!null" "null"
-            echo "Error: Module reference at index $index is null" >&2
-            return 1
-
         case "*"
-            echo "Error: Unsupported module reference type: $ref_type" >&2
+            # Unknown type, skip silently
             return 1
     end
 end
@@ -82,6 +87,12 @@ function param-generate-fish-config
     end
 
     set -l fish_config "$HOME/.config/fish/conf.d/fedpunk-module-params.fish"
+
+    # Ensure directory exists
+    set -l config_dir (dirname "$fish_config")
+    if not test -d "$config_dir"
+        mkdir -p "$config_dir"
+    end
 
     # Start building Fish config as an array (one line per element)
     set -l config_lines
