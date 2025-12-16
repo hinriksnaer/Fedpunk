@@ -422,31 +422,42 @@ function fedpunk-module-deploy
     echo "Deploying module: $module_name"
     echo ""
 
-    # 0. Prompt for required parameters (if interactive)
-    set -l module_path (module-resolve-path $module_name 2>/dev/null)
-    if test -n "$module_path" -a -d "$module_path"
-        if isatty stdin
-            param-prompt-required "$module_name" "$module_path"
-            or begin
-                echo "Failed to collect required parameters for $module_name" >&2
-                return 1
-            end
+    # 0. Resolve module path (fetches external modules if needed)
+    set -l module_path (module-resolve-path $module_name)
+    if test $status -ne 0
+        echo "Failed to resolve module: $module_name" >&2
+        return 1
+    end
 
-            # Regenerate parameter configuration
-            set -l fedpunk_config "$HOME/.config/fedpunk/fedpunk.yaml"
-            if test -f "$fedpunk_config"
-                param-generate-fish-config "$fedpunk_config" >/dev/null 2>&1
+    echo "DEBUG: Module path resolved: $module_path" >&2
+    echo "DEBUG: isatty stdin: "(isatty stdin; echo $status) >&2
 
-                # Re-source the parameter config in current session
-                set -l param_config "$HOME/.config/fish/conf.d/fedpunk-module-params.fish"
-                if test -f "$param_config"
-                    source "$param_config"
-                end
+    # 1. Prompt for required parameters (if interactive)
+    if isatty stdin
+        echo "DEBUG: Checking parameters for $module_name at $module_path" >&2
+        param-prompt-required "$module_name" "$module_path"
+        set -l prompt_status $status
+        echo "DEBUG: param-prompt-required returned: $prompt_status" >&2
+
+        if test $prompt_status -ne 0
+            echo "Failed to collect required parameters for $module_name" >&2
+            return 1
+        end
+
+        # Regenerate parameter configuration
+        set -l fedpunk_config "$HOME/.config/fedpunk/fedpunk.yaml"
+        if test -f "$fedpunk_config"
+            param-generate-fish-config "$fedpunk_config" >/dev/null 2>&1
+
+            # Re-source the parameter config in current session
+            set -l param_config "$HOME/.config/fish/conf.d/fedpunk-module-params.fish"
+            if test -f "$param_config"
+                source "$param_config"
             end
         end
     end
 
-    # 1. Resolve dependencies
+    # 2. Resolve dependencies
     echo "==> Checking dependencies"
     fedpunk-module-resolve-dependencies $module_name
     or return 1
