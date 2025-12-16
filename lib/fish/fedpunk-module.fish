@@ -7,6 +7,8 @@ set -l script_dir (dirname (status -f))
 source "$script_dir/yaml-parser.fish"
 source "$script_dir/module-resolver.fish"
 source "$script_dir/linker.fish"
+source "$script_dir/param-prompter.fish"
+source "$script_dir/param-injector.fish"
 
 # Global variable to track deployed modules (prevents redeployment in same session)
 if not set -q FEDPUNK_DEPLOYED_MODULES
@@ -420,7 +422,31 @@ function fedpunk-module-deploy
     echo "Deploying module: $module_name"
     echo ""
 
-    # 0. Resolve dependencies first
+    # 0. Prompt for required parameters (if interactive)
+    set -l module_path (module-resolve-path $module_name 2>/dev/null)
+    if test -n "$module_path" -a -d "$module_path"
+        if isatty stdin
+            param-prompt-required "$module_name" "$module_path"
+            or begin
+                echo "Failed to collect required parameters for $module_name" >&2
+                return 1
+            end
+
+            # Regenerate parameter configuration
+            set -l fedpunk_config "$HOME/.config/fedpunk/fedpunk.yaml"
+            if test -f "$fedpunk_config"
+                param-generate-fish-config "$fedpunk_config" >/dev/null 2>&1
+
+                # Re-source the parameter config in current session
+                set -l param_config "$HOME/.config/fish/conf.d/fedpunk-module-params.fish"
+                if test -f "$param_config"
+                    source "$param_config"
+                end
+            end
+        end
+    end
+
+    # 1. Resolve dependencies
     echo "==> Checking dependencies"
     fedpunk-module-resolve-dependencies $module_name
     or return 1
