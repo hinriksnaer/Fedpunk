@@ -100,6 +100,15 @@ export FEDPUNK_USER=$HOME/.local/share/fedpunk
 # Backward compatibility
 export FEDPUNK_ROOT=$FEDPUNK_SYSTEM
 
+# Add ~/.local/bin to PATH for user-installed binaries
+# Required for tools like Claude Code, pip, cargo, npm, etc.
+if [ -d "$HOME/.local/bin" ]; then
+    case ":$PATH:" in
+        *":$HOME/.local/bin:"*) ;;
+        *) export PATH="$HOME/.local/bin:$PATH" ;;
+    esac
+fi
+
 # Add Fedpunk CLI to PATH if it exists
 if [ -d "$FEDPUNK_SYSTEM/cli" ]; then
     case ":$PATH:" in

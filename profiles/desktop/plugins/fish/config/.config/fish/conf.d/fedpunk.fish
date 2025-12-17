@@ -7,3 +7,8 @@
 if test -z "$FEDPUNK_PATH"
     set -gx FEDPUNK_PATH "$HOME/.local/share/fedpunk"
 end
+
+# Add ~/.local/bin to PATH for user-installed binaries
+# Required for tools like Claude Code, pip, cargo, npm, etc.
+# that install executables to ~/.local/bin by default
+fish_add_path -g ~/.local/bin
