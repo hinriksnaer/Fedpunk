@@ -62,8 +62,14 @@ function param-load-module-definition
         set -l param_default (yq eval ".parameters.$key.default" "$module_yaml" 2>/dev/null)
         set -l param_required (yq eval ".parameters.$key.required" "$module_yaml" 2>/dev/null)
 
-        # Output in parseable format: key|type|description|default|required
-        echo "$key|$param_type|$param_desc|$param_default|$param_required"
+        # Check for options (for enum/choice types)
+        set -l param_options (yq eval ".parameters.$key.options | join(\",\")" "$module_yaml" 2>/dev/null)
+        if test "$param_options" = "null" -o -z "$param_options"
+            set param_options ""
+        end
+
+        # Output in parseable format: key|type|description|default|required|options
+        echo "$key|$param_type|$param_desc|$param_default|$param_required|$param_options"
     end
 end
 
@@ -107,24 +113,46 @@ end
 
 function param-prompt-for-value
     # Prompt user for a parameter value
-    # Usage: param-prompt-for-value <param-key> <param-desc> <param-default>
+    # Usage: param-prompt-for-value <param-key> <param-desc> <param-default> [options-csv]
 
     set -l param_key $argv[1]
     set -l param_desc $argv[2]
     set -l param_default $argv[3]
-
-    set -l prompt_msg "$param_desc"
-    if test "$param_default" != "null" -a -n "$param_default"
-        set prompt_msg "$prompt_msg (default: $param_default)"
+    set -l param_options_csv ""
+    if test (count $argv) -ge 4
+        set param_options_csv $argv[4]
     end
 
-    # Use gum input parameters - --placeholder for the prompt, --value for default
-    if test "$param_default" != "null" -a -n "$param_default"
-        set -l value (ui-input --placeholder "$prompt_msg" --value "$param_default")
-        echo "$value"
+    # If options are provided, use ui-choose
+    if test -n "$param_options_csv"
+        set -l options (string split ',' -- $param_options_csv)
+
+        ui-info "$param_desc"
+
+        # Use ui-choose with header
+        set -l value (ui-choose --header "Select $param_key:" $options)
+
+        # If no selection made and there's a default, use it
+        if test -z "$value" -a "$param_default" != "null" -a -n "$param_default"
+            echo "$param_default"
+        else
+            echo "$value"
+        end
     else
-        set -l value (ui-input --placeholder "$prompt_msg")
-        echo "$value"
+        # No options, use text input
+        set -l prompt_msg "$param_desc"
+        if test "$param_default" != "null" -a -n "$param_default"
+            set prompt_msg "$prompt_msg (default: $param_default)"
+        end
+
+        # Use gum input parameters - --placeholder for the prompt, --value for default
+        if test "$param_default" != "null" -a -n "$param_default"
+            set -l value (ui-input --placeholder "$prompt_msg" --value "$param_default")
+            echo "$value"
+        else
+            set -l value (ui-input --placeholder "$prompt_msg")
+            echo "$value"
+        end
     end
 end
 
@@ -208,6 +236,10 @@ function param-prompt-required
         set -l description $parts[3]
         set -l default $parts[4]
         set -l required $parts[5]
+        set -l options ""
+        if test (count $parts) -ge 6
+            set options $parts[6]
+        end
 
         # Check if we need to prompt for this parameter
         if test "$required" = "true"
@@ -216,7 +248,7 @@ function param-prompt-required
 
             if test -z "$current_value"
                 ui-info "Module '$module_name' requires parameter: $key"
-                set -l value (param-prompt-for-value "$key" "$description" "$default")
+                set -l value (param-prompt-for-value "$key" "$description" "$default" "$options")
 
                 if test -n "$value"
                     param-save-to-config "$module_ref" "$key" "$value"
