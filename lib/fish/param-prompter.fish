@@ -127,10 +127,8 @@ function param-prompt-for-value
     if test -n "$param_options_csv"
         set -l options (string split ',' -- $param_options_csv)
 
-        ui-info "$param_desc"
-
-        # Use ui-choose with header
-        set -l value (ui-choose --header "Select $param_key:" $options)
+        # Use description as the selection header
+        set -l value (ui-choose --header "$param_desc" $options)
 
         # If no selection made and there's a default, use it
         if test -z "$value" -a "$param_default" != "null" -a -n "$param_default"
@@ -241,21 +239,30 @@ function param-prompt-required
             set options $parts[6]
         end
 
-        # Check if we need to prompt for this parameter
+        # Check if value already exists (declarative-first approach)
+        set -l current_value (param-get-current-value "$module_name" "$key")
+
+        if test -n "$current_value"
+            # Value already provided declaratively, skip
+            continue
+        end
+
+        # No declarative value - check if we have a default
+        if test "$default" != "null" -a -n "$default"
+            # Default exists - use it without prompting
+            param-save-to-config "$module_ref" "$key" "$default"
+            continue
+        end
+
+        # No declarative value and no default - prompt if required
         if test "$required" = "true"
-            # Check if value already exists
-            set -l current_value (param-get-current-value "$module_name" "$key")
+            set -l value (param-prompt-for-value "$key" "$description" "$default" "$options")
 
-            if test -z "$current_value"
-                ui-info "Module '$module_name' requires parameter: $key"
-                set -l value (param-prompt-for-value "$key" "$description" "$default" "$options")
-
-                if test -n "$value"
-                    param-save-to-config "$module_ref" "$key" "$value"
-                else
-                    ui-error "Required parameter '$key' cannot be empty"
-                    set missing_required 1
-                end
+            if test -n "$value"
+                param-save-to-config "$module_ref" "$key" "$value"
+            else
+                ui-error "Required parameter '$key' cannot be empty"
+                set missing_required 1
             end
         end
     end
