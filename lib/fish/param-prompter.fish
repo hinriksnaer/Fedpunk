@@ -254,16 +254,21 @@ function param-prompt-required
             continue
         end
 
-        # No declarative value and no default - prompt if required
-        if test "$required" = "true"
-            set -l value (param-prompt-for-value "$key" "$description" "$default" "$options")
+        # No declarative value and no default - implicitly required unless marked optional
+        # Only skip if explicitly marked as optional with required: false
+        if test "$required" = "false"
+            # Explicitly optional parameter without default - skip
+            continue
+        end
 
-            if test -n "$value"
-                param-save-to-config "$module_ref" "$key" "$value"
-            else
-                ui-error "Required parameter '$key' cannot be empty"
-                set missing_required 1
-            end
+        # Implicitly required - prompt for value
+        set -l value (param-prompt-for-value "$key" "$description" "$default" "$options")
+
+        if test -n "$value"
+            param-save-to-config "$module_ref" "$key" "$value"
+        else
+            ui-error "Required parameter '$key' cannot be empty"
+            set missing_required 1
         end
     end
 
