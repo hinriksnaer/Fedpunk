@@ -200,17 +200,40 @@ module:
 
 ## Quick Start
 
-### DNF Install (COPR - Unstable) ⚡ NEW!
+### DNF Install (COPR) ⚡ Recommended
 
-**Bleeding-edge builds from main branch** - for early adopters and testers:
+**Stable builds from feature branches:**
+
+```bash
+# Enable COPR repository
+sudo dnf copr enable hinriksnaer/fedpunk
+
+# Install Fedpunk
+sudo dnf install fedpunk
+
+# Deploy a profile (or skip to use individual modules)
+fedpunk install --profile default --mode desktop
+
+# OR: Just install individual modules
+fedpunk module deploy git@gitlab.com:redhat/rhel-ai/team-pytorch/fedpunk-modules/claude.git
+```
+
+**What's installed:**
+- Core Fedpunk system at `/usr/share/fedpunk`
+- Built-in modules: `ssh`, `essentials`, `claude`, `bluetui`
+- `~/.local/bin` automatically added to PATH
+- Environment variables configured for all shells
+
+### Unstable Builds (Bleeding Edge)
+
+For latest development builds from main branch:
 
 ```bash
 sudo dnf copr enable hinriksnaer/fedpunk-unstable
 sudo dnf install fedpunk
-fedpunk install
 ```
 
-⚠️ **Warning:** Unstable builds may contain bugs. See [COPR installation guide](docs/installation/copr-unstable.md) for details.
+⚠️ **Warning:** Unstable builds may contain bugs and breaking changes.
 
 ### Git Clone Install (Traditional)
 

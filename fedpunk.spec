@@ -56,6 +56,7 @@ install -d %{buildroot}%{_datadir}/%{name}/profiles
 install -d %{buildroot}%{_datadir}/%{name}/themes
 install -d %{buildroot}%{_datadir}/%{name}/cli
 install -d %{buildroot}%{_sysconfdir}/profile.d
+install -d %{buildroot}%{_sysconfdir}/fish/conf.d
 install -d %{buildroot}%{_bindir}
 
 # Install core libraries
@@ -100,6 +101,15 @@ export FEDPUNK_USER=$HOME/.local/share/fedpunk
 # Backward compatibility
 export FEDPUNK_ROOT=$FEDPUNK_SYSTEM
 
+# Add ~/.local/bin to PATH for user-installed binaries
+# Required for tools like Claude Code, pip, cargo, npm, etc.
+if [ -d "$HOME/.local/bin" ]; then
+    case ":$PATH:" in
+        *":$HOME/.local/bin:"*) ;;
+        *) export PATH="$HOME/.local/bin:$PATH" ;;
+    esac
+fi
+
 # Add Fedpunk CLI to PATH if it exists
 if [ -d "$FEDPUNK_SYSTEM/cli" ]; then
     case ":$PATH:" in
@@ -107,6 +117,30 @@ if [ -d "$FEDPUNK_SYSTEM/cli" ]; then
         *) export PATH="$FEDPUNK_SYSTEM/cli:$PATH" ;;
     esac
 fi
+EOF
+
+# Create /etc/fish/conf.d script for Fish shell
+cat > %{buildroot}%{_sysconfdir}/fish/conf.d/fedpunk.fish << 'EOF'
+# Fedpunk environment variables for Fish shell
+# Auto-loaded by Fish on startup
+
+# System installation location
+set -gx FEDPUNK_SYSTEM /usr/share/fedpunk
+
+# User data directory (auto-created on first use)
+set -gx FEDPUNK_USER $HOME/.local/share/fedpunk
+
+# Backward compatibility
+set -gx FEDPUNK_ROOT $FEDPUNK_SYSTEM
+
+# Add ~/.local/bin to PATH for user-installed binaries
+# Required for tools like Claude Code, pip, cargo, npm, etc.
+fish_add_path -g $HOME/.local/bin
+
+# Add Fedpunk CLI to PATH if it exists
+if test -d $FEDPUNK_SYSTEM/cli
+    fish_add_path -g $FEDPUNK_SYSTEM/cli
+end
 EOF
 
 # Create fedpunk wrapper script in /usr/bin that delegates to bin/fedpunk
@@ -138,6 +172,7 @@ chmod 0755 %{buildroot}%{_bindir}/fedpunk
 
 %{_datadir}/%{name}/
 %{_sysconfdir}/profile.d/fedpunk.sh
+%{_sysconfdir}/fish/conf.d/fedpunk.fish
 %{_bindir}/fedpunk
 
 %post

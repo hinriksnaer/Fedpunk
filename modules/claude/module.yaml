@@ -1,8 +1,19 @@
 module:
   name: claude
-  description: Claude Code CLI - AI-powered coding assistant
+  description: Claude Code with Google Vertex AI authentication
   dependencies: []
-  priority: 6
+  priority: 50
+
+parameters:
+  project_id:
+    type: string
+    description: "Google Cloud project ID for Anthropic Vertex AI"
+    default: itpc-gcp-ai-eng-claude
+
+  region:
+    type: string
+    description: "Google Cloud region for Vertex AI"
+    default: us-east5
 
 lifecycle:
   before: []
@@ -10,9 +21,11 @@ lifecycle:
     - install
 
 packages:
-  dnf: []
-  npm: []
+  dnf:
+    - curl
+    - libxcrypt-compat
   cargo: []
+  npm: []
 
 stow:
   target: $HOME

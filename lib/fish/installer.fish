@@ -10,6 +10,7 @@ source "$lib_dir/fedpunk-module.fish"
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/external-modules.fish"
 source "$lib_dir/param-injector.fish"
+source "$lib_dir/param-prompter.fish"
 
 function installer-select-profile
     # Select profile interactively or from flag
@@ -399,11 +400,29 @@ function installer-run
         return 1
     end
 
-    # Generate parameter configuration
+    # Prompt for required parameters
     echo ""
     ui-section "Module Parameters"
+    if not test "$non_interactive" = "true"
+        ui-info "Checking for required parameters..."
+        param-prompt-all-modules "$mode_file"
+        or begin
+            ui-error "Failed to collect required parameters"
+            return 1
+        end
+    end
+
+    # Generate parameter configuration
     ui-info "Generating parameter configuration..."
-    param-generate-fish-config "$mode_file"
+    # Check if fedpunk.yaml exists with saved parameters
+    set -l fedpunk_config "$HOME/.config/fedpunk/fedpunk.yaml"
+    if test -f "$fedpunk_config"
+        ui-info "Using parameters from fedpunk.yaml"
+        param-generate-fish-config "$fedpunk_config"
+    else
+        # Fall back to mode.yaml
+        param-generate-fish-config "$mode_file"
+    end
     or begin
         ui-error "Failed to generate parameter configuration"
         return 1
