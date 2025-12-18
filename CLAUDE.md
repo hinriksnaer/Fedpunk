@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Fedpunk is a modular configuration management system for Fedora Linux, built entirely in Fish shell. It provides a complete desktop environment based on Hyprland (Wayland compositor) with vim-style keybindings, live theming, and a plugin architecture for extensibility.
+Fedpunk is a modular configuration management system for Fedora Linux, built entirely in Fish shell. It provides a minimal core (~500 KB) with external profile support for complete desktop environments based on Hyprland (Wayland compositor) with vim-style keybindings, live theming, and extensible module architecture.
 
 **Core Philosophy:**
 - Modular architecture with automatic dependency resolution
 - Profile-based configuration (desktop/container/custom modes)
 - GNU Stow for instant symlink-based deployment (no generation step)
 - Fish-first shell experience with modern tooling
-- External module support (git URLs, local paths, profile plugins)
+- External module support (git URLs, local paths, profile modules)
 
 ## Build and Test Commands
 
@@ -85,7 +85,7 @@ modules/<package>/
 └── scripts/             # Optional lifecycle hooks
     ├── install          # Custom installation logic
     ├── before           # Pre-deployment hook
-    └── after            # Post-deployment hook (plugins, services)
+    └── after            # Post-deployment hook (services, etc.)
 ```
 
 **module.yaml schema:**
@@ -127,13 +127,13 @@ stow:
 
 1. **Profile/Mode Selection** - Choose profile (default/dev/example) and mode (desktop/container)
 2. **Module List Resolution** - Load module list from `profiles/<name>/modes/<mode>/mode.yaml`
-3. **External Module Resolution** - Clone/cache git URLs, resolve local paths, locate profile plugins
+3. **External Module Resolution** - Clone/cache git URLs, resolve local paths, locate profile modules
 4. **Dependency Resolution** - Recursive topological sort, prevents duplicates
 5. **Parameter Injection** - Generate Fish config for module parameters
 6. **Package Installation** - DNF, COPR, Cargo, NPM, Flatpak from module.yaml
 7. **Lifecycle: before** - Pre-deployment hooks
 8. **GNU Stow Deployment** - Symlink `config/` directories to `$HOME`
-9. **Lifecycle: after** - Post-deployment hooks (plugins, services, etc.)
+9. **Lifecycle: after** - Post-deployment hooks (services, etc.)
 
 **Key Design Decision:** GNU Stow provides instant deployment via symlinks. Editing a file in `modules/neovim/config/.config/nvim/` immediately affects `~/.config/nvim/` with no generation step.
 
@@ -152,7 +152,7 @@ profiles/default/
 │   │   └── mode.yaml      # Full desktop environment
 │   └── container/
 │       └── mode.yaml      # Terminal-only for containers
-└── plugins/               # Profile-specific modules (optional)
+└── modules/               # Profile-specific modules (optional)
     └── custom-module/
         ├── module.yaml
         └── config/
@@ -165,9 +165,9 @@ mode:
   description: Full desktop environment
 
 modules:
-  - essentials                            # Built-in module
-  - neovim
-  - plugins/custom-module                 # Profile plugin
+  - fish                                  # System module
+  - ssh                                   # System module
+  - custom-module                         # Profile module
   - ~/gits/my-module                      # Local path
   - https://github.com/org/module.git     # External git URL
 
@@ -181,8 +181,8 @@ modules:
 ### External Module Support
 
 Modules can be referenced from:
-- **Built-in**: `modules/<name>/` (shipped with Fedpunk)
-- **Profile plugins**: `plugins/<name>` (relative to profile directory)
+- **System modules**: `modules/<name>/` (shipped with Fedpunk core - fish, ssh)
+- **Profile modules**: `<name>` (from active profile's modules/ directory)
 - **Local paths**: `~/gits/module` or `/absolute/path`
 - **Git URLs**: `https://github.com/org/repo.git` or `git@github.com:org/repo.git`
 
@@ -227,7 +227,7 @@ The module system is built on these Fish libraries:
 - **paths.fish** - Auto-detects DNF vs git installation, sets up environment variables
 - **installer.fish** - Orchestrates profile/mode selection and module deployment
 - **fedpunk-module.fish** - Main module management command (list, deploy, stow, etc.)
-- **module-resolver.fish** - Resolves module paths (built-in, plugins, local, git URLs)
+- **module-resolver.fish** - Resolves module paths (system, profile, local, git URLs)
 - **module-ref-parser.fish** - Parses module references with parameters from mode.yaml
 - **external-modules.fish** - Handles cloning and caching of git-based modules
 - **param-injector.fish** - Generates Fish environment variables from parameters
@@ -301,8 +301,8 @@ bash test/test-rpm-install.sh   # Tests installation
 - Test module deployment with `fedpunk module deploy <name>` before committing
 
 ### Profile Development
-- Profile plugins should follow the same structure as built-in modules
-- Use `plugins/` directory for profile-specific customizations
+- Profile modules should follow the same structure as system modules
+- Use `modules/` directory for profile-specific modules
 - External modules from git should be immutable (don't modify after cloning)
 - Parameter names should be lowercase with underscores
 
@@ -319,11 +319,11 @@ bash test/test-rpm-install.sh   # Tests installation
 
 ## Common Gotchas
 
-1. **Module path resolution**: Always use `module-resolve-path` to handle built-in, plugins, local, and git modules uniformly
+1. **Module path resolution**: Always use `module-resolve-path` to handle system, profile, local, and git modules uniformly
 
 2. **Stow targets**: All modules should use `target: $HOME` in module.yaml. Stow will preserve the directory structure from `config/`
 
-3. **Lifecycle hook order**: `before` runs before stow, `after` runs after. Use `before` for prep work, `after` for plugin installation
+3. **Lifecycle hook order**: `before` runs before stow, `after` runs after. Use `before` for prep work, `after` for service installation
 
 4. **Dependency cycles**: Module resolver detects circular dependencies. If you see this error, check your module.yaml dependency chains
 
