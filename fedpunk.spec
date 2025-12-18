@@ -54,7 +54,6 @@ install -d %{buildroot}%{_datadir}/%{name}
 install -d %{buildroot}%{_datadir}/%{name}/bin
 install -d %{buildroot}%{_datadir}/%{name}/lib/fish
 install -d %{buildroot}%{_datadir}/%{name}/modules
-install -d %{buildroot}%{_datadir}/%{name}/themes
 install -d %{buildroot}%{_datadir}/%{name}/cli
 install -d %{buildroot}%{_sysconfdir}/profile.d
 install -d %{buildroot}%{_sysconfdir}/fish/conf.d
@@ -69,9 +68,7 @@ for module in ssh essentials; do
 done
 
 # Profiles are external only - no built-in profiles
-
-# Install themes
-cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
+# Themes are external only - no built-in themes
 
 # Install CLI commands (symlinked to user space at runtime)
 cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
