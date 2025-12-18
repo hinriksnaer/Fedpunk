@@ -127,9 +127,9 @@ The unstable branch has everything needed to support hyprpunk without any modifi
 ## What's Next
 
 ### For Hyprpunk
-1. Test full deployment on fresh Fedora installation
-2. Update theme-manager scripts to use hyprpunk paths
-3. Create theme preview screenshots
+1. ✅ **Add visuals and video from Fedpunk main** - Demo video and theme previews added to README
+2. Test full deployment on fresh Fedora installation
+3. Update theme-manager scripts to use hyprpunk paths
 4. Write contributing guide
 5. Add CI/CD for validation
 
@@ -186,12 +186,13 @@ The unstable branch has everything needed to support hyprpunk without any modifi
 
 ## Success Criteria
 
-✅ **Repository Created:** https://github.com/hinriksnaer/hyprpunk  
-✅ **All Content Migrated:** 462 files, 20,857 lines  
-✅ **Theme Manager Plugin:** Created and configured  
-✅ **Mode Configurations:** Desktop, laptop, container  
-✅ **Initial Commit:** Pushed to main branch  
-🔄 **Deployment Testing:** Pending  
+✅ **Repository Created:** https://github.com/hinriksnaer/hyprpunk
+✅ **All Content Migrated:** 462 files, 20,857 lines
+✅ **Theme Manager Plugin:** Created and configured
+✅ **Mode Configurations:** Desktop, laptop, container
+✅ **Initial Commit:** Pushed to main branch
+✅ **Visuals Added:** Vimeo demo video + theme preview images
+🔄 **Deployment Testing:** Pending
 🔄 **Script Updates:** Pending  
 
 ---
