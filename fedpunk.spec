@@ -62,13 +62,14 @@ install -d %{buildroot}%{_bindir}
 # Install core libraries
 cp -r lib/fish/* %{buildroot}%{_datadir}/%{name}/lib/fish/
 
-# Install core modules only (minimal system - essentials and ssh)
-for module in ssh essentials; do
+# Install core modules only (minimal system - ssh only)
+for module in ssh; do
     cp -r modules/$module %{buildroot}%{_datadir}/%{name}/modules/
 done
 
 # Profiles are external only - no built-in profiles
 # Themes are external only - no built-in themes
+# Modules are external only - only ssh is built-in
 
 # Install CLI commands (symlinked to user space at runtime)
 cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
@@ -216,8 +217,6 @@ EOF
     echo "No profiles or modules are installed by default."
     echo ""
     echo "Quick start (deploy external modules):"
-    echo "  fedpunk module deploy essentials"
-    echo "  fedpunk module deploy ssh"
     echo "  fedpunk module deploy https://github.com/user/module.git"
     echo ""
     echo "Deploy external profiles:"
