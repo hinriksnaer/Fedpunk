@@ -5,7 +5,7 @@
 Name:           fedpunk
 Version:        0.5.0
 Release:        0.%{build_timestamp}.%{branch}%{?dist}
-Summary:        Modular configuration engine for Fedora with Hyprland and Fish shell
+Summary:        Minimal modular configuration engine for Fedora Linux
 
 License:        MIT
 URL:            https://github.com/hinriksnaer/Fedpunk
@@ -28,15 +28,17 @@ Requires:       gum
 Recommends:     dnf-plugins-core
 
 %description
-Fedpunk is a next-generation configuration management system that transforms
-Fedora into a productivity powerhouse. It provides:
+Fedpunk is a minimal configuration engine for Fedora Linux. It provides:
 
 - Modular architecture with automatic dependency resolution
-- Profile system for multiple environments
-- Plugin framework for extensibility
-- Live theme engine with 12 themes
+- External module support (git URLs, local paths)
+- YAML-based module definitions
+- Parameter system with interactive prompting
+- GNU Stow integration for symlink-based deployment
 - Fish-first shell experience
-- Keyboard-driven Hyprland environment
+
+This is the core engine only. Profiles, themes, and most modules are
+maintained in external repositories.
 
 %prep
 # Extract source tarball, stripping the variable top-level directory
@@ -52,7 +54,6 @@ install -d %{buildroot}%{_datadir}/%{name}
 install -d %{buildroot}%{_datadir}/%{name}/bin
 install -d %{buildroot}%{_datadir}/%{name}/lib/fish
 install -d %{buildroot}%{_datadir}/%{name}/modules
-install -d %{buildroot}%{_datadir}/%{name}/profiles
 install -d %{buildroot}%{_datadir}/%{name}/themes
 install -d %{buildroot}%{_datadir}/%{name}/cli
 install -d %{buildroot}%{_sysconfdir}/profile.d
@@ -62,14 +63,12 @@ install -d %{buildroot}%{_bindir}
 # Install core libraries
 cp -r lib/fish/* %{buildroot}%{_datadir}/%{name}/lib/fish/
 
-# Install core modules only (minimal system)
-for module in ssh essentials claude bluetui; do
+# Install core modules only (minimal system - essentials and ssh)
+for module in ssh essentials; do
     cp -r modules/$module %{buildroot}%{_datadir}/%{name}/modules/
 done
 
-# Install system profiles (default + desktop)
-cp -r profiles/default %{buildroot}%{_datadir}/%{name}/profiles/
-cp -r profiles/desktop %{buildroot}%{_datadir}/%{name}/profiles/
+# Profiles are external only - no built-in profiles
 
 # Install themes
 cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
@@ -188,10 +187,16 @@ if [ $1 -eq 1 ]; then
     echo "Installation location: /usr/share/fedpunk"
     echo "Configuration: ~/.config/fedpunk/fedpunk.yaml"
     echo ""
-    echo "Quick start:"
-    echo "  fedpunk profile deploy default --mode container"
-    echo "  fedpunk config edit"
-    echo "  fedpunk apply"
+    echo "Fedpunk is a minimal configuration engine."
+    echo "No profiles or modules are installed by default."
+    echo ""
+    echo "Quick start (deploy external modules):"
+    echo "  fedpunk module deploy essentials"
+    echo "  fedpunk module deploy ssh"
+    echo "  fedpunk module deploy https://github.com/user/module.git"
+    echo ""
+    echo "Deploy external profiles:"
+    echo "  fedpunk profile deploy https://github.com/user/profile.git --mode desktop"
     echo ""
     echo "Report issues: https://github.com/hinriksnaer/Fedpunk/issues"
     echo "=========================================="
