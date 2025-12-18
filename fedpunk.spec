@@ -172,8 +172,40 @@ chmod 0755 %{buildroot}%{_bindir}/fedpunk
 %{_bindir}/fedpunk
 
 %post
-# Create user space on first install
+# Create user space and initialize config on first install
 if [ $1 -eq 1 ]; then
+    # Initialize config for all users who run fedpunk
+    # This will be created on first use, but we can create a system-wide template
+    CONFIG_DIR="$HOME/.config/fedpunk"
+    CONFIG_FILE="$CONFIG_DIR/fedpunk.yaml"
+
+    # Only create if running as a user (not root during package install)
+    if [ -n "$SUDO_USER" ]; then
+        # Get the actual user's home directory
+        USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+        CONFIG_DIR="$USER_HOME/.config/fedpunk"
+        CONFIG_FILE="$CONFIG_DIR/fedpunk.yaml"
+
+        # Create config directory
+        mkdir -p "$CONFIG_DIR"
+        mkdir -p "$CONFIG_DIR/profiles"
+
+        # Create initial config file
+        cat > "$CONFIG_FILE" <<EOF
+# Fedpunk Configuration
+# Auto-generated on $(date)
+
+profile: null
+mode: null
+modules:
+  enabled: []
+  disabled: []
+EOF
+
+        # Set ownership to the actual user
+        chown -R "$SUDO_USER:$SUDO_USER" "$CONFIG_DIR"
+    fi
+
     echo "=========================================="
     echo "Fedpunk (UNSTABLE) installed successfully"
     echo "=========================================="
@@ -194,6 +226,9 @@ if [ $1 -eq 1 ]; then
     echo ""
     echo "Deploy external profiles:"
     echo "  fedpunk profile deploy https://github.com/user/profile.git --mode desktop"
+    echo ""
+    echo "Example: Deploy Hyprpunk desktop environment"
+    echo "  fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk.git --mode desktop"
     echo ""
     echo "Report issues: https://github.com/hinriksnaer/Fedpunk/issues"
     echo "=========================================="
