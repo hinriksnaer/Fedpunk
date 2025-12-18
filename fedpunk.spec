@@ -75,10 +75,6 @@ cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
 # Make all CLI scripts executable
 find %{buildroot}%{_datadir}/%{name}/cli -name "*.fish" -exec chmod 0755 {} \;
 
-# Install main installer script
-cp install.fish %{buildroot}%{_datadir}/%{name}/install.fish
-chmod 0755 %{buildroot}%{_datadir}/%{name}/install.fish
-
 # Install bin/fedpunk dispatcher
 cp bin/fedpunk %{buildroot}%{_datadir}/%{name}/bin/fedpunk
 chmod 0755 %{buildroot}%{_datadir}/%{name}/bin/fedpunk
