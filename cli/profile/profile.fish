@@ -216,61 +216,53 @@ function create --description "Create new custom profile"
     mkdir -p "$new_profile_path/plugins"
 
     # Create README
-    cat > "$new_profile_path/README.md" <<EOF
-# $new_profile_name
-
-Custom Fedpunk profile.
-
-## Usage
-
-Deploy this profile:
-\`\`\`bash
-fedpunk profile deploy $new_profile_path --mode desktop
-\`\`\`
-
-Or publish to GitHub:
-\`\`\`bash
-cd $new_profile_path
-git init
-git add .
-git commit -m "Initial commit"
-gh repo create $new_profile_name --public --source=. --push
-fedpunk profile deploy https://github.com/\$(whoami)/$new_profile_name.git
-\`\`\`
-EOF
+    echo "# $new_profile_name" > "$new_profile_path/README.md"
+    echo "" >> "$new_profile_path/README.md"
+    echo "Custom Fedpunk profile." >> "$new_profile_path/README.md"
+    echo "" >> "$new_profile_path/README.md"
+    echo "## Usage" >> "$new_profile_path/README.md"
+    echo "" >> "$new_profile_path/README.md"
+    echo "Deploy this profile:" >> "$new_profile_path/README.md"
+    echo '```bash' >> "$new_profile_path/README.md"
+    echo "fedpunk profile deploy $new_profile_path --mode desktop" >> "$new_profile_path/README.md"
+    echo '```' >> "$new_profile_path/README.md"
+    echo "" >> "$new_profile_path/README.md"
+    echo "Or publish to GitHub:" >> "$new_profile_path/README.md"
+    echo '```bash' >> "$new_profile_path/README.md"
+    echo "cd $new_profile_path" >> "$new_profile_path/README.md"
+    echo "git init" >> "$new_profile_path/README.md"
+    echo "git add ." >> "$new_profile_path/README.md"
+    echo 'git commit -m "Initial commit"' >> "$new_profile_path/README.md"
+    echo "gh repo create $new_profile_name --public --source=. --push" >> "$new_profile_path/README.md"
+    echo "fedpunk profile deploy https://github.com/\$(whoami)/$new_profile_name.git" >> "$new_profile_path/README.md"
+    echo '```' >> "$new_profile_path/README.md"
 
     # Create desktop mode
-    cat > "$new_profile_path/modes/desktop/mode.yaml" <<EOF
-mode:
-  name: desktop
-  description: Desktop environment
-
-modules:
-  - essentials
-  - ssh
-  # Add more modules here
-EOF
+    echo "mode:" > "$new_profile_path/modes/desktop/mode.yaml"
+    echo "  name: desktop" >> "$new_profile_path/modes/desktop/mode.yaml"
+    echo "  description: Desktop environment" >> "$new_profile_path/modes/desktop/mode.yaml"
+    echo "" >> "$new_profile_path/modes/desktop/mode.yaml"
+    echo "modules:" >> "$new_profile_path/modes/desktop/mode.yaml"
+    echo "  - essentials" >> "$new_profile_path/modes/desktop/mode.yaml"
+    echo "  - ssh" >> "$new_profile_path/modes/desktop/mode.yaml"
+    echo "  # Add more modules here" >> "$new_profile_path/modes/desktop/mode.yaml"
 
     # Create container mode
-    cat > "$new_profile_path/modes/container/mode.yaml" <<EOF
-mode:
-  name: container
-  description: Container/server environment
-
-modules:
-  - essentials
-  - ssh
-  # Add more modules here
-EOF
+    echo "mode:" > "$new_profile_path/modes/container/mode.yaml"
+    echo "  name: container" >> "$new_profile_path/modes/container/mode.yaml"
+    echo "  description: Container/server environment" >> "$new_profile_path/modes/container/mode.yaml"
+    echo "" >> "$new_profile_path/modes/container/mode.yaml"
+    echo "modules:" >> "$new_profile_path/modes/container/mode.yaml"
+    echo "  - essentials" >> "$new_profile_path/modes/container/mode.yaml"
+    echo "  - ssh" >> "$new_profile_path/modes/container/mode.yaml"
+    echo "  # Add more modules here" >> "$new_profile_path/modes/container/mode.yaml"
 
     # Create .gitignore
-    cat > "$new_profile_path/.gitignore" <<EOF
-# Temporary files
-*.swp
-*.swo
-*~
-.DS_Store
-EOF
+    echo "# Temporary files" > "$new_profile_path/.gitignore"
+    echo "*.swp" >> "$new_profile_path/.gitignore"
+    echo "*.swo" >> "$new_profile_path/.gitignore"
+    echo "*~" >> "$new_profile_path/.gitignore"
+    echo ".DS_Store" >> "$new_profile_path/.gitignore"
 
     printf "✓ Profile created: %s\n" "$new_profile_path"
     printf "\n"
