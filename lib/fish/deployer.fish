@@ -321,19 +321,20 @@ function deployer-deploy-profile
         return 1
     end
 
-    set -l modules (yaml-get-value "$mode_file" "modules")
+    # Get modules array from YAML (modules is a top-level array)
+    set -l modules (yq '.modules[]' "$mode_file" 2>/dev/null)
     if test -z "$modules"
         ui-error "No modules defined in mode: $mode_name"
         return 1
     end
 
-    ui-info "Modules to deploy: $modules"
+    ui-info "Modules to deploy: "(count $modules)" module(s)"
 
     # Generate parameter configuration
     param-generate-fish-config "$mode_file"
 
     # Deploy each module (fetching happens automatically when needed)
-    for module_name in (string split " " -- $modules)
+    for module_name in $modules
         ui-info "Deploying module: $module_name"
         fedpunk-module deploy "$module_name"
         or begin
