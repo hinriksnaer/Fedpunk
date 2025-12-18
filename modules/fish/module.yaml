@@ -1,0 +1,26 @@
+module:
+  name: fish
+  description: Fish shell with Starship prompt and modern tooling
+  dependencies: []
+  priority: 5
+
+lifecycle:
+  before: []
+  after:
+    - install
+    - setup-fisher
+
+packages:
+  copr:
+    - atim/starship
+  dnf:
+    - fish
+    - util-linux-user
+    - starship
+    - procps-ng
+  cargo: []
+  npm: []
+
+stow:
+  target: $HOME
+  conflicts: warn
