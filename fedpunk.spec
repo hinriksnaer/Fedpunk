@@ -208,6 +208,18 @@ if [ $1 -eq 0 ]; then
 fi
 
 %changelog
+* Wed Dec 18 2024 Hinrik Gudmundsson <email@example.com> - 0.5.0-1
+- Transform to minimal core architecture
+- Remove all built-in profiles (external only)
+- Remove all themes (126 MB reduction)
+- Remove claude and bluetui modules (external only)
+- Only 2 core modules: essentials and ssh
+- Remove legacy installer.fish and toml-parser.fish
+- Total reduction: ~23,000 lines of code
+- Core package now <1 MB (excluding git)
+- External-first architecture for profiles and modules
+- Updated documentation for minimal core approach
+
 * Mon Dec 09 2024 Hinrik Gudmundsson <email@example.com> - 0.5.0-0.1
 - Initial unstable RPM packaging for COPR
 - Bleeding-edge builds from main branch
