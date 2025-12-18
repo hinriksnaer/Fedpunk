@@ -23,7 +23,7 @@ function show --description "Show current configuration"
 
     if not test -f "$config_file"
         printf "No configuration file found\n"
-        printf "Run 'fedpunk deploy profile' to create configuration\n"
+        printf "Run 'fedpunk profile deploy <url>' to create configuration\n"
         return 0
     end
 

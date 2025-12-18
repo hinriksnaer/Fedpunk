@@ -85,6 +85,12 @@ function select --description "Select profile interactively"
         printf "\n"
         printf "Usage: fedpunk profile select\n"
         printf "\n"
+        printf "Note: Fedpunk unstable uses external profiles.\n"
+        printf "This command helps you select from previously cached profiles.\n"
+        printf "\n"
+        printf "To deploy a new profile:\n"
+        printf "  fedpunk profile deploy <git-url> --mode <mode>\n"
+        printf "\n"
         printf "Requires: gum\n"
         return 0
     end
@@ -95,65 +101,85 @@ function select --description "Select profile interactively"
         return 1
     end
 
-    set -l profiles_dir "$FEDPUNK_ROOT/profiles"
-    if not test -d "$profiles_dir"
-        printf "No profiles directory found\n" >&2
-        return 1
+    # Check for cached external profiles
+    set -l cache_dir "$FEDPUNK_USER/cache/external"
+    set -l user_profiles_dir "$HOME/.config/fedpunk/profiles"
+
+    set -l profiles
+    set -l profile_paths
+
+    # Find cached external profiles
+    if test -d "$cache_dir"
+        for profile_dir in $cache_dir/*/*/*/*
+            if test -d "$profile_dir/modes"
+                set -l profile_name (string replace "$cache_dir/" "" "$profile_dir")
+                set -a profiles "$profile_name (cached)"
+                set -a profile_paths "$profile_dir"
+            end
+        end
     end
 
-    # Get list of profiles
-    set -l profiles
-    for profile_dir in $profiles_dir/*/
-        if test -d "$profile_dir"
-            set -a profiles (basename "$profile_dir")
+    # Find user-created profiles
+    if test -d "$user_profiles_dir"
+        for profile_dir in $user_profiles_dir/*/
+            if test -d "$profile_dir/modes"
+                set -l profile_name (basename "$profile_dir")
+                set -a profiles "$profile_name (local)"
+                set -a profile_paths "$profile_dir"
+            end
         end
     end
 
     if test (count $profiles) -eq 0
         printf "No profiles found\n" >&2
+        printf "\n"
+        printf "Deploy a profile first:\n"
+        printf "  fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk.git\n"
+        printf "\n"
+        printf "Or create a custom profile:\n"
+        printf "  fedpunk profile create myprofile\n"
         return 1
     end
 
-    # Get current profile for display
-    set -l current_profile ""
-    if test -L "$FEDPUNK_ROOT/.active-config"
-        set current_profile (basename (readlink "$FEDPUNK_ROOT/.active-config"))
-    end
-
-    # Build display list with markers
-    set -l display_list
-    for p in $profiles
-        if test "$p" = "$current_profile"
-            set -a display_list "$p (active)"
-        else
-            set -a display_list "$p"
-        end
-    end
-
     # Show interactive selector
-    set -l selected (gum choose --header "Select a profile to activate:" $display_list)
+    set -l selected (gum choose --header "Select a profile:" $profiles)
 
     if test -z "$selected"
         printf "No profile selected\n"
         return 0
     end
 
-    # Remove " (active)" marker if present
-    set -l profile_name (string replace " (active)" "" "$selected")
+    # Find the corresponding path
+    set -l selected_index 1
+    for i in (seq 1 (count $profiles))
+        if test "$profiles[$i]" = "$selected"
+            set selected_index $i
+            break
+        end
+    end
+
+    set -l profile_path $profile_paths[$selected_index]
 
     # Deploy the selected profile
-    deploy $profile_name
+    deploy $profile_path
 end
 
-function create --description "Create new profile from template"
+function create --description "Create new custom profile"
     if contains -- "$argv[1]" --help -h
-        printf "Create a new profile from an existing template\n"
+        printf "Create a new custom profile in ~/.config/fedpunk/profiles/\n"
         printf "\n"
         printf "Usage: fedpunk profile create [name]\n"
         printf "\n"
-        printf "If name is not provided, you'll be prompted interactively.\n"
+        printf "Creates a minimal profile structure that you can customize.\n"
+        printf "Profiles are git repositories containing modes/ and optionally plugins/\n"
         printf "\n"
-        printf "Requires: gum\n"
+        printf "After creating, you can:\n"
+        printf "  1. Edit modes/<mode>/mode.yaml to define module lists\n"
+        printf "  2. Add custom modules in plugins/\n"
+        printf "  3. Deploy with: fedpunk profile deploy ~/.config/fedpunk/profiles/<name>\n"
+        printf "\n"
+        printf "Or publish to GitHub and deploy via URL:\n"
+        printf "  fedpunk profile deploy https://github.com/user/profile.git\n"
         return 0
     end
 
@@ -174,47 +200,86 @@ function create --description "Create new profile from template"
         return 1
     end
 
-    set -l profiles_dir "$FEDPUNK_ROOT/profiles"
+    set -l profiles_dir "$HOME/.config/fedpunk/profiles"
     set -l new_profile_path "$profiles_dir/$new_profile_name"
 
     # Check if profile already exists
     if test -d "$new_profile_path"
-        printf "Error: Profile '%s' already exists\n" "$new_profile_name" >&2
+        printf "Error: Profile '%s' already exists at %s\n" "$new_profile_name" "$new_profile_path" >&2
         return 1
     end
 
-    # Ask which template to use
-    set -l template (gum choose --header "Select template to copy from:" "example" "default" "dev")
+    # Create profile structure
+    printf "Creating profile '%s'...\n" "$new_profile_name"
+    mkdir -p "$new_profile_path/modes/desktop"
+    mkdir -p "$new_profile_path/modes/container"
+    mkdir -p "$new_profile_path/plugins"
 
-    if test -z "$template"
-        printf "No template selected\n"
-        return 0
-    end
+    # Create README
+    cat > "$new_profile_path/README.md" <<EOF
+# $new_profile_name
 
-    # Copy template
-    printf "Creating profile '%s' from template '%s'...\n" "$new_profile_name" "$template"
-    cp -r "$profiles_dir/$template" "$new_profile_path"
+Custom Fedpunk profile.
 
-    # Update fedpunk.toml metadata
-    if test -f "$new_profile_path/fedpunk.toml"
-        # Prompt for profile metadata
-        set -l profile_desc (gum input --placeholder "Profile description" --value "My custom Fedpunk profile")
-        set -l profile_author (gum input --placeholder "Author name" --value (whoami))
+## Usage
 
-        # Update TOML file
-        sed -i "s/^name = .*/name = \"$new_profile_name\"/" "$new_profile_path/fedpunk.toml"
-        sed -i "s/^description = .*/description = \"$profile_desc\"/" "$new_profile_path/fedpunk.toml"
-        sed -i "s/^author = .*/author = \"$profile_author\"/" "$new_profile_path/fedpunk.toml"
-    end
+Deploy this profile:
+\`\`\`bash
+fedpunk profile deploy $new_profile_path --mode desktop
+\`\`\`
+
+Or publish to GitHub:
+\`\`\`bash
+cd $new_profile_path
+git init
+git add .
+git commit -m "Initial commit"
+gh repo create $new_profile_name --public --source=. --push
+fedpunk profile deploy https://github.com/\$(whoami)/$new_profile_name.git
+\`\`\`
+EOF
+
+    # Create desktop mode
+    cat > "$new_profile_path/modes/desktop/mode.yaml" <<EOF
+mode:
+  name: desktop
+  description: Desktop environment
+
+modules:
+  - essentials
+  - ssh
+  # Add more modules here
+EOF
+
+    # Create container mode
+    cat > "$new_profile_path/modes/container/mode.yaml" <<EOF
+mode:
+  name: container
+  description: Container/server environment
+
+modules:
+  - essentials
+  - ssh
+  # Add more modules here
+EOF
+
+    # Create .gitignore
+    cat > "$new_profile_path/.gitignore" <<EOF
+# Temporary files
+*.swp
+*.swo
+*~
+.DS_Store
+EOF
 
     printf "✓ Profile created: %s\n" "$new_profile_path"
     printf "\n"
-
-    # Ask if they want to deploy it now
-    if gum confirm "Deploy this profile now?"
-        deploy $new_profile_name
-    else
-        printf "Profile created but not deployed.\n"
-        printf "To deploy later, run: fedpunk profile deploy %s\n" "$new_profile_name"
-    end
+    printf "Next steps:\n"
+    printf "  1. cd %s\n" "$new_profile_path"
+    printf "  2. Edit modes/desktop/mode.yaml to customize modules\n"
+    printf "  3. Deploy: fedpunk profile deploy %s --mode desktop\n" "$new_profile_path"
+    printf "\n"
+    printf "To publish to GitHub:\n"
+    printf "  git init && git add . && git commit -m 'Initial commit'\n"
+    printf "  gh repo create $new_profile_name --public --source=. --push\n"
 end

@@ -12,9 +12,9 @@ function apply --description "Apply Fedpunk configuration"
         printf "and deploys the configured modules.\n"
         printf "\n"
         printf "Workflow:\n"
-        printf "  1. fedpunk profile activate <name>  # Set active profile\n"
-        printf "  2. fedpunk config edit              # Customize modules\n"
-        printf "  3. fedpunk apply                    # Apply changes\n"
+        printf "  1. fedpunk profile deploy <url> --mode <mode>  # Deploy a profile\n"
+        printf "  2. fedpunk config edit                         # Customize modules\n"
+        printf "  3. fedpunk apply                               # Apply changes\n"
         return 0
     end
 
