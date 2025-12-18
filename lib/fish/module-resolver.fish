@@ -86,7 +86,22 @@ function module-resolve-path
             return 1
         end
     else
-        # Regular module in base modules directory
+        # Regular module - check multiple locations
+        # Priority: 1) Active profile modules, 2) System modules
+
+        # Check active profile's modules directory first
+        set -l active_config_link "$FEDPUNK_USER/.active-config"
+        if test -L "$active_config_link"
+            set -l active_profile_dir (readlink -f "$active_config_link")
+            set -l profile_module_dir "$active_profile_dir/modules/$module_name"
+
+            if test -d "$profile_module_dir"
+                echo "$profile_module_dir"
+                return 0
+            end
+        end
+
+        # Check system modules directory
         set -l module_dir "$FEDPUNK_SYSTEM/modules/$module_name"
 
         if test -d "$module_dir"
