@@ -54,12 +54,19 @@ function use --description "Switch to a theme"
         return 1
     end
 
-    # Smart select: TUI if no arg + interactive, otherwise validate arg
-    set -l theme_name (ui-select-smart \
-        --value "$argv[1]" \
-        --header "Select theme:" \
-        --options $themes)
-    or return 1
+    # If theme name provided, validate it
+    if test (count $argv) -gt 0
+        set -l theme_name $argv[1]
+        if not contains -- "$theme_name" $themes
+            printf "Error: Theme '$theme_name' not found\n" >&2
+            printf "Available themes: %s\n" (string join ", " $themes) >&2
+            return 1
+        end
+    else
+        # Interactive selection
+        set -l theme_name (printf "%s\n" $themes | gum choose --header "Select theme:")
+        or return 1
+    end
 
     # Execute theme-set script from profile
     set -l script "$active_profile/scripts/fedpunk-theme-set"
