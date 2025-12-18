@@ -141,6 +141,64 @@ function deployer-prompt-mode
     echo $selected
 end
 
+function deployer-fetch-external-profile
+    # Fetch an external profile from a git URL
+    # Usage: deployer-fetch-external-profile <url>
+    # Returns: path to the cloned profile directory
+    # Similar to external-module-fetch but for profiles
+
+    set -l url $argv[1]
+
+    # Get cache path (same pattern as external modules)
+    set -l cache_base "$FEDPUNK_USER/cache/external"
+
+    # Normalize the URL to a path
+    set -l normalized_url (string replace -r '^https?://' '' "$url")
+    set -l normalized_url (string replace -r '^git@' '' "$normalized_url")
+    set -l normalized_url (string replace -r '^ssh://' '' "$normalized_url")
+    set -l normalized_url (string replace -r '^file://' '' "$normalized_url")
+    set -l normalized_url (string replace ':' '/' "$normalized_url")
+    set -l normalized_url (string replace -r '\.git$' '' "$normalized_url")
+
+    set -l cache_path "$cache_base/$normalized_url"
+    set -l cache_dir (dirname "$cache_path")
+
+    # Create cache directory if it doesn't exist
+    if not test -d "$cache_dir"
+        mkdir -p "$cache_dir"
+    end
+
+    if test -d "$cache_path"
+        # Already cloned, pull latest
+        ui-info "Updating external profile: $url" >&2
+        pushd "$cache_path" >/dev/null
+        git pull --quiet
+        or begin
+            popd >/dev/null
+            ui-error "Failed to update external profile: $url"
+            return 1
+        end
+        popd >/dev/null
+    else
+        # Clone the repository
+        ui-info "Cloning external profile: $url" >&2
+        git clone --quiet "$url" "$cache_path"
+        or begin
+            ui-error "Failed to clone external profile: $url"
+            return 1
+        end
+    end
+
+    # Verify modes directory exists
+    if not test -d "$cache_path/modes"
+        ui-error "Invalid external profile: modes/ directory not found in $url"
+        return 1
+    end
+
+    echo "$cache_path"
+    return 0
+end
+
 function deployer-deploy-profile
     # Deploy a profile with all its modules
     # Usage: deployer-deploy-profile [profile-name-or-url] [--mode MODE]
@@ -177,8 +235,41 @@ function deployer-deploy-profile
         or return 1
     end
 
-    # TODO: Handle git URL profiles (future enhancement)
-    # For now, only local profiles supported
+    # Check if profile_name is a git URL or local path
+    set -l profile_dir ""
+    if string match -qr '^https?://|^git@|^ssh://|^file://' "$profile_name"
+        # It's a git URL - fetch it
+        ui-info "Fetching external profile: $profile_name"
+        set profile_dir (deployer-fetch-external-profile "$profile_name")
+        or begin
+            ui-error "Failed to fetch external profile: $profile_name"
+            return 1
+        end
+    else if string match -q '/*' "$profile_name"
+        # It's an absolute path
+        if test -d "$profile_name"
+            set profile_dir "$profile_name"
+        else
+            ui-error "Profile directory not found: $profile_name"
+            return 1
+        end
+    else if string match -q '~/*' "$profile_name"; or string match -q './*' "$profile_name"; or string match -q '../*' "$profile_name"
+        # It's a relative path - expand it
+        set -l expanded_path (eval echo "$profile_name")
+        if test -d "$expanded_path"
+            set profile_dir "$expanded_path"
+        else
+            ui-error "Profile directory not found: $expanded_path"
+            return 1
+        end
+    else
+        # It's a local profile name - use profile discovery
+        set profile_dir (profile-find-path "$profile_name")
+        if test -z "$profile_dir"
+            ui-error "Profile not found: $profile_name"
+            return 1
+        end
+    end
 
     # Get mode (priority: arg > config > prompt)
     set -l mode_name ""
@@ -188,8 +279,33 @@ function deployer-deploy-profile
         set mode_name "$saved_mode"
         ui-info "Using saved mode: $mode_name"
     else
-        set mode_name (deployer-prompt-mode "$profile_name")
-        or return 1
+        # Determine available modes from profile directory
+        set -l modes_dir "$profile_dir/modes"
+        if not test -d "$modes_dir"
+            ui-error "No modes directory found in profile"
+            return 1
+        end
+
+        set -l modes
+        for mode_dir in $modes_dir/*
+            if test -d "$mode_dir"
+                set -a modes (basename "$mode_dir")
+            end
+        end
+
+        if test (count $modes) -eq 0
+            ui-error "No modes found in profile"
+            return 1
+        else if test (count $modes) -eq 1
+            set mode_name $modes[1]
+        else
+            ui-info "Available modes:" >&2
+            set mode_name (ui-choose --header "Select mode:" $modes)
+            or begin
+                ui-error "No mode selected"
+                return 1
+            end
+        end
     end
 
     # Save selections to config
@@ -197,13 +313,6 @@ function deployer-deploy-profile
     fedpunk-config-set "mode" "$mode_name"
 
     ui-info "Deploying profile: $profile_name (mode: $mode_name)"
-
-    # Find profile directory
-    set -l profile_dir (profile-find-path "$profile_name")
-    if test -z "$profile_dir"
-        ui-error "Profile not found: $profile_name"
-        return 1
-    end
 
     # Load modules from mode.yaml
     set -l mode_file "$profile_dir/modes/$mode_name/mode.yaml"
