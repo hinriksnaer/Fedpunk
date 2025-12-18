@@ -312,6 +312,23 @@ function deployer-deploy-profile
     fedpunk-config-set "profile" "$profile_name"
     fedpunk-config-set "mode" "$mode_name"
 
+    # Create .active-config symlink for plugin discovery
+    set -l active_config_link "$FEDPUNK_USER/.active-config"
+    set -l user_dir (dirname "$active_config_link")
+
+    # Ensure user directory exists
+    if not test -d "$user_dir"
+        mkdir -p "$user_dir"
+    end
+
+    # Remove old symlink if it exists
+    if test -L "$active_config_link"; or test -e "$active_config_link"
+        rm -f "$active_config_link"
+    end
+
+    # Create new symlink to profile directory
+    ln -sf "$profile_dir" "$active_config_link"
+
     ui-info "Deploying profile: $profile_name (mode: $mode_name)"
 
     # Load modules from mode.yaml
