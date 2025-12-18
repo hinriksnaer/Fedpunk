@@ -68,14 +68,37 @@ function use --description "Switch to a theme"
         or return 1
     end
 
-    # Execute theme-set script from profile
-    set -l script "$active_profile/scripts/fedpunk-theme-set"
-    if test -x "$script"
-        exec $script $theme_name
-    else
-        printf "Error: fedpunk-theme-set script not found in profile\n" >&2
+    # Find theme-set script (check multiple locations)
+    set -l script_name ""
+
+    # Try profile-specific script name (e.g., hyprpunk-theme-set)
+    set -l profile_name (basename "$active_profile")
+    for location in "$active_profile/scripts" "$active_profile/plugins/theme-manager/cli" "$active_profile/cli"
+        if test -x "$location/$profile_name-theme-set"
+            set script_name "$location/$profile_name-theme-set"
+            break
+        end
+    end
+
+    # Fallback to generic fedpunk-theme-set
+    if test -z "$script_name"
+        for location in "$active_profile/scripts" "$active_profile/plugins/theme-manager/cli"
+            if test -x "$location/fedpunk-theme-set"
+                set script_name "$location/fedpunk-theme-set"
+                break
+            end
+        end
+    end
+
+    # Check if we found a script
+    if test -z "$script_name"
+        printf "Error: Theme switching not supported by this profile\n" >&2
+        printf "The active profile does not provide theme management scripts.\n" >&2
         return 1
     end
+
+    # Execute the theme script
+    exec $script_name $theme_name
 end
 
 function list --description "List available themes"
