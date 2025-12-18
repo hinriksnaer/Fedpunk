@@ -62,10 +62,8 @@ function module-resolve-path
             echo "No active profile set (.active-config symlink missing)" >&2
             return 1
         end
-    end
-
-    # Regular module lookup
     else
+        # Regular module lookup (not a URL or path)
         # Regular module - check multiple locations
         # Priority: 1) Active profile modules, 2) System modules
 
