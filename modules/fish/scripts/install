@@ -1,8 +1,17 @@
 #!/usr/bin/env fish
 # Fish shell post-install setup
-# Handles: Setting fish as default shell
+# Handles: Setting fish as default shell, cleanup of old wrapper scripts
 
 echo "[fish/install] Setting up Fish shell..." >&2
+
+# Clean up old wrapper script from git-based installations
+# (DNF installations use /usr/bin/fedpunk instead)
+set -l old_wrapper "$HOME/.local/bin/fedpunk"
+if test -f "$old_wrapper"
+    echo "[fish/install] Removing old wrapper script..." >&2
+    rm -f "$old_wrapper"
+    echo "[fish/install] ✓ Cleaned up old wrapper" >&2
+end
 
 # Get the actual default shell from /etc/passwd
 set -l current_shell (getent passwd $USER | cut -d: -f7)
