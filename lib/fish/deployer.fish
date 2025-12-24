@@ -327,7 +327,9 @@ function deployer-deploy-profile
     end
 
     # Create new symlink to profile directory
-    ln -sf "$profile_dir" "$active_config_link"
+    # Ensure profile_dir is an absolute path (resolve relative paths)
+    set -l absolute_profile_dir (realpath "$profile_dir")
+    ln -sf "$absolute_profile_dir" "$active_config_link"
 
     ui-info "Deploying profile: $profile_name (mode: $mode_name)"
 
