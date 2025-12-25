@@ -33,11 +33,29 @@ if [ "$MODE" = "copr" ] || [ "$MODE" = "both" ]; then
     fi
 
     echo ""
-    echo "▶ Step 2: Testing COPR-built RPM..."
+    echo "▶ Step 2: Testing COPR-built RPM installation..."
     bash test/test-rpm-install.sh
     if [ $? -ne 0 ]; then
         echo ""
         echo "✗ COPR-mode installation test failed"
+        exit 1
+    fi
+
+    echo ""
+    echo "▶ Step 3: Testing core module deployment..."
+    bash test/test-core-modules.sh
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "✗ Core module tests failed"
+        exit 1
+    fi
+
+    echo ""
+    echo "▶ Step 4: Testing CLI functionality..."
+    bash test/test-cli-commands.sh
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "✗ CLI functionality tests failed"
         exit 1
     fi
 
@@ -62,11 +80,29 @@ if [ "$MODE" = "legacy" ] || [ "$MODE" = "both" ]; then
     fi
 
     echo ""
-    echo "▶ Step 2: Testing legacy-built RPM..."
+    echo "▶ Step 2: Testing legacy-built RPM installation..."
     bash test/test-rpm-install.sh
     if [ $? -ne 0 ]; then
         echo ""
         echo "✗ Legacy installation test failed"
+        exit 1
+    fi
+
+    echo ""
+    echo "▶ Step 3: Testing core module deployment..."
+    bash test/test-core-modules.sh
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "✗ Core module tests failed"
+        exit 1
+    fi
+
+    echo ""
+    echo "▶ Step 4: Testing CLI functionality..."
+    bash test/test-cli-commands.sh
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "✗ CLI functionality tests failed"
         exit 1
     fi
 

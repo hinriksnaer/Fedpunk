@@ -41,13 +41,13 @@ sudo dnf copr enable hinriksnaer/fedpunk
 sudo dnf install fedpunk
 
 # Deploy core modules
-fedpunk module deploy essentials
+fedpunk module deploy fish
 fedpunk module deploy ssh
 ```
 
 **What's installed:**
 - Core engine at `/usr/share/fedpunk`
-- Only 2 built-in modules: `essentials` and `ssh`
+- Only 3 built-in modules: `fish`, `ssh`, and `ssh-clusters`
 - No profiles, no themes (external only)
 - Environment variables configured for all shells
 
@@ -77,9 +77,10 @@ Fedpunk uses a **minimal core + external modules** architecture:
 │  ├─ Dependency resolver (recursive DAG)     │
 │  └─ GNU Stow wrapper (symlink deployment)   │
 ├─────────────────────────────────────────────┤
-│  Built-in Modules (2 only)                  │
-│  ├─ essentials (fish, starship, ripgrep)    │
-│  └─ ssh (SSH configuration)                 │
+│  Built-in Modules (3 only)                  │
+│  ├─ fish (Fish shell + Starship prompt)     │
+│  ├─ ssh (SSH configuration)                 │
+│  └─ ssh-clusters (SSH cluster management)   │
 ├─────────────────────────────────────────────┤
 │  External Modules (git URLs or local)       │
 │  ├─ https://github.com/user/module.git      │
@@ -132,7 +133,7 @@ module:
   name: mymodule
   description: My custom module
   dependencies:
-    - essentials      # Modules required before this one
+    - fish      # Modules required before this one
 
 parameters:
   api_key:
@@ -165,10 +166,10 @@ stow:
 fedpunk module list
 
 # Show module details
-fedpunk module info essentials
+fedpunk module info fish
 
 # Deploy a module (handles deps, packages, configs automatically)
-fedpunk module deploy essentials
+fedpunk module deploy fish
 
 # Deploy external module from git URL
 fedpunk module deploy https://github.com/user/module.git
@@ -207,26 +208,36 @@ modules:
 
 ## Built-in Modules
 
-Fedpunk ships with only 2 universal modules:
+Fedpunk ships with only 3 minimal modules:
 
-### essentials
-Universal system tools for modern development:
+### fish
+Modern Fish shell with Starship prompt:
 - Fish shell with modern tooling
-- Starship prompt
-- ripgrep, fd, bat, eza
+- Starship cross-shell prompt
+- Fisher plugin manager
 - Basic Fish configuration
 
 ```fish
-fedpunk module deploy essentials
+fedpunk module deploy fish
 ```
 
 ### ssh
-Universal SSH configuration:
-- SSH config structure
-- Key management helpers
+SSH client configuration:
+- Opinionated SSH config
+- Connection multiplexing
+- Key management CLI (`fedpunk ssh load`)
 
 ```fish
 fedpunk module deploy ssh
+```
+
+### ssh-clusters
+SSH cluster management (optional):
+- Cluster-based SSH configuration
+- Multi-host management
+
+```fish
+fedpunk module deploy ssh-clusters
 ```
 
 **That's it!** Everything else is external.

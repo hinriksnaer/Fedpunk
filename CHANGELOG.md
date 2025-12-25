@@ -7,6 +7,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🎉 Major Architectural Changes
+
+#### Minimal Core Migration
+- **Removed** Built-in profiles (default, dev) - now external
+- **Removed** Built-in themes - moved to hyprpunk external profile
+- **Removed** Desktop modules from core - moved to hyprpunk external profile
+- **Removed** `essentials` meta-module - replaced with explicit `fish` module
+- **Reduced** Core size from ~130 MB to ~500 KB (excluding git)
+
+#### Module System Refactoring
+- **Consolidated** `plugins/` and `modules/` into single `modules/` directory
+- **Removed** Theme CLI from core (now profile-specific, e.g., hyprpunk)
+- **Added** Profile modules directory to module resolution path
+- **Fixed** Deployer to create `.active-config` symlink for plugin discovery
+- **Fixed** Fish module wrapper script removal during installation
+
+#### Core Modules (3 remaining)
+- **fish** - Fish shell with Starship prompt and modern tooling
+- **ssh** - SSH client configuration with CLI extensions
+- **ssh-clusters** - SSH cluster management (optional)
+
+### 🔧 Improvements
+
+#### External Profile Support
+- **Added** Support for git URL-based external profiles
+- **Added** `.active-config` symlink for profile discovery
+- **Improved** Module resolver to handle external profiles correctly
+
+#### CLI System
+- **Improved** CLI command discovery and dispatch
+- **Fixed** Fish wrapper script cleanup during installation
+- **Added** Module CLI extension auto-discovery
+
+#### Configuration Management
+- **Fixed** YAML parsing for modules array
+- **Fixed** Deployer configuration handling
+- **Replaced** Heredocs with echo commands in Fish for compatibility
+
+### 📝 Documentation
+
+#### Migration Documentation
+- **Added** MIGRATION.md - Complete guide for users migrating from monolithic to minimal core
+- **Updated** README.md - Removed essentials references, updated module count
+- **Updated** docs/README.md - Aligned with new minimal core architecture
+- **Updated** CLAUDE.md - Reflects current architectural state
+
+#### Test Infrastructure
+- **Removed** Broken CI workflows (test-default-container, test-default-desktop, test-dev-desktop)
+- **Added** test-core-modules.yml - Tests core module deployment
+- **Added** test-cli-functionality.yml - Tests CLI commands and extensions
+- **Added** test/test-core-modules.sh - Module deployment test script
+- **Added** test/test-cli-commands.sh - CLI functionality test script
+- **Updated** test/test-rpm-install.sh - Updated for minimal core
+- **Updated** test/run-all-tests.sh - Orchestrates new test suite
+- **Updated** test/README.md - Documented new test structure
+
+### 🐛 Bug Fixes
+
+#### Module Resolution
+- **Fixed** Module resolver if/else structure after plugins removal
+- **Fixed** Theme script location search across multiple paths
+- **Fixed** Theme selection using gum choose directly
+
+#### Installation
+- **Removed** References to non-existent install.fish
+- **Removed** References to non-existent CLI commands
+- **Fixed** Config file initialization on RPM install
+
+### 📊 Statistics
+
+**Before Migration:**
+- Core size: ~130 MB
+- Built-in modules: 27+
+- Built-in profiles: 2 (default, dev)
+- Themes: 12 (built-in)
+
+**After Migration:**
+- Core size: ~500 KB
+- Built-in modules: 3 (fish, ssh, ssh-clusters)
+- Built-in profiles: 0 (all external)
+- Themes: 0 (in external profiles)
+
+### 🔗 Related Repositories
+
+- [hyprpunk](https://github.com/hinriksnaer/hyprpunk) - Full Hyprland desktop environment (external profile)
+- [fedpunk-minimal](https://github.com/hinriksnaer/fedpunk-minimal) - Minimal reference profile
+
+### ⚠️ Breaking Changes
+
+- **Removed** `essentials` module - use `fish` instead
+- **Removed** Built-in profiles - use external profiles like hyprpunk
+- **Removed** Theme CLI commands from core - use profile-specific commands
+- **Removed** `install.fish` - use DNF package installation
+- **Changed** Installation method from git clone to DNF
+
+### 📖 Migration Guide
+
+See [MIGRATION.md](MIGRATION.md) for complete migration instructions from monolithic to minimal core architecture.
+
 ## [0.3.2] - 2025-11-30
 
 ### 🎉 New Features

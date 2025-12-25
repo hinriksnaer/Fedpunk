@@ -1,0 +1,59 @@
+name: Test Core Module Deployment
+
+on:
+  push:
+    branches: [ main, unstable ]
+  pull_request:
+    branches: [ main, unstable ]
+  workflow_dispatch:
+
+jobs:
+  test-core-modules:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          dnf install -y git fish sudo rpm-build rpmdevtools yq gum jq
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build RPM package
+        run: |
+          bash test/build-rpm.sh
+
+      - name: Install Fedpunk RPM
+        run: |
+          dnf install -y ~/rpmbuild/RPMS/noarch/fedpunk-*.rpm
+
+      - name: Source Fedpunk environment
+        run: |
+          source /etc/profile.d/fedpunk.sh
+          echo "FEDPUNK_SYSTEM=$FEDPUNK_SYSTEM" >> $GITHUB_ENV
+          echo "FEDPUNK_USER=$FEDPUNK_USER" >> $GITHUB_ENV
+          echo "FEDPUNK_ROOT=$FEDPUNK_ROOT" >> $GITHUB_ENV
+
+      - name: Run core module deployment tests
+        env:
+          HOME: /root
+          PATH: /root/.local/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        run: |
+          source /etc/profile.d/fedpunk.sh
+          bash test/test-core-modules.sh
+
+      - name: Verify installation summary
+        run: |
+          echo ""
+          echo "========================================="
+          echo "Core Module Test Summary"
+          echo "========================================="
+          echo "Fedpunk version: $(cat /usr/share/fedpunk/VERSION)"
+          echo "Fish installed: $(fish --version)"
+          echo "SSH config: $(test -f ~/.ssh/config && echo 'Yes' || echo 'No')"
+          echo "Fish config: $(readlink -f ~/.config/fish/config.fish || echo 'Not symlinked')"
+          echo "========================================="
+          echo ""
+          echo "✅ All core module tests passed!"

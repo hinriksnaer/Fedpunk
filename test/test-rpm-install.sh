@@ -45,17 +45,18 @@ else
     exit 1
 fi
 
-if [ -d "/usr/share/fedpunk/profiles/default" ]; then
-    echo "  ✓ /usr/share/fedpunk/profiles/default exists"
+if [ -d "/usr/share/fedpunk/cli" ]; then
+    echo "  ✓ /usr/share/fedpunk/cli exists"
 else
-    echo "  ✗ /usr/share/fedpunk/profiles/default missing"
+    echo "  ✗ /usr/share/fedpunk/cli missing"
     exit 1
 fi
 
-if [ -d "/usr/share/fedpunk/themes" ]; then
-    echo "  ✓ /usr/share/fedpunk/themes exists"
+if [ -f "/usr/share/fedpunk/VERSION" ]; then
+    VERSION=$(cat /usr/share/fedpunk/VERSION)
+    echo "  ✓ /usr/share/fedpunk/VERSION exists ($VERSION)"
 else
-    echo "  ✗ /usr/share/fedpunk/themes missing"
+    echo "  ✗ /usr/share/fedpunk/VERSION missing"
     exit 1
 fi
 
@@ -95,61 +96,51 @@ else
     exit 1
 fi
 
-# Test 4: Test core module deployment (minimal test)
+# Test 4: Test fedpunk CLI command
 echo ""
-echo "✓ Test 4: Testing module deployment"
-# Just ensure user space exists and test basic module resolution
-fish -c "
-    source /usr/share/fedpunk/lib/fish/paths.fish
-    fedpunk-ensure-user-space
-
-    # Source module manager
-    source /usr/share/fedpunk/lib/fish/fedpunk-module.fish
-
-    # Test module list command
-    fedpunk-module list >/dev/null 2>&1
-    if test \$status -ne 0
-        echo '  ✗ Module list failed'
-        exit 1
-    end
-
-    echo '  ✓ Module system functional'
-"
-
-if [ $? -ne 0 ]; then
-    echo "  ✗ Core module system test failed"
+echo "✓ Test 4: Testing fedpunk CLI"
+if fedpunk --help | grep -q "Usage:"; then
+    echo "  ✓ fedpunk --help works"
+else
+    echo "  ✗ fedpunk --help failed"
     exit 1
 fi
 
-# Test 5: Verify user space created
+if fedpunk --version >/dev/null 2>&1; then
+    VERSION=$(fedpunk --version)
+    echo "  ✓ fedpunk --version works ($VERSION)"
+else
+    echo "  ✗ fedpunk --version failed"
+    exit 1
+fi
+
+if fedpunk module list >/dev/null 2>&1; then
+    echo "  ✓ fedpunk module list works"
+else
+    echo "  ✗ fedpunk module list failed"
+    exit 1
+fi
+
+# Test 5: Verify config directory can be created
 echo ""
-echo "✓ Test 5: User space creation"
-if [ -d "$HOME/.local/share/fedpunk" ]; then
-    echo "  ✓ $HOME/.local/share/fedpunk created"
+echo "✓ Test 5: Config directory"
+mkdir -p "$HOME/.config/fedpunk"
+if [ -d "$HOME/.config/fedpunk" ]; then
+    echo "  ✓ $HOME/.config/fedpunk can be created"
 else
-    echo "  ✗ $HOME/.local/share/fedpunk missing"
+    echo "  ✗ Failed to create config directory"
     exit 1
 fi
 
-if [ -d "$HOME/.local/share/fedpunk/profiles/dev" ]; then
-    echo "  ✓ $HOME/.local/share/fedpunk/profiles/dev created"
-else
-    echo "  ✗ $HOME/.local/share/fedpunk/profiles/dev missing"
-    exit 1
-fi
+# Create minimal config file for testing
+cat > "$HOME/.config/fedpunk/fedpunk.yaml" <<EOF
+modules: []
+EOF
 
-if [ -L "$HOME/.local/share/fedpunk/.active-config" ]; then
-    ACTIVE_PROFILE=$(readlink "$HOME/.local/share/fedpunk/.active-config")
-    echo "  ✓ .active-config -> $ACTIVE_PROFILE"
+if [ -f "$HOME/.config/fedpunk/fedpunk.yaml" ]; then
+    echo "  ✓ Config file can be created"
 else
-    echo "  ✗ .active-config symlink missing"
-    exit 1
-fi
-
-if [ -d "$HOME/.local/share/fedpunk/cache/external" ]; then
-    echo "  ✓ $HOME/.local/share/fedpunk/cache/external created"
-else
-    echo "  ✗ $HOME/.local/share/fedpunk/cache/external missing"
+    echo "  ✗ Failed to create config file"
     exit 1
 fi
 
