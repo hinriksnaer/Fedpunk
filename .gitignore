@@ -86,4 +86,3 @@ cli/bluetooth
 cli/ssh
 cli/wifi
 cli/vm
-modules/ssh-clusters/
