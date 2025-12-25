@@ -178,6 +178,31 @@ modules:
       jira_url: "https://company.atlassian.net"
 ```
 
+**Deploying external profiles:**
+
+Profiles can be deployed from git URLs:
+```fish
+fedpunk profile deploy https://github.com/user/profile.git --mode desktop
+```
+
+When deploying from a git URL:
+1. The repository is cloned to `~/.config/fedpunk/profiles/<repo-name>/`
+2. The profile name (extracted from the URL) is saved to `~/.config/fedpunk/fedpunk.yaml`
+3. Subsequent deployments will `git pull` updates automatically
+4. The saved profile name (not URL) can be used for future deployments
+
+Example workflow:
+```fish
+# Initial deployment from git URL
+fedpunk profile deploy git@github.com:hinriksnaer/hyprpunk.git --mode laptop
+
+# Config now contains: profile: hyprpunk
+# Profile is at: ~/.config/fedpunk/profiles/hyprpunk/
+
+# Later, redeploy using the saved profile name
+fedpunk profile deploy --mode desktop  # Uses saved profile: hyprpunk
+```
+
 ### External Module Support
 
 Modules can be referenced from:
@@ -186,7 +211,9 @@ Modules can be referenced from:
 - **Local paths**: `~/gits/module` or `/absolute/path`
 - **Git URLs**: `https://github.com/org/repo.git` or `git@github.com:org/repo.git`
 
-External modules are cached in `~/.fedpunk/cache/external/<host>/<org>/<repo>/`
+External modules are cached in `~/.local/share/fedpunk/cache/external/<host>/<org>/<repo>/`
+
+**Note:** External **profiles** (not modules) from git URLs are cloned to `~/.config/fedpunk/profiles/<repo-name>/` instead, as they are user configuration (not cached dependencies).
 
 ### Parameter System
 
@@ -327,7 +354,9 @@ bash test/test-rpm-install.sh   # Tests installation
 
 4. **Dependency cycles**: Module resolver detects circular dependencies. If you see this error, check your module.yaml dependency chains
 
-5. **External module caching**: Git modules are cloned once to `~/.fedpunk/cache/external/`. To update, delete the cache directory
+5. **External module/profile storage**:
+   - **Modules** (dependencies): Cloned to `~/.local/share/fedpunk/cache/external/`. To update, delete the cache directory
+   - **Profiles** (user config): Cloned to `~/.config/fedpunk/profiles/<repo-name>/`. Updated automatically with `git pull` on re-deploy
 
 6. **Parameter environment variables**: Parameters are UPPERCASE with module name prefix: `FEDPUNK_PARAM_<MODULE>_<PARAM>`
 

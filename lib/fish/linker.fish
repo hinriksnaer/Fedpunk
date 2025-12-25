@@ -87,13 +87,41 @@ function linker-get-owner
        '.files[$target].module // empty' "$LINKER_STATE_FILE"
 end
 
-# Handle conflict interactively
+# Handle conflict interactively or automatically
 function linker-handle-conflict
     set -l target $argv[1]
     set -l source $argv[2]
     set -l module $argv[3]
     set -l rel_path (string replace "$HOME/" "" "$target")
 
+    # Check for non-interactive mode via environment variable
+    # FEDPUNK_CONFLICT_MODE can be: overwrite, skip, or interactive (default)
+    set -l conflict_mode (set -q FEDPUNK_CONFLICT_MODE; and echo $FEDPUNK_CONFLICT_MODE; or echo "interactive")
+
+    # Auto-resolve if non-interactive
+    if test "$conflict_mode" = "overwrite"
+        echo "  ⚠️  Conflict: $rel_path (auto-replacing)"
+        # Backup and replace logic (same as 'r' option below)
+        set -l backup_dir "$HOME/.local/share/fedpunk-backups/config-backups"
+        mkdir -p "$backup_dir"
+        set -l backup_name (string replace -a "/" "_" (string replace "$HOME/" "" "$target"))
+        set -l backup "$backup_dir/$backup_name.backup."(date +%Y%m%d-%H%M%S)
+        if test -L "$target"
+            rm "$target"
+        else
+            mv "$target" "$backup"
+            echo "  → Backed up to: "(string replace "$HOME/" "~/" "$backup")
+        end
+        ln -sf "$source" "$target"
+        linker-state-add-file "$target" "$module"
+        return 0
+    else if test "$conflict_mode" = "skip"
+        echo "  ⚠️  Conflict: $rel_path (skipping)"
+        linker-state-add-conflict "$target" "$module" "skipped"
+        return 0
+    end
+
+    # Interactive mode
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "⚠️  CONFLICT DETECTED"
