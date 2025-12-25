@@ -141,86 +141,147 @@ function deployer-prompt-mode
     echo $selected
 end
 
-function deployer-fetch-external-profile
-    # Fetch an external profile from a git URL
-    # Usage: deployer-fetch-external-profile <url>
-    # Returns: path to the cloned profile directory
-    # Similar to external-module-fetch but for profiles
+function deployer-extract-repo-name
+    # Extract repository name from a git URL
+    # Usage: deployer-extract-repo-name <url>
+    # Returns: repository name (e.g., "hyprpunk" from "git@github.com:user/hyprpunk.git")
+    # Examples:
+    #   git@github.com:hinriksnaer/hyprpunk.git -> hyprpunk
+    #   https://github.com/user/my-profile.git -> my-profile
+    #   https://github.com/user/profile -> profile
 
     set -l url $argv[1]
 
-    # Get cache path (same pattern as external modules)
-    set -l cache_base "$FEDPUNK_USER/cache/external"
+    # Remove protocol and .git suffix
+    set -l normalized (string replace -r '^https?://' '' "$url")
+    set normalized (string replace -r '^git@' '' "$normalized")
+    set normalized (string replace -r '^ssh://' '' "$normalized")
+    set normalized (string replace -r '^file://' '' "$normalized")
+    set normalized (string replace -r '\.git$' '' "$normalized")
 
-    # Normalize the URL to a path
-    set -l normalized_url (string replace -r '^https?://' '' "$url")
-    set -l normalized_url (string replace -r '^git@' '' "$normalized_url")
-    set -l normalized_url (string replace -r '^ssh://' '' "$normalized_url")
-    set -l normalized_url (string replace -r '^file://' '' "$normalized_url")
-    set -l normalized_url (string replace ':' '/' "$normalized_url")
-    set -l normalized_url (string replace -r '\.git$' '' "$normalized_url")
+    # Extract the last component (repo name)
+    # github.com:user/repo -> repo
+    # github.com/user/repo -> repo
+    set -l repo_name (basename "$normalized")
 
-    set -l cache_path "$cache_base/$normalized_url"
-    set -l cache_dir (dirname "$cache_path")
+    echo "$repo_name"
+end
 
-    # Create cache directory if it doesn't exist
-    if not test -d "$cache_dir"
-        mkdir -p "$cache_dir"
+function deployer-fetch-external-profile
+    # Fetch an external profile from a git URL
+    # Usage: deployer-fetch-external-profile <url>
+    # Returns: path to the cloned profile directory and profile name (space-separated)
+    # Clones to: ~/.config/fedpunk/profiles/<repo-name>/
+    # This differs from external modules which are cached as dependencies
+
+    set -l url $argv[1]
+
+    # Extract repository name
+    set -l repo_name (deployer-extract-repo-name "$url")
+    set -l profiles_base "$HOME/.config/fedpunk/profiles"
+    set -l profile_path "$profiles_base/$repo_name"
+
+    # Create profiles directory if it doesn't exist
+    if not test -d "$profiles_base"
+        mkdir -p "$profiles_base"
     end
 
-    if test -d "$cache_path"
-        # Already cloned, pull latest
-        ui-info "Updating external profile: $url" >&2
-        pushd "$cache_path" >/dev/null
-        git pull --quiet
-        or begin
-            popd >/dev/null
-            ui-error "Failed to update external profile: $url"
+    if test -d "$profile_path"
+        # Directory exists - check if it's a git repository
+        if test -d "$profile_path/.git"
+            # It's a git repo - check if it's the same remote
+            pushd "$profile_path" >/dev/null
+            set -l current_remote (git remote get-url origin 2>/dev/null)
+
+            # Normalize URLs for comparison (remove .git suffix and protocol differences)
+            set -l normalized_current (string replace -r '\.git$' '' "$current_remote")
+            set -l normalized_new (string replace -r '\.git$' '' "$url")
+            set normalized_current (string replace -r '^https://github\.com/' 'git@github.com:' "$normalized_current")
+            set normalized_new (string replace -r '^https://github\.com/' 'git@github.com:' "$normalized_new")
+
+            if test "$normalized_current" = "$normalized_new"
+                # Same repo - pull latest
+                ui-info "Updating profile: $repo_name" >&2
+                git pull --quiet
+                or begin
+                    popd >/dev/null
+                    ui-error "Failed to update profile: $repo_name"
+                    return 1
+                end
+                popd >/dev/null
+            else
+                popd >/dev/null
+                ui-error "Profile name conflict: '$repo_name' already exists but points to different repository"
+                ui-error "Existing: $current_remote"
+                ui-error "Requested: $url"
+                ui-info "Remove the existing profile or use a different name"
+                return 1
+            end
+        else
+            # Directory exists but is not a git repo
+            ui-error "Profile name conflict: '$repo_name' exists but is not a git repository"
+            ui-info "Path: $profile_path"
+            ui-info "Remove the directory or use a different name"
             return 1
         end
-        popd >/dev/null
     else
         # Clone the repository
-        ui-info "Cloning external profile: $url" >&2
-        git clone --quiet "$url" "$cache_path"
+        ui-info "Cloning profile: $repo_name from $url" >&2
+        git clone --quiet "$url" "$profile_path"
         or begin
-            ui-error "Failed to clone external profile: $url"
+            ui-error "Failed to clone profile from: $url"
             return 1
         end
     end
 
     # Verify modes directory exists
-    if not test -d "$cache_path/modes"
-        ui-error "Invalid external profile: modes/ directory not found in $url"
+    if not test -d "$profile_path/modes"
+        ui-error "Invalid profile: modes/ directory not found in $url"
         return 1
     end
 
-    echo "$cache_path"
+    echo "$profile_path $repo_name"
     return 0
 end
 
 function deployer-deploy-profile
     # Deploy a profile with all its modules
-    # Usage: deployer-deploy-profile [profile-name-or-url] [--mode MODE]
+    # Usage: deployer-deploy-profile [profile-name-or-url] [--mode MODE] [--conflict MODE]
     # Examples:
     #   deployer-deploy-profile              # Interactive (uses config or prompts)
     #   deployer-deploy-profile default      # Deploy 'default' profile
     #   deployer-deploy-profile --mode desktop  # Use saved profile with desktop mode
     #   deployer-deploy-profile default --mode container
     #   deployer-deploy-profile https://github.com/user/profile.git --mode desktop
+    #   deployer-deploy-profile default --conflict overwrite  # Auto-replace conflicts
+    #   deployer-deploy-profile default --conflict skip       # Auto-skip conflicts
+    #
+    # --conflict options:
+    #   interactive (default) - Prompt for each conflict
+    #   overwrite - Automatically replace conflicting files (with backup)
+    #   skip - Automatically keep existing files
 
     # Parse arguments
     set -l profile_arg ""
     set -l mode_arg ""
+    set -l conflict_arg ""
     set -l i 1
     while test $i -le (count $argv)
         if test "$argv[$i]" = "--mode"
             set i (math $i + 1)
             set mode_arg $argv[$i]
+        else if test "$argv[$i]" = "--conflict"
+            set i (math $i + 1)
+            set conflict_arg $argv[$i]
         else
             set profile_arg $argv[$i]
         end
         set i (math $i + 1)
+    end
+
+    # Set conflict mode environment variable if specified
+    if test -n "$conflict_arg"
+        set -gx FEDPUNK_CONFLICT_MODE "$conflict_arg"
     end
 
     # Get profile (priority: arg > config > prompt)
@@ -237,14 +298,22 @@ function deployer-deploy-profile
 
     # Check if profile_name is a git URL or local path
     set -l profile_dir ""
+    set -l profile_to_save "$profile_name"  # By default, save what was provided
+
     if string match -qr '^https?://|^git@|^ssh://|^file://' "$profile_name"
         # It's a git URL - fetch it
         ui-info "Fetching external profile: $profile_name"
-        set profile_dir (deployer-fetch-external-profile "$profile_name")
+        set -l fetch_result (deployer-fetch-external-profile "$profile_name")
         or begin
             ui-error "Failed to fetch external profile: $profile_name"
             return 1
         end
+
+        # Parse the result (path and repo name)
+        set -l parts (string split " " -- $fetch_result)
+        set profile_dir $parts[1]
+        set profile_to_save $parts[2]  # Save the repo name, not the URL
+
     else if string match -q '/*' "$profile_name"
         # It's an absolute path
         if test -d "$profile_name"
@@ -309,7 +378,7 @@ function deployer-deploy-profile
     end
 
     # Save selections to config
-    fedpunk-config-set "profile" "$profile_name"
+    fedpunk-config-set "profile" "$profile_to_save"
     fedpunk-config-set "mode" "$mode_name"
 
     # Create .active-config symlink for plugin discovery
@@ -331,7 +400,7 @@ function deployer-deploy-profile
     set -l absolute_profile_dir (realpath "$profile_dir")
     ln -sf "$absolute_profile_dir" "$active_config_link"
 
-    ui-info "Deploying profile: $profile_name (mode: $mode_name)"
+    ui-info "Deploying profile: $profile_to_save (mode: $mode_name)"
 
     # Load modules from mode.yaml
     set -l mode_file "$profile_dir/modes/$mode_name/mode.yaml"
