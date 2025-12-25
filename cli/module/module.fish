@@ -2,8 +2,27 @@
 # Module management commands
 
 # Main function - required for bin to discover this command
-function module --description "Deploy modules"
+function module --description "Manage modules"
     # No-op: bin handles subcommand routing
+end
+
+function list --description "List available modules"
+    if contains -- "$argv[1]" --help -h
+        printf "List all available modules\n"
+        printf "\n"
+        printf "Usage: fedpunk module list\n"
+        printf "\n"
+        printf "Shows built-in modules from the system and any external modules.\n"
+        return 0
+    end
+
+    # Source module utilities
+    if not functions -q module-list-all
+        source "$FEDPUNK_SYSTEM/lib/fish/fedpunk-module.fish"
+    end
+
+    # List all modules
+    module-list-all
 end
 
 function deploy --description "Deploy a module"
