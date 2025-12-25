@@ -49,6 +49,10 @@ if [ ! -d ".git" ]; then
     exit 1
 fi
 
+# Fix Git safe.directory issue in CI containers
+# GitHub Actions runs in container as different user, triggering Git security check
+git config --global --add safe.directory "$(pwd)"
+
 # Create tarball with proper directory structure for %autosetup
 TARBALL="$HOME/rpmbuild/SOURCES/fedpunk-${VERSION}.tar.gz"
 git archive --format=tar.gz --prefix=fedpunk-${VERSION}/ -o "$TARBALL" HEAD
