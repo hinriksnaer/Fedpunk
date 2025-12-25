@@ -1,5 +1,5 @@
 #!/usr/bin/env fish
-# Module path resolution - handles base modules, profile plugins, and external modules
+# Module path resolution - handles base modules, profile modules, and external modules
 
 # Source dependencies
 set -l lib_dir (dirname (status -f))
@@ -8,7 +8,7 @@ source "$lib_dir/external-modules.fish"
 
 function module-resolve-path
     # Resolve module name to actual directory path
-    # Handles: regular modules, profile plugins, external git URLs, local paths
+    # Handles: regular modules, profile modules, external git URLs, local paths
     set -l module_name $argv[1]
 
     # Check if it's an external URL (https://, git@, file://)
@@ -18,8 +18,14 @@ function module-resolve-path
             echo "$cache_path"
             return 0
         else
-            echo "External module not cached: $module_name (run 'fedpunk external sync')" >&2
-            return 1
+            # Auto-fetch external module
+            set -l fetched_path (external-module-fetch "$module_name")
+            if test $status -eq 0
+                echo "$fetched_path"
+                return 0
+            else
+                return 1
+            end
         end
     end
 
@@ -39,11 +45,11 @@ function module-resolve-path
             end
         end
 
-        # Otherwise, treat as relative to active profile (for plugins/*)
+        # Otherwise, treat as relative to active profile's modules directory
         set -l active_config_link "$FEDPUNK_USER/.active-config"
         if test -L "$active_config_link"
             set -l active_profile_dir (readlink -f "$active_config_link")
-            set -l module_path "$active_profile_dir/$module_name"
+            set -l module_path "$active_profile_dir/modules/$module_name"
 
             if test -d "$module_path"
                 echo "$module_path"
@@ -56,31 +62,24 @@ function module-resolve-path
             echo "No active profile set (.active-config symlink missing)" >&2
             return 1
         end
-    end
+    else
+        # Regular module lookup (not a URL or path)
+        # Regular module - check multiple locations
+        # Priority: 1) Active profile modules, 2) System modules
 
-    # Check if it's a plugin reference (starts with "plugins/")
-    if string match -q "plugins/*" $module_name
-        # Get active profile
+        # Check active profile's modules directory first
         set -l active_config_link "$FEDPUNK_USER/.active-config"
-
         if test -L "$active_config_link"
             set -l active_profile_dir (readlink -f "$active_config_link")
-            set -l plugin_name (string replace "plugins/" "" $module_name)
-            set -l plugin_dir "$active_profile_dir/plugins/$plugin_name"
+            set -l profile_module_dir "$active_profile_dir/modules/$module_name"
 
-            if test -d "$plugin_dir"
-                echo "$plugin_dir"
+            if test -d "$profile_module_dir"
+                echo "$profile_module_dir"
                 return 0
-            else
-                echo "Plugin not found: $module_name (looked in $plugin_dir)" >&2
-                return 1
             end
-        else
-            echo "No active profile set (.active-config symlink missing)" >&2
-            return 1
         end
-    else
-        # Regular module in base modules directory
+
+        # Check system modules directory
         set -l module_dir "$FEDPUNK_SYSTEM/modules/$module_name"
 
         if test -d "$module_dir"

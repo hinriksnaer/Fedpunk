@@ -2,7 +2,6 @@
 fish_add_path -g $HOME/.local/bin
 fish_add_path -g $HOME/go/bin
 # Note: Rust/Cargo PATH is managed in conf.d/installer-managed.fish
-# Note: Claude Code auth is managed in active profile's claude-vertex.fish (if enabled)
 
 # Add active config scripts to PATH if directory exists
 set -l active_config "$HOME/.local/share/fedpunk/.active-config"
@@ -35,8 +34,6 @@ if command -v starship >/dev/null 2>&1
     starship init fish | source
 end
 
-# Note: NVIDIA Wayland env vars are managed in conf.d/installer-managed.fish
-
 # Default terminal for GUI applications
 set -gx TERMINAL kitty
 
@@ -67,5 +64,3 @@ set -l active_config "$HOME/.local/share/fedpunk/.active-config"
 if test -L "$active_config"; and test -f "$active_config/config.fish"
     source "$active_config/config.fish"
 end
-
-

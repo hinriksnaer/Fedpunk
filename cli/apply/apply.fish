@@ -1,38 +1,40 @@
+#!/usr/bin/env fish
 # Apply configuration command
 
-function apply --description "Apply configuration changes"
+function apply --description "Apply Fedpunk configuration"
+    # Show help if --help
     if contains -- "$argv[1]" --help -h
-        printf "Apply Fedpunk configuration changes\n"
+        printf "Apply Fedpunk configuration from config file\n"
         printf "\n"
         printf "Usage: fedpunk apply\n"
         printf "\n"
-        printf "This will re-run the installer to deploy/update modules.\n"
+        printf "Reads profile and mode from ~/.config/fedpunk/fedpunk.yaml\n"
+        printf "and deploys the configured modules.\n"
         printf "\n"
-        printf "Note: Configs are already live via stow symlinks.\n"
-        printf "This updates packages and runs module lifecycle hooks.\n"
-        printf "\n"
-        printf "Use 'fedpunk sync' to pull from git first.\n"
+        printf "Workflow:\n"
+        printf "  1. fedpunk profile deploy <url> --mode <mode>  # Deploy a profile\n"
+        printf "  2. fedpunk config edit                         # Customize modules\n"
+        printf "  3. fedpunk apply                               # Apply changes\n"
         return 0
+    end
+
+    # Source deployer library
+    if not functions -q deployer-deploy-from-config
+        source "$FEDPUNK_SYSTEM/lib/fish/deployer.fish"
     end
 
     printf "Applying Fedpunk configuration...\n"
     printf "\n"
 
-    # Check if install.fish exists
-    if not test -x "$FEDPUNK_ROOT/install.fish"
-        printf "Error: install.fish not found or not executable\n" >&2
-        return 1
-    end
-
-    # Run installer
-    if fish "$FEDPUNK_ROOT/install.fish"
+    # Deploy from config
+    if deployer-deploy-from-config
         printf "\n"
-        printf "Apply complete!\n"
+        printf "✓ Configuration applied successfully!\n"
         printf "\n"
         printf "Run 'exec fish' to reload your shell if needed.\n"
     else
         printf "\n"
-        printf "Error: Installer failed\n" >&2
+        printf "✗ Apply failed\n" >&2
         return 1
     end
 end

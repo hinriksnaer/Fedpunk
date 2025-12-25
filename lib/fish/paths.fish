@@ -72,6 +72,11 @@ function fedpunk-ensure-user-space
     # Ensure cache directories exist
     mkdir -p "$FEDPUNK_USER/cache/external"
 
+    # Ensure config directory exists (XDG standard location)
+    if not test -d "$HOME/.config/fedpunk"
+        mkdir -p "$HOME/.config/fedpunk/profiles"
+    end
+
     return 0
 end
 

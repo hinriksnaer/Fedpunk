@@ -1,5 +1,0 @@
-{
-  "hooks": {
-    "onSessionStart": "if [ -S /tmp/nvim.sock ]; then echo 'Connect to Neovim at /tmp/nvim.sock'; fi"
-  }
-}

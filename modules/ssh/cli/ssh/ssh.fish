@@ -2,14 +2,14 @@
 # SSH management commands
 # Handles key loading, host management, and SSH configuration
 
+# Source CLI dispatch library
+if not functions -q cli-dispatch
+    source "$FEDPUNK_ROOT/lib/fish/cli-dispatch.fish"
+end
+
 function ssh --description "SSH key and configuration management"
-    if contains -- "$argv[1]" --help -h
-        printf "SSH key and configuration management\n"
-        printf "\n"
-        printf "Manage SSH keys, hosts, and connections.\n"
-        return 0
-    end
-    _show_command_help ssh
+    set -l cmd_dir (dirname (status --current-filename))
+    cli-dispatch ssh $cmd_dir $argv
 end
 
 function load --description "Load SSH keys into agent"
@@ -162,4 +162,3 @@ function test-connection --description "Test SSH connection to a host"
     printf "Testing connection to %s...\n" $host_name
     ssh -v -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=no $host_name exit 2>&1 | grep -E "^(debug1: Connecting|debug1: Connection established|debug1: Authentication succeeded)"
 end
-

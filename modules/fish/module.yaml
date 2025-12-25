@@ -1,8 +1,7 @@
 module:
   name: fish
-  description: Fish shell setup for Fedpunk - includes Starship, Fisher, and base configuration
-  dependencies:
-    - rust
+  description: Fish shell with Starship prompt and modern tooling
+  dependencies: []
   priority: 5
 
 lifecycle:

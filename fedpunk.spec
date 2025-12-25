@@ -1,16 +1,16 @@
-# Build date for unstable builds
-%global build_date %(date +%%Y%%m%%d)
+# Build timestamp for unstable builds (includes time for unique versions)
+%global build_timestamp %(date +%%Y%%m%%d.%%H%%M%%S)
+%global branch unstable
 
 Name:           fedpunk
 Version:        0.5.0
-Release:        0.1.%{build_date}%{?dist}
-Summary:        Modular configuration engine for Fedora with Hyprland and Fish shell
+Release:        0.%{build_timestamp}.%{branch}%{?dist}
+Summary:        Minimal modular configuration engine for Fedora Linux
 
 License:        MIT
 URL:            https://github.com/hinriksnaer/Fedpunk
-# For COPR/rpkg builds: use git_dir_pack macro
-# For local builds: falls back to standard tarball
-Source0:        {{{ git_dir_pack }}}
+# GitHub automatic tarball for branch builds
+Source0:        https://github.com/hinriksnaer/Fedpunk/archive/refs/heads/%{branch}.tar.gz
 
 BuildArch:      noarch
 
@@ -28,20 +28,22 @@ Requires:       gum
 Recommends:     dnf-plugins-core
 
 %description
-Fedpunk is a next-generation configuration management system that transforms
-Fedora into a productivity powerhouse. It provides:
+Fedpunk is a minimal configuration engine for Fedora Linux. It provides:
 
 - Modular architecture with automatic dependency resolution
-- Profile system for multiple environments
-- Plugin framework for extensibility
-- Live theme engine with 12 themes
+- External module support (git URLs, local paths)
+- YAML-based module definitions
+- Parameter system with interactive prompting
+- GNU Stow integration for symlink-based deployment
 - Fish-first shell experience
-- Keyboard-driven Hyprland environment
+
+This is the core engine only. Profiles, themes, and most modules are
+maintained in external repositories.
 
 %prep
-# For COPR/rpkg builds: use git_dir_setup_macro to handle extraction
-# For local/CI builds: use %autosetup (build script replaces this template)
-{{{ git_dir_setup_macro }}}
+# Extract source tarball, stripping the variable top-level directory
+# Works for both COPR (Fedpunk-{branch}/) and rpkg local (Fedpunk-{commit}-dirty/)
+tar --strip-components=1 -xzf %{SOURCE0}
 
 %build
 # Nothing to build - pure Fish scripts
@@ -49,32 +51,34 @@ Fedora into a productivity powerhouse. It provides:
 %install
 # Create installation directories
 install -d %{buildroot}%{_datadir}/%{name}
+install -d %{buildroot}%{_datadir}/%{name}/bin
 install -d %{buildroot}%{_datadir}/%{name}/lib/fish
 install -d %{buildroot}%{_datadir}/%{name}/modules
-install -d %{buildroot}%{_datadir}/%{name}/profiles
-install -d %{buildroot}%{_datadir}/%{name}/themes
 install -d %{buildroot}%{_datadir}/%{name}/cli
 install -d %{buildroot}%{_sysconfdir}/profile.d
+install -d %{buildroot}%{_sysconfdir}/fish/conf.d
 install -d %{buildroot}%{_bindir}
 
 # Install core libraries
 cp -r lib/fish/* %{buildroot}%{_datadir}/%{name}/lib/fish/
 
-# Install built-in modules
-cp -r modules/* %{buildroot}%{_datadir}/%{name}/modules/
+# Install core modules only (minimal system - fish, ssh, ssh-clusters)
+for module in fish ssh ssh-clusters; do
+    cp -r modules/$module %{buildroot}%{_datadir}/%{name}/modules/
+done
 
-# Install system profiles (default and example, NOT dev)
-cp -r profiles/default %{buildroot}%{_datadir}/%{name}/profiles/
-cp -r profiles/example %{buildroot}%{_datadir}/%{name}/profiles/
+# Profiles are external only - no built-in profiles
+# Themes are external only - no built-in themes
+# Modules are external only - only fish and ssh are built-in
 
-# Install themes
-cp -r themes/* %{buildroot}%{_datadir}/%{name}/themes/
-
-# Install CLI commands
+# Install CLI commands (symlinked to user space at runtime)
 cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
+# Make all CLI scripts executable
+find %{buildroot}%{_datadir}/%{name}/cli -name "*.fish" -exec chmod 0755 {} \;
 
-# Install main installer script
-install -m 0755 install.fish %{buildroot}%{_datadir}/%{name}/install.fish
+# Install bin/fedpunk dispatcher
+cp bin/fedpunk %{buildroot}%{_datadir}/%{name}/bin/fedpunk
+chmod 0755 %{buildroot}%{_datadir}/%{name}/bin/fedpunk
 
 # Create /etc/profile.d script to set environment variables
 cat > %{buildroot}%{_sysconfdir}/profile.d/fedpunk.sh << 'EOF'
@@ -90,6 +94,15 @@ export FEDPUNK_USER=$HOME/.local/share/fedpunk
 # Backward compatibility
 export FEDPUNK_ROOT=$FEDPUNK_SYSTEM
 
+# Add ~/.local/bin to PATH for user-installed binaries
+# Required for tools like Claude Code, pip, cargo, npm, etc.
+if [ -d "$HOME/.local/bin" ]; then
+    case ":$PATH:" in
+        *":$HOME/.local/bin:"*) ;;
+        *) export PATH="$HOME/.local/bin:$PATH" ;;
+    esac
+fi
+
 # Add Fedpunk CLI to PATH if it exists
 if [ -d "$FEDPUNK_SYSTEM/cli" ]; then
     case ":$PATH:" in
@@ -99,24 +112,49 @@ if [ -d "$FEDPUNK_SYSTEM/cli" ]; then
 fi
 EOF
 
-# Create fedpunk wrapper script in /usr/bin
+# Create /etc/fish/conf.d script for Fish shell
+cat > %{buildroot}%{_sysconfdir}/fish/conf.d/fedpunk.fish << 'EOF'
+# Fedpunk environment variables for Fish shell
+# Auto-loaded by Fish on startup
+
+# System installation location
+set -gx FEDPUNK_SYSTEM /usr/share/fedpunk
+
+# User data directory (auto-created on first use)
+set -gx FEDPUNK_USER $HOME/.local/share/fedpunk
+
+# Backward compatibility
+set -gx FEDPUNK_ROOT $FEDPUNK_SYSTEM
+
+# Add ~/.local/bin to PATH for user-installed binaries
+# Required for tools like Claude Code, pip, cargo, npm, etc.
+fish_add_path -g $HOME/.local/bin
+
+# Add Fedpunk CLI to PATH if it exists
+if test -d $FEDPUNK_SYSTEM/cli
+    fish_add_path -g $FEDPUNK_SYSTEM/cli
+end
+EOF
+
+# Create fedpunk wrapper script in /usr/bin that delegates to bin/fedpunk
 cat > %{buildroot}%{_bindir}/fedpunk << 'EOF'
 #!/usr/bin/env fish
-# Fedpunk command wrapper
+# Fedpunk CLI Wrapper - Delegates to the modular dispatcher
 
-# Source paths library if not already loaded
+# Set environment variables for the dispatcher
 if not set -q FEDPUNK_SYSTEM
-    source /usr/share/fedpunk/lib/fish/paths.fish
+    set -gx FEDPUNK_SYSTEM /usr/share/fedpunk
 end
 
-# Handle subcommands (currently only 'install' is supported)
-# Skip the 'install' subcommand if present and pass remaining args
-if test (count $argv) -gt 0; and test "$argv[1]" = "install"
-    set -e argv[1]  # Remove 'install' from arguments
+if not set -q FEDPUNK_USER
+    set -gx FEDPUNK_USER $HOME/.local/share/fedpunk
 end
 
-# Run install.fish with remaining arguments
-exec /usr/share/fedpunk/install.fish $argv
+# Set FEDPUNK_ROOT for backward compatibility with bin/fedpunk
+set -gx FEDPUNK_ROOT $FEDPUNK_SYSTEM
+
+# Delegate to the modular dispatcher
+exec $FEDPUNK_SYSTEM/bin/fedpunk $argv
 EOF
 chmod 0755 %{buildroot}%{_bindir}/fedpunk
 
@@ -127,11 +165,44 @@ chmod 0755 %{buildroot}%{_bindir}/fedpunk
 
 %{_datadir}/%{name}/
 %{_sysconfdir}/profile.d/fedpunk.sh
+%{_sysconfdir}/fish/conf.d/fedpunk.fish
 %{_bindir}/fedpunk
 
 %post
-# Create user space on first install
+# Create user space and initialize config on first install
 if [ $1 -eq 1 ]; then
+    # Initialize config for all users who run fedpunk
+    # This will be created on first use, but we can create a system-wide template
+    CONFIG_DIR="$HOME/.config/fedpunk"
+    CONFIG_FILE="$CONFIG_DIR/fedpunk.yaml"
+
+    # Only create if running as a user (not root during package install)
+    if [ -n "$SUDO_USER" ]; then
+        # Get the actual user's home directory
+        USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+        CONFIG_DIR="$USER_HOME/.config/fedpunk"
+        CONFIG_FILE="$CONFIG_DIR/fedpunk.yaml"
+
+        # Create config directory
+        mkdir -p "$CONFIG_DIR"
+        mkdir -p "$CONFIG_DIR/profiles"
+
+        # Create initial config file
+        cat > "$CONFIG_FILE" <<EOF
+# Fedpunk Configuration
+# Auto-generated on $(date)
+
+profile: null
+mode: null
+modules:
+  enabled: []
+  disabled: []
+EOF
+
+        # Set ownership to the actual user
+        chown -R "$SUDO_USER:$SUDO_USER" "$CONFIG_DIR"
+    fi
+
     echo "=========================================="
     echo "Fedpunk (UNSTABLE) installed successfully"
     echo "=========================================="
@@ -140,12 +211,19 @@ if [ $1 -eq 1 ]; then
     echo "Expect bugs and breaking changes. Use at your own risk!"
     echo ""
     echo "Installation location: /usr/share/fedpunk"
+    echo "Configuration: ~/.config/fedpunk/fedpunk.yaml"
     echo ""
-    echo "To complete installation, run:"
-    echo "  fedpunk install"
+    echo "Fedpunk is a minimal configuration engine."
+    echo "No profiles or modules are installed by default."
     echo ""
-    echo "For container/server mode:"
-    echo "  fedpunk install --mode container"
+    echo "Quick start (deploy external modules):"
+    echo "  fedpunk module deploy https://github.com/user/module.git"
+    echo ""
+    echo "Deploy external profiles:"
+    echo "  fedpunk profile deploy https://github.com/user/profile.git --mode desktop"
+    echo ""
+    echo "Example: Deploy Hyprpunk desktop environment"
+    echo "  fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk.git --mode desktop"
     echo ""
     echo "Report issues: https://github.com/hinriksnaer/Fedpunk/issues"
     echo "=========================================="
@@ -160,6 +238,18 @@ if [ $1 -eq 0 ]; then
 fi
 
 %changelog
+* Wed Dec 18 2024 Hinrik Gudmundsson <email@example.com> - 0.5.0-1
+- Transform to minimal core architecture
+- Remove all built-in profiles (external only)
+- Remove all themes (126 MB reduction)
+- Remove claude and bluetui modules (external only)
+- Only 2 core modules: essentials and ssh
+- Remove legacy installer.fish and toml-parser.fish
+- Total reduction: ~23,000 lines of code
+- Core package now <1 MB (excluding git)
+- External-first architecture for profiles and modules
+- Updated documentation for minimal core approach
+
 * Mon Dec 09 2024 Hinrik Gudmundsson <email@example.com> - 0.5.0-0.1
 - Initial unstable RPM packaging for COPR
 - Bleeding-edge builds from main branch

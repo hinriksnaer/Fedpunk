@@ -10,19 +10,41 @@ Test suite for validating Fedpunk RPM packaging and installation.
 
 ```bash
 # In devcontainer or Fedora container
-bash test/run-all-tests.sh
+bash test/run-all-tests.sh copr
 ```
 
-This runs both the build and installation tests in sequence.
+This runs the complete test suite:
+1. Build RPM (COPR mode with rpkg)
+2. Test RPM installation
+3. Test core module deployment (fish, ssh)
+4. Test CLI functionality and extensions
+
+**This is now the default mode.**
+
+### Run All Test Modes
+
+```bash
+bash test/run-all-tests.sh both    # Both COPR and legacy modes
+bash test/run-all-tests.sh legacy  # Legacy mode only
+```
 
 ### Run Individual Tests
 
 ```bash
-# Build RPM only
+# Build RPM (COPR mode - recommended)
+bash test/build-rpm-copr-mode.sh
+
+# Build RPM (Legacy mode)
 bash test/build-rpm.sh
 
-# Test installation only (requires RPM to be built first)
+# Test RPM installation
 bash test/test-rpm-install.sh
+
+# Test core module deployment
+bash test/test-core-modules.sh
+
+# Test CLI functionality
+bash test/test-cli-commands.sh
 ```
 
 ---
@@ -36,11 +58,18 @@ Every push to `main` or PR targeting `main` triggers the RPM build and test work
 **Workflow:** `.github/workflows/test-rpm-build.yml`
 
 **What it does:**
-1. Checks out code in Fedora 43 container
-2. Runs `test/build-rpm.sh` to build the RPM
-3. Runs `test/test-rpm-install.sh` to validate installation
-4. Uploads built RPM and SRPM as artifacts (30-day retention)
-5. Blocks merge if tests fail
+1. **Validate COPR Spec** (Primary):
+   - Validates spec file with `test/build-rpm-copr-mode.sh` (rpkg)
+   - Ensures rpkg can process templates
+   - Uploads SRPM artifact as `fedpunk-srpm-copr`
+   - **Fast validation - no full build**
+
+2. **Build & Test RPM** (Secondary):
+   - Builds full RPM using `test/build-rpm.sh` (legacy mode)
+   - Tests installation
+   - Uploads artifacts as `fedpunk-rpm-legacy` and `fedpunk-srpm-legacy`
+
+**Both jobs must pass** before merge is allowed. COPR validation ensures COPR builds will work. Legacy mode ensures the package actually installs correctly.
 
 **View results:**
 - https://github.com/hinriksnaer/Fedpunk/actions
@@ -70,58 +99,111 @@ podman run -it --rm \
 
 ---
 
-## Test Suite Details
+## Test Modes
 
-### build-rpm.sh
+### COPR Mode (Recommended) - build-rpm-copr-mode.sh
 
-**Purpose:** Build RPM package from source
+**Purpose:** Validate spec file with rpkg (ensures COPR builds will work)
+
+**How it works:**
+- Uses rpkg to process spec file templates: `{{{ git_dir_pack }}}` and `{{{ git_dir_setup_macro }}}`
+- Builds SRPM with: `rpkg srpm`
+- **Validates templates only - does NOT build binary RPM**
+
+**Why use this:**
+- ✅ Validates spec file templates COPR will use
+- ✅ Catches COPR-specific issues before pushing to main
+- ✅ Fast validation (no full RPM build needed)
+- ✅ Ensures `.copr/Makefile` and templates work correctly
+
+**Steps:**
+1. Install rpkg (minimal dependencies)
+2. Verify git repository
+3. Run `rpkg srpm` to create SRPM (processes templates)
+4. Validate SRPM was created successfully
+5. Exit (binary RPM build tested in legacy mode)
+
+### Legacy Mode - build-rpm.sh
+
+**Purpose:** Build RPM for quick local testing without rpkg
+
+**How it works:**
+- Modifies spec file to replace rpkg templates with static values
+- Creates tarball manually with `git archive`
+- Builds with standard `rpmbuild`
+
+**Why use this:**
+- ✅ Works without rpkg dependency
+- ✅ Good for quick local development
+- ✅ Compatible with older build tools
 
 **Steps:**
 1. Install build dependencies (rpm-build, rpmdevtools, git, fish, stow, yq, gum)
-2. Set up RPM build tree (`~/rpmbuild/`)
-3. Create source tarball from current code
-4. Build RPM using `fedpunk.spec`
-5. Output RPM and SRPM locations
+2. Create source tarball with `git archive`
+3. Replace `{{{ git_dir_pack }}}` → `fedpunk-%{version}.tar.gz`
+4. Replace `{{{ git_dir_setup_macro }}}` → `%autosetup`
+5. Build RPM with `rpmbuild -ba`
 
-**Success criteria:**
-- RPM builds without errors
-- Binary RPM created in `~/rpmbuild/RPMS/noarch/`
-- Source RPM created in `~/rpmbuild/SRPMS/`
+**Important:** CI and COPR use different code paths in this mode. Use COPR mode to validate before merging.
 
-**Output:**
-```
-Binary RPM: ~/rpmbuild/RPMS/noarch/fedpunk-0.5.0-0.1.20241209gitabcd123.fc43.noarch.rpm
-Source RPM: ~/rpmbuild/SRPMS/fedpunk-0.5.0-0.1.20241209gitabcd123.fc43.src.rpm
-```
+---
+
+## Test Suite Details
 
 ### test-rpm-install.sh
 
-**Purpose:** Validate RPM installation and functionality
+**Purpose:** Validate RPM installation and basic functionality
 
 **Tests performed:**
 1. ✓ System files exist in `/usr/share/fedpunk/`
-2. ✓ Environment setup via `/etc/profile.d/fedpunk.sh`
-3. ✓ Wrapper command `/usr/bin/fedpunk` is executable
-4. ✓ `fedpunk install --mode container` runs successfully
-5. ✓ User space auto-created in `~/.local/share/fedpunk/`
-6. ✓ Active profile symlink points correctly
-7. ✓ Fish config generated (`fedpunk-module-params.fish`)
-8. ✓ Fish shell starts without errors
+2. ✓ Core directories (lib, modules, cli) present
+3. ✓ Environment setup via `/etc/profile.d/fedpunk.sh`
+4. ✓ Wrapper command `/usr/bin/fedpunk` is executable
+5. ✓ fedpunk CLI commands work (--help, --version, module list)
+6. ✓ Config directory can be created
+7. ✓ Core libraries load without errors
 
 **Success criteria:**
-- All 7 test sections pass
-- Installation summary displays correctly
-- Fish shell is usable
+- All test sections pass
+- fedpunk CLI is functional
+- Environment variables properly set
 
-**Output:**
-```
-=== All Tests Passed! ===
+### test-core-modules.sh
 
-Installation Summary:
-  System files: /usr/share/fedpunk/
-  User data:    /root/.local/share/fedpunk/
-  Active profile: default
-```
+**Purpose:** Test core module deployment
+
+**Tests performed:**
+1. ✓ Deploy fish module
+2. ✓ Verify fish config symlinked correctly
+3. ✓ Verify fish shell starts
+4. ✓ Deploy ssh module
+5. ✓ Verify ssh config exists
+6. ✓ Test ssh CLI extension (fedpunk ssh)
+7. ✓ Verify modules tracked in config
+
+**Success criteria:**
+- Both core modules deploy successfully
+- Configs are properly symlinked
+- Module CLI extensions work
+
+### test-cli-commands.sh
+
+**Purpose:** Test CLI functionality and extensions
+
+**Tests performed:**
+1. ✓ fedpunk --help displays usage
+2. ✓ fedpunk --version works
+3. ✓ fedpunk module --help shows subcommands
+4. ✓ fedpunk module list shows available modules
+5. ✓ fedpunk config command available
+6. ✓ Module CLI extensions auto-discovered
+7. ✓ Configuration system works (fedpunk apply)
+8. ✓ Command discovery finds all commands
+
+**Success criteria:**
+- Core CLI commands functional
+- Module extensions work
+- Configuration system operational
 
 ### run-all-tests.sh
 
@@ -284,9 +366,12 @@ Follow the existing pattern for consistency.
 
 ## Files
 
-- **build-rpm.sh** - Builds RPM package
-- **test-rpm-install.sh** - Tests installation
-- **run-all-tests.sh** - Runs full test suite
+- **build-rpm.sh** - Builds RPM package (legacy mode)
+- **build-rpm-copr-mode.sh** - Builds RPM package (COPR mode)
+- **test-rpm-install.sh** - Tests RPM installation
+- **test-core-modules.sh** - Tests core module deployment
+- **test-cli-commands.sh** - Tests CLI functionality
+- **run-all-tests.sh** - Orchestrates full test suite
 - **README.md** - This file
 
 ---
