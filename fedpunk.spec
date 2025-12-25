@@ -62,8 +62,8 @@ install -d %{buildroot}%{_bindir}
 # Install core libraries
 cp -r lib/fish/* %{buildroot}%{_datadir}/%{name}/lib/fish/
 
-# Install core modules only (minimal system - fish and ssh)
-for module in fish ssh; do
+# Install core modules only (minimal system - fish, ssh, ssh-clusters)
+for module in fish ssh ssh-clusters; do
     cp -r modules/$module %{buildroot}%{_datadir}/%{name}/modules/
 done
 
