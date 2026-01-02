@@ -23,6 +23,8 @@ Requires:       jq
 
 # Runtime dependencies (for module package managers)
 Requires:       nodejs
+Requires:       rust
+Requires:       cargo
 
 # UI dependencies
 Requires:       gum
