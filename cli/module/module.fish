@@ -12,7 +12,7 @@ function installed --description "List installed modules"
         printf "\n"
         printf "Usage: fedpunk module installed\n"
         printf "\n"
-        printf "Shows modules from fedpunk.yaml grouped by type:\n"
+        printf "Shows all deployed modules grouped by type:\n"
         printf "  native   - Built-in system modules\n"
         printf "  external - Git-cloned modules (~/.config/fedpunk/modules/)\n"
         printf "  profile  - Modules from active profile\n"
@@ -24,10 +24,49 @@ function installed --description "List installed modules"
     source "$FEDPUNK_SYSTEM/lib/fish/module-resolver.fish"
     source "$FEDPUNK_SYSTEM/lib/fish/external-modules.fish"
 
-    set -l enabled_modules (fedpunk-config-list-enabled-modules)
-    if test -z "$enabled_modules"
+    # Collect all installed modules from multiple sources
+    set -l all_modules
+
+    # 1. Get modules from fedpunk.yaml (explicitly deployed)
+    set -l config_modules (fedpunk-config-list-enabled-modules 2>/dev/null)
+    for m in $config_modules
+        set -a all_modules $m
+    end
+
+    # 2. Get modules from active profile's mode.yaml
+    set -l profile_name (fedpunk-config-get profile 2>/dev/null)
+    set -l mode_name (fedpunk-config-get mode 2>/dev/null)
+    if test -n "$profile_name" -a -n "$mode_name" -a "$profile_name" != "null" -a "$mode_name" != "null"
+        # Find profile directory
+        set -l profile_dir ""
+        if test -d "$HOME/.config/fedpunk/profiles/$profile_name"
+            set profile_dir "$HOME/.config/fedpunk/profiles/$profile_name"
+        else if test -d "$FEDPUNK_SYSTEM/profiles/$profile_name"
+            set profile_dir "$FEDPUNK_SYSTEM/profiles/$profile_name"
+        end
+
+        if test -n "$profile_dir"
+            set -l mode_file "$profile_dir/modes/$mode_name/mode.yaml"
+            if test -f "$mode_file"
+                # Get module references from mode.yaml
+                set -l mode_modules (yq '.modules[]' "$mode_file" 2>/dev/null | string replace -r '^-\s*' '')
+                for m in $mode_modules
+                    # Handle both string and object formats
+                    if string match -q '{*' "$m"
+                        # Object format - extract module field
+                        set m (echo "$m" | yq '.module' 2>/dev/null)
+                    end
+                    if test -n "$m" -a "$m" != "null"
+                        set -a all_modules $m
+                    end
+                end
+            end
+        end
+    end
+
+    if test (count $all_modules) -eq 0
         echo "No modules installed."
-        echo "Use 'fedpunk module deploy <name>' to install modules."
+        echo "Use 'fedpunk module deploy <name>' or 'fedpunk apply' to install modules."
         return 0
     end
 
@@ -36,7 +75,7 @@ function installed --description "List installed modules"
     set -l external_modules_git
     set -l profile_modules
 
-    for module_ref in $enabled_modules
+    for module_ref in $all_modules
         # Get the resolved path to determine type
         set -l module_path (module-resolve-path "$module_ref" 2>/dev/null)
         if test -z "$module_path"
