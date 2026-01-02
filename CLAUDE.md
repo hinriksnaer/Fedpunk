@@ -236,10 +236,11 @@ modules:
 
 **Source management commands:**
 ```fish
-fedpunk source add <git-url>    # Add a source repository
-fedpunk source list             # List configured sources
-fedpunk source sync             # Clone/update all sources
-fedpunk source modules          # List modules from all sources
+fedpunk module source add <url>     # Add a source repository
+fedpunk module source list          # List configured sources
+fedpunk module source sync          # Clone/update all sources
+fedpunk module source modules       # List modules from all sources
+fedpunk module source remove <url>  # Remove a source
 ```
 
 ### Parameter System
