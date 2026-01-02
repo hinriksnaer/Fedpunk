@@ -13,9 +13,9 @@ function module-resolve-path
 
     # Check if it's an external URL (https://, git@, file://)
     if module-ref-is-url "$module_name"
-        set -l cache_path (external-module-get-cache-path "$module_name")
-        if test -d "$cache_path"
-            echo "$cache_path"
+        set -l storage_path (external-module-get-storage-path "$module_name")
+        if test -d "$storage_path"
+            echo "$storage_path"
             return 0
         else
             # Auto-fetch external module
@@ -65,7 +65,7 @@ function module-resolve-path
     else
         # Regular module lookup (not a URL or path)
         # Regular module - check multiple locations
-        # Priority: 1) Active profile modules, 2) System modules
+        # Priority: 1) Profile modules, 2) External modules, 3) System modules
 
         # Check active profile's modules directory first
         set -l active_config_link "$FEDPUNK_USER/.active-config"
@@ -77,6 +77,13 @@ function module-resolve-path
                 echo "$profile_module_dir"
                 return 0
             end
+        end
+
+        # Check external modules directory
+        set -l external_module_dir (external-module-storage-dir)"/$module_name"
+        if test -d "$external_module_dir"
+            echo "$external_module_dir"
+            return 0
         end
 
         # Check system modules directory

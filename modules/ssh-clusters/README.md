@@ -254,12 +254,19 @@ Remove the parameter from `fedpunk.yaml` and redeploy:
 fedpunk module deploy git@gitlab.com:redhat/rhel-ai/team-pytorch/fedpunk-modules/ssh-clusters.git
 ```
 
-### Module cached with old version
+### Module has old version
 
-Clear the external module cache:
+Update the external module:
 
 ```fish
-rm -rf ~/.local/share/fedpunk/cache/external/gitlab.com/redhat/rhel-ai/team-pytorch/fedpunk-modules/ssh-clusters
+cd ~/.config/fedpunk/modules/ssh-clusters
+git pull
+```
+
+Or remove and re-deploy:
+
+```fish
+rm -rf ~/.config/fedpunk/modules/ssh-clusters
 fedpunk module deploy git@gitlab.com:redhat/rhel-ai/team-pytorch/fedpunk-modules/ssh-clusters.git
 ```
 

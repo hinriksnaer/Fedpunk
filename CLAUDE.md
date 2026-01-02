@@ -211,7 +211,7 @@ Modules can be referenced from:
 - **Local paths**: `~/gits/module` or `/absolute/path`
 - **Git URLs**: `https://github.com/org/repo.git` or `git@github.com:org/repo.git`
 
-External modules are cached in `~/.local/share/fedpunk/cache/external/<host>/<org>/<repo>/`
+External modules are stored in `~/.config/fedpunk/modules/<repo-name>/` for easy modification without cache invalidation issues.
 
 **Note:** External **profiles** (not modules) from git URLs are cloned to `~/.config/fedpunk/profiles/<repo-name>/` instead, as they are user configuration (not cached dependencies).
 
@@ -355,7 +355,7 @@ bash test/test-rpm-install.sh   # Tests installation
 4. **Dependency cycles**: Module resolver detects circular dependencies. If you see this error, check your module.yaml dependency chains
 
 5. **External module/profile storage**:
-   - **Modules** (dependencies): Cloned to `~/.local/share/fedpunk/cache/external/`. To update, delete the cache directory
+   - **Modules** (dependencies): Cloned to `~/.config/fedpunk/modules/<repo-name>/`. Stored in config for easy editing without cache issues
    - **Profiles** (user config): Cloned to `~/.config/fedpunk/profiles/<repo-name>/`. Updated automatically with `git pull` on re-deploy
 
 6. **Parameter environment variables**: Parameters are UPPERCASE with module name prefix: `FEDPUNK_PARAM_<MODULE>_<PARAM>`
