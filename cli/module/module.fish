@@ -32,7 +32,8 @@ function installed --description "List installed modules"
     end
 
     set -l native_modules
-    set -l external_modules
+    set -l external_modules_names
+    set -l external_modules_git
     set -l profile_modules
 
     for module_ref in $enabled_modules
@@ -50,11 +51,18 @@ function installed --description "List installed modules"
         end
 
         if string match -q "$FEDPUNK_SYSTEM/modules/*" "$module_path"
-            set -a native_modules "$module_name"
+            if not contains "$module_name" $native_modules
+                set -a native_modules "$module_name"
+            end
         else if string match -q "$HOME/.config/fedpunk/modules/*" "$module_path"
-            set -a external_modules "$module_name\t$is_git"
+            if not contains "$module_name" $external_modules_names
+                set -a external_modules_names "$module_name"
+                set -a external_modules_git "$is_git"
+            end
         else
-            set -a profile_modules "$module_name"
+            if not contains "$module_name" $profile_modules
+                set -a profile_modules "$module_name"
+            end
         end
     end
 
@@ -67,16 +75,16 @@ function installed --description "List installed modules"
         echo ""
     end
 
-    if test (count $external_modules) -gt 0
+    if test (count $external_modules_names) -gt 0
         echo "External modules:"
-        for m in $external_modules
-            set -l parts (string split \t $m)
-            set -l name $parts[1]
+        set -l i 1
+        for m in $external_modules_names
             set -l git_status ""
-            if test "$parts[2]" = "yes"
+            if test "$external_modules_git[$i]" = "yes"
                 set git_status " (git)"
             end
-            echo "  $name$git_status"
+            echo "  $m$git_status"
+            set i (math $i + 1)
         end
         echo ""
     end

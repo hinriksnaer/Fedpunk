@@ -169,13 +169,10 @@ if $BUILD_ONLY; then
 else
     info "Installing RPM..."
 
-    # Use reinstall to force update even if version matches
-    if ! sudo dnf reinstall -y "$RPM_FILE" 2>/dev/null; then
-        # If reinstall fails (package not installed), try regular install
-        if ! sudo dnf install -y "$RPM_FILE" --allowerasing; then
-            error "Installation failed"
-            exit 1
-        fi
+    # Force reinstall using rpm directly (dnf won't reinstall same version)
+    if ! sudo rpm -Uvh --force "$RPM_FILE"; then
+        error "Installation failed"
+        exit 1
     fi
 
     echo ""
