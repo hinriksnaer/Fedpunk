@@ -117,6 +117,10 @@ success "Build dependencies available"
 info "Setting up RPM build tree..."
 rpmdev-setuptree 2>/dev/null || true
 
+# Clean old fedpunk RPMs to avoid confusion
+rm -f ~/rpmbuild/RPMS/noarch/fedpunk-*.rpm 2>/dev/null || true
+rm -f ~/rpmbuild/SRPMS/fedpunk-*.rpm 2>/dev/null || true
+
 # Create source tarball from current HEAD
 info "Creating source tarball from HEAD..."
 TARBALL="$HOME/rpmbuild/SOURCES/fedpunk-${VERSION}.tar.gz"
@@ -146,8 +150,8 @@ fi
 echo ""
 success "RPM build complete"
 
-# Find built RPM
-RPM_FILE=$(find ~/rpmbuild/RPMS -name "fedpunk-${VERSION}*.rpm" -type f | grep -v src.rpm | head -n1)
+# Find the most recently built RPM
+RPM_FILE=$(find ~/rpmbuild/RPMS -name "fedpunk-${VERSION}*.rpm" -type f ! -name "*.src.rpm" -printf '%T@ %p\n' | sort -rn | head -1 | cut -d' ' -f2-)
 
 if [[ -z "$RPM_FILE" ]]; then
     error "Could not find built RPM"
@@ -161,13 +165,17 @@ echo ""
 # Install if not build-only
 if $BUILD_ONLY; then
     info "Build-only mode. To install, run:"
-    echo "  sudo dnf install -y $RPM_FILE"
+    echo "  sudo dnf reinstall -y $RPM_FILE"
 else
     info "Installing RPM..."
 
-    if ! sudo dnf install -y "$RPM_FILE" --allowerasing; then
-        error "Installation failed"
-        exit 1
+    # Use reinstall to force update even if version matches
+    if ! sudo dnf reinstall -y "$RPM_FILE" 2>/dev/null; then
+        # If reinstall fails (package not installed), try regular install
+        if ! sudo dnf install -y "$RPM_FILE" --allowerasing; then
+            error "Installation failed"
+            exit 1
+        fi
     fi
 
     echo ""
