@@ -427,11 +427,11 @@ function update --description "Update external modules"
     end
 end
 
-function source --description "Manage module sources"
+function sources --description "Manage module sources"
     if contains -- "$argv[1]" --help -h
         printf "Manage module source repositories\n"
         printf "\n"
-        printf "Usage: fedpunk module source <command> [args]\n"
+        printf "Usage: fedpunk module sources <command> [args]\n"
         printf "\n"
         printf "Commands:\n"
         printf "  add <url>     Add a source repository\n"
@@ -450,28 +450,28 @@ function source --description "Manage module sources"
 
     switch $subcmd
         case add
-            source-add $rest
+            sources-add $rest
         case remove
-            source-remove $rest
+            sources-remove $rest
         case list
-            source-list $rest
+            sources-list $rest
         case sync
-            source-sync $rest
+            sources-sync $rest
         case modules
-            source-modules $rest
+            sources-modules $rest
         case '*'
-            printf "Unknown source command: %s\n" "$subcmd" >&2
-            printf "Run 'fedpunk module source --help' for usage.\n" >&2
+            printf "Unknown sources command: %s\n" "$subcmd" >&2
+            printf "Run 'fedpunk module sources --help' for usage.\n" >&2
             return 1
     end
 end
 
-function source-add --description "Add a source repository"
+function sources-add --description "Add a source repository"
     set -l url $argv[1]
 
     if test -z "$url"
         printf "Error: Source URL required\n" >&2
-        printf "Usage: fedpunk module source add <git-url>\n" >&2
+        printf "Usage: fedpunk module sources add <git-url>\n" >&2
         return 1
     end
 
@@ -515,12 +515,12 @@ function source-add --description "Add a source repository"
     end
 end
 
-function source-remove --description "Remove a source repository"
+function sources-remove --description "Remove a source repository"
     set -l url $argv[1]
 
     if test -z "$url"
         printf "Error: Source URL required\n" >&2
-        printf "Usage: fedpunk module source remove <git-url>\n" >&2
+        printf "Usage: fedpunk module sources remove <git-url>\n" >&2
         return 1
     end
 
@@ -556,7 +556,7 @@ function source-remove --description "Remove a source repository"
     end
 end
 
-function source-list --description "List configured sources"
+function sources-list --description "List configured sources"
     # Source libraries
     if not functions -q fedpunk-config-list-sources
         source "$FEDPUNK_SYSTEM/lib/fish/config.fish"
@@ -571,7 +571,7 @@ function source-list --description "List configured sources"
         printf "No sources configured.\n"
         printf "\n"
         printf "Add a source with:\n"
-        printf "  fedpunk module source add <git-url>\n"
+        printf "  fedpunk module sources add <git-url>\n"
         return 0
     end
 
@@ -592,7 +592,7 @@ function source-list --description "List configured sources"
     end
 end
 
-function source-sync --description "Sync all source repositories"
+function sources-sync --description "Sync all source repositories"
     # Source libraries
     if not functions -q source-sync-all
         source "$FEDPUNK_SYSTEM/lib/fish/sources.fish"
@@ -607,7 +607,7 @@ function source-sync --description "Sync all source repositories"
     printf "All sources synced.\n"
 end
 
-function source-modules --description "List modules from all sources"
+function sources-modules --description "List modules from all sources"
     # Source libraries
     if not functions -q source-list-all-modules
         source "$FEDPUNK_SYSTEM/lib/fish/sources.fish"
@@ -619,7 +619,7 @@ function source-modules --description "List modules from all sources"
         printf "No modules found in sources.\n"
         printf "\n"
         printf "Make sure sources are synced:\n"
-        printf "  fedpunk module source sync\n"
+        printf "  fedpunk module sources sync\n"
         return 0
     end
 
