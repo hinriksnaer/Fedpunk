@@ -51,6 +51,7 @@ end
 
 # Discover public functions in a command directory
 # Returns functions that don't start with underscore
+# Also includes subdirectories as nested command groups
 function _discover_functions --argument-names cmd
     # Find command directory (check system then user)
     set -l cmd_dir ""
@@ -63,6 +64,16 @@ function _discover_functions --argument-names cmd
     end
 
     set -l found
+
+    # Include subdirectories as nested command groups
+    for subdir in $cmd_dir/*/
+        if test -d "$subdir"
+            set -l subdir_name (basename "$subdir")
+            # Skip private directories
+            string match -q "_*" "$subdir_name"; and continue
+            set -a found $subdir_name
+        end
+    end
 
     for file in $cmd_dir/*.fish
         if test -f "$file"
