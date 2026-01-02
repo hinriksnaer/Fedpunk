@@ -202,6 +202,67 @@ function _main
         test -f "$file"; and source "$file"
     end
 
+    # Check if subcmd is a nested command directory (e.g., cli/module/sources/)
+    if test -n "$subcmd"; and test -d "$cmd_dir/$subcmd"
+        # Nested command group - recurse into it
+        set -l nested_dir "$cmd_dir/$subcmd"
+        set -l nested_subcmd $argv[3]
+        set -l nested_args $argv[4..-1]
+
+        # Source nested command files
+        for file in $nested_dir/*.fish
+            test -f "$file"; and source "$file"
+        end
+
+        # Discover nested subcommands
+        set -l nested_functions
+        for file in $nested_dir/*.fish
+            if test -f "$file"
+                string match -q "_*" (basename "$file"); and continue
+                for fn in (grep -oP "^function \K[a-zA-Z][a-zA-Z0-9_-]*" "$file" 2>/dev/null)
+                    string match -q "_*" "$fn"; and continue
+                    test "$fn" = "$subcmd"; and continue
+                    set -a nested_functions $fn
+                end
+            end
+        end
+
+        # No nested subcommand or help requested
+        if test -z "$nested_subcmd"; or contains -- "$nested_subcmd" help --help -h
+            # Show nested help
+            set -l desc (_get_description $cmd $subcmd)
+            test -n "$desc"; and echo "$desc"; and echo ""
+            echo "Usage: fedpunk $cmd $subcmd <subcommand> [args...]"
+            echo ""
+            echo "Subcommands:"
+            for fn in $nested_functions
+                set -l fn_desc ""
+                for file in $nested_dir/*.fish
+                    test -f "$file"; or continue
+                    set -l line (grep -P "^function $fn\\s+" "$file" 2>/dev/null)
+                    if test -n "$line"
+                        set fn_desc (echo $line | sed -n 's/.*--description[= ]["'"'"']\([^"'"'"']*\)["'"'"'].*/\1/p')
+                        break
+                    end
+                end
+                printf "  %-14s %s\n" $fn "$fn_desc"
+            end
+            echo ""
+            echo "Run 'fedpunk $cmd $subcmd <subcommand> --help' for details"
+            return 0
+        end
+
+        # Check nested function exists
+        if not functions -q "$nested_subcmd"
+            echo "Unknown subcommand: $cmd $subcmd $nested_subcmd" >&2
+            return 1
+        end
+
+        # Execute nested subcommand
+        $nested_subcmd $nested_args
+        return $status
+    end
+
     # Check if this is a standalone command (no subcommands)
     set -l subcommands (_discover_functions $cmd)
     set -l has_subcommands false
