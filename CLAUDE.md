@@ -205,15 +205,42 @@ fedpunk profile deploy --mode desktop  # Uses saved profile: hyprpunk
 
 ### External Module Support
 
-Modules can be referenced from:
-- **System modules**: `modules/<name>/` (shipped with Fedpunk core - fish, ssh)
-- **Profile modules**: `<name>` (from active profile's modules/ directory)
-- **Local paths**: `~/gits/module` or `/absolute/path`
-- **Git URLs**: `https://github.com/org/repo.git` or `git@github.com:org/repo.git`
+Modules can be referenced from multiple sources with the following resolution priority:
 
-External modules are stored in `~/.config/fedpunk/modules/<repo-name>/` for easy modification without cache invalidation issues.
+1. **Profile modules**: `<name>` (from active profile's modules/ directory)
+2. **Source modules**: `<name>` (from configured source repositories)
+3. **External modules**: `<name>` (direct git URLs cloned to ~/.config/fedpunk/modules/)
+4. **System modules**: `modules/<name>/` (shipped with Fedpunk core)
 
-**Note:** External **profiles** (not modules) from git URLs are cloned to `~/.config/fedpunk/profiles/<repo-name>/` instead, as they are user configuration (not cached dependencies).
+**Storage locations:**
+- **Sources** (multi-module repos): `~/.config/fedpunk/sources/<repo-name>/`
+- **External modules** (direct git URLs): `~/.config/fedpunk/modules/<repo-name>/`
+- **Profiles**: `~/.config/fedpunk/profiles/<repo-name>/`
+
+**Sources vs Direct Modules:**
+- **Sources**: Multi-module git repositories containing multiple modules. Added with `fedpunk source add <url>`, synced automatically before deployment. Useful for team module collections.
+- **Direct modules**: Single-module git URLs specified directly in `modules.enabled`. Cloned on first deploy.
+
+**Example config with sources:**
+```yaml
+# ~/.config/fedpunk/fedpunk.yaml
+sources:
+  - git@gitlab.com:org/fedpunk-modules.git
+
+modules:
+  enabled:
+    - thinkpad-fans                        # Resolved from sources
+    - fish                                 # Native module
+    - git@github.com:user/my-module.git    # Direct external module
+```
+
+**Source management commands:**
+```fish
+fedpunk source add <git-url>    # Add a source repository
+fedpunk source list             # List configured sources
+fedpunk source sync             # Clone/update all sources
+fedpunk source modules          # List modules from all sources
+```
 
 ### Parameter System
 
@@ -254,9 +281,10 @@ The module system is built on these Fish libraries:
 - **paths.fish** - Auto-detects DNF vs git installation, sets up environment variables
 - **installer.fish** - Orchestrates profile/mode selection and module deployment
 - **fedpunk-module.fish** - Main module management command (list, deploy, stow, etc.)
-- **module-resolver.fish** - Resolves module paths (system, profile, local, git URLs)
+- **module-resolver.fish** - Resolves module paths (profile, sources, external, system)
 - **module-ref-parser.fish** - Parses module references with parameters from mode.yaml
-- **external-modules.fish** - Handles cloning and caching of git-based modules
+- **sources.fish** - Manages multi-module source repositories (clone, update, discover)
+- **external-modules.fish** - Handles cloning of direct git URL modules
 - **param-injector.fish** - Generates Fish environment variables from parameters
 - **linker.fish** - GNU Stow wrapper for config deployment
 - **yaml-parser.fish** - YAML parsing using yq

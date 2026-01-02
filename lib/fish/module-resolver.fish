@@ -5,6 +5,7 @@
 set -l lib_dir (dirname (status -f))
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/external-modules.fish"
+source "$lib_dir/sources.fish"
 
 function module-resolve-path
     # Resolve module name to actual directory path
@@ -65,7 +66,7 @@ function module-resolve-path
     else
         # Regular module lookup (not a URL or path)
         # Regular module - check multiple locations
-        # Priority: 1) Profile modules, 2) External modules, 3) System modules
+        # Priority: 1) Profile modules, 2) Sources, 3) External modules, 4) System modules
 
         # Check active profile's modules directory first
         set -l active_config_link "$FEDPUNK_USER/.active-config"
@@ -79,7 +80,14 @@ function module-resolve-path
             end
         end
 
-        # Check external modules directory
+        # Check configured sources (multi-module repos)
+        set -l source_module_path (source-find-module "$module_name")
+        if test -n "$source_module_path"
+            echo "$source_module_path"
+            return 0
+        end
+
+        # Check external modules directory (direct git URLs)
         set -l external_module_dir (external-module-storage-dir)"/$module_name"
         if test -d "$external_module_dir"
             echo "$external_module_dir"

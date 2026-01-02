@@ -14,6 +14,7 @@ function installed --description "List installed modules"
         printf "\n"
         printf "Shows all deployed modules grouped by type:\n"
         printf "  native   - Built-in system modules\n"
+        printf "  sources  - Modules from configured source repos\n"
         printf "  external - Git-cloned modules (~/.config/fedpunk/modules/)\n"
         printf "  profile  - Modules from active profile\n"
         return 0
@@ -23,6 +24,7 @@ function installed --description "List installed modules"
     source "$FEDPUNK_SYSTEM/lib/fish/config.fish"
     source "$FEDPUNK_SYSTEM/lib/fish/module-resolver.fish"
     source "$FEDPUNK_SYSTEM/lib/fish/external-modules.fish"
+    source "$FEDPUNK_SYSTEM/lib/fish/sources.fish"
 
     # Collect all installed modules from multiple sources
     set -l all_modules
@@ -71,9 +73,13 @@ function installed --description "List installed modules"
     end
 
     set -l native_modules
+    set -l source_modules
     set -l external_modules_names
     set -l external_modules_git
     set -l profile_modules
+
+    # Get source storage path for matching
+    set -l source_dir (source-storage-dir)
 
     for module_ref in $all_modules
         # Get the resolved path to determine type
@@ -93,6 +99,10 @@ function installed --description "List installed modules"
             if not contains "$module_name" $native_modules
                 set -a native_modules "$module_name"
             end
+        else if string match -q "$source_dir/*" "$module_path"
+            if not contains "$module_name" $source_modules
+                set -a source_modules "$module_name"
+            end
         else if string match -q "$HOME/.config/fedpunk/modules/*" "$module_path"
             if not contains "$module_name" $external_modules_names
                 set -a external_modules_names "$module_name"
@@ -109,6 +119,14 @@ function installed --description "List installed modules"
     if test (count $native_modules) -gt 0
         echo "Native modules:"
         for m in $native_modules
+            echo "  $m"
+        end
+        echo ""
+    end
+
+    if test (count $source_modules) -gt 0
+        echo "Source modules:"
+        for m in $source_modules
             echo "  $m"
         end
         echo ""
@@ -145,6 +163,7 @@ function available --description "List available modules"
         printf "\n"
         printf "Shows modules that can be installed, grouped by type:\n"
         printf "  native   - Built-in system modules\n"
+        printf "  sources  - Modules from configured source repos\n"
         printf "  external - Previously cloned modules\n"
         printf "  profile  - Modules from active profile\n"
         return 0
@@ -152,6 +171,7 @@ function available --description "List available modules"
 
     source "$FEDPUNK_SYSTEM/lib/fish/config.fish"
     source "$FEDPUNK_SYSTEM/lib/fish/external-modules.fish"
+    source "$FEDPUNK_SYSTEM/lib/fish/sources.fish"
 
     # Get installed modules for filtering
     set -l installed (fedpunk-config-list-enabled-modules 2>/dev/null | while read -l ref
@@ -163,6 +183,7 @@ function available --description "List available modules"
     end)
 
     set -l native_available
+    set -l source_available
     set -l external_available
     set -l profile_available
 
@@ -178,14 +199,29 @@ function available --description "List available modules"
         end
     end
 
-    # External modules (previously cloned)
+    # Source modules (from configured source repos)
+    set -l source_modules (source-list-all-modules 2>/dev/null)
+    for line in $source_modules
+        set -l parts (string split "|" -- $line)
+        set -l name $parts[1]
+        if not contains "$name" $installed
+            if not contains "$name" $source_available
+                set -a source_available "$name"
+            end
+        end
+    end
+
+    # External modules (previously cloned direct git URLs)
     set -l external_dir (external-module-storage-dir)
     if test -d "$external_dir"
         for module in $external_dir/*/
             if test -f "$module/module.yaml"
                 set -l name (basename "$module")
                 if not contains "$name" $installed
-                    set -a external_available "$name"
+                    # Don't show if already in source_available
+                    if not contains "$name" $source_available
+                        set -a external_available "$name"
+                    end
                 end
             end
         end
@@ -213,6 +249,15 @@ function available --description "List available modules"
     if test (count $native_available) -gt 0
         echo "Native modules:"
         for m in $native_available
+            echo "  $m"
+        end
+        echo ""
+        set found 1
+    end
+
+    if test (count $source_available) -gt 0
+        echo "Source modules:"
+        for m in $source_available
             echo "  $m"
         end
         echo ""

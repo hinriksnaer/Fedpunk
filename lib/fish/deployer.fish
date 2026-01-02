@@ -12,6 +12,7 @@ source "$lib_dir/fedpunk-module.fish"
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/external-modules.fish"
 source "$lib_dir/param-injector.fish"
+source "$lib_dir/sources.fish"
 
 #
 # MODULE DEPLOYMENT (Independent handler)
@@ -427,6 +428,10 @@ function deployer-deploy-profile
 
     ui-info "Modules to deploy: "(count $modules)" module(s)"
 
+    # Sync configured sources before deployment
+    source-sync-all
+    or ui-warn "Some sources failed to sync"
+
     # Generate parameter configuration
     param-generate-fish-config "$mode_file"
 
@@ -510,6 +515,10 @@ function deployer-deploy-from-config
     # Workflow 2: Modules only (no profile)
     if test "$has_modules" = true
         ui-info "Deploying from module configuration..."
+
+        # Sync configured sources before deployment
+        source-sync-all
+        or ui-warn "Some sources failed to sync"
 
         # Generate parameter configuration from fedpunk.yaml
         param-generate-fish-config
