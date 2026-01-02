@@ -21,6 +21,9 @@ Requires:       git
 Requires:       yq
 Requires:       jq
 
+# Runtime dependencies (for module package managers)
+Requires:       nodejs
+
 # UI dependencies
 Requires:       gum
 
