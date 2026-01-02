@@ -62,14 +62,15 @@ install -d %{buildroot}%{_bindir}
 # Install core libraries
 cp -r lib/fish/* %{buildroot}%{_datadir}/%{name}/lib/fish/
 
-# Install core modules only (minimal system - fish, ssh, ssh-clusters)
-for module in fish ssh ssh-clusters; do
-    cp -r modules/$module %{buildroot}%{_datadir}/%{name}/modules/
+# Install all modules from modules/ directory
+for module in modules/*/; do
+    if [ -d "$module" ]; then
+        cp -r "$module" %{buildroot}%{_datadir}/%{name}/modules/
+    fi
 done
 
 # Profiles are external only - no built-in profiles
 # Themes are external only - no built-in themes
-# Modules are external only - only fish and ssh are built-in
 
 # Install CLI commands (symlinked to user space at runtime)
 cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/

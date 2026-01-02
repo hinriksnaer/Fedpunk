@@ -12,6 +12,7 @@ source "$lib_dir/fedpunk-module.fish"
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/external-modules.fish"
 source "$lib_dir/param-injector.fish"
+source "$lib_dir/sources.fish"
 
 #
 # MODULE DEPLOYMENT (Independent handler)
@@ -43,8 +44,17 @@ function deployer-deploy-module
         fedpunk-config-init
     end
 
-    # Add module to config (creates config if needed)
-    fedpunk-config-add-module "$module_ref"
+    # Normalize git URLs to module names for consistent config storage
+    # git@gitlab.com:org/thinkpad-fans.git -> thinkpad-fans
+    set -l module_name "$module_ref"
+    if module-ref-is-url "$module_ref"
+        # Extract repo name from URL (same logic as external-module-get-storage-path)
+        set module_name (string replace -r '\.git$' '' "$module_ref")
+        set module_name (string replace -r '^.*[/:]' '' "$module_name")
+    end
+
+    # Add normalized module name to config
+    fedpunk-config-add-module "$module_name"
 
     # Use existing fedpunk-module deploy (already handles local + git)
     if fedpunk-module deploy "$module_ref"
@@ -418,6 +428,10 @@ function deployer-deploy-profile
 
     ui-info "Modules to deploy: "(count $modules)" module(s)"
 
+    # Sync configured sources before deployment
+    source-sync-all
+    or ui-warn "Some sources failed to sync"
+
     # Generate parameter configuration
     param-generate-fish-config "$mode_file"
 
@@ -501,6 +515,10 @@ function deployer-deploy-from-config
     # Workflow 2: Modules only (no profile)
     if test "$has_modules" = true
         ui-info "Deploying from module configuration..."
+
+        # Sync configured sources before deployment
+        source-sync-all
+        or ui-warn "Some sources failed to sync"
 
         # Generate parameter configuration from fedpunk.yaml
         param-generate-fish-config

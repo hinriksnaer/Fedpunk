@@ -85,7 +85,7 @@ Fedpunk uses a **minimal core + external modules** architecture:
 │  External Modules (git URLs or local)       │
 │  ├─ https://github.com/user/module.git      │
 │  ├─ ~/gits/my-custom-module                 │
-│  └─ Cached in ~/.fedpunk/cache/external/    │
+│  └─ Stored in ~/.config/fedpunk/modules/    │
 ├─────────────────────────────────────────────┤
 │  User Configuration (~/.config/fedpunk)     │
 │  ├─ fedpunk.yaml (module config + params)   │
@@ -202,7 +202,7 @@ modules:
       team_name: "platform"
 ```
 
-**External modules are cached** in `~/.fedpunk/cache/external/<host>/<org>/<repo>/`
+**External modules are stored** in `~/.config/fedpunk/modules/<repo-name>/` for easy editing.
 
 ---
 
