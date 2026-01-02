@@ -428,7 +428,11 @@ function update --description "Update external modules"
 end
 
 function sources --description "Manage module sources"
-    if contains -- "$argv[1]" --help -h
+    set -l subcmd $argv[1]
+    set -l rest $argv[2..-1]
+
+    # Show help if no subcommand, --help, or -h
+    if test -z "$subcmd"; or contains -- "$subcmd" --help -h
         printf "Manage module source repositories\n"
         printf "\n"
         printf "Usage: fedpunk module sources <command> [args]\n"
@@ -442,11 +446,10 @@ function sources --description "Manage module sources"
         printf "\n"
         printf "Sources are git repositories containing multiple modules.\n"
         printf "They can be multi-module repos or registries (modules.yaml).\n"
+        printf "\n"
+        printf "Run 'fedpunk module sources <command> --help' for details.\n"
         return 0
     end
-
-    set -l subcmd $argv[1]
-    set -l rest $argv[2..-1]
 
     switch $subcmd
         case add
