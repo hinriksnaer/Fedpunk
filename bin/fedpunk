@@ -108,6 +108,23 @@ function _get_description --argument-names cmd fn
         return 1
     end
 
+    # Check if fn is a subdirectory (nested command group)
+    if test -d "$cmd_dir/$fn"
+        # Look for group function in subdirectory's fish files
+        for file in $cmd_dir/$fn/*.fish
+            test -f "$file"; or continue
+            set -l line (grep -P "^function $fn\\s+" "$file" 2>/dev/null)
+            if test -n "$line"
+                set -l desc (echo $line | sed -n 's/.*--description[= ]["'"'"']\([^"'"'"']*\)["'"'"'].*/\1/p')
+                if test -z "$desc"
+                    set desc (echo $line | sed -n 's/.*-d[= ]["'"'"']\([^"'"'"']*\)["'"'"'].*/\1/p')
+                end
+                test -n "$desc"; and echo $desc; and return 0
+            end
+        end
+        return 0
+    end
+
     for file in $cmd_dir/*.fish
         test -f "$file"; or continue
         string match -q "_*" (basename "$file"); and continue
