@@ -2,14 +2,18 @@
 # Fedpunk source repository management
 # Handles cloning, updating, and discovering modules from source repos
 #
-# Sources are multi-module git repositories that contain multiple modules.
+# Sources can be:
+# 1. Multi-module repos: subdirectories with module.yaml files
+# 2. Registry repos: modules.yaml at root mapping names to git URLs
+#
 # They are cloned to ~/.config/fedpunk/sources/<repo-name>/
-# Modules within are discovered by looking for module.yaml files.
+# Registry-referenced modules are cloned to ~/.config/fedpunk/modules/
 
 # Source dependencies
 set -l lib_dir (dirname (status -f))
 source "$lib_dir/config.fish"
 source "$lib_dir/ui.fish"
+source "$lib_dir/external-modules.fish"
 
 function source-storage-dir
     # Get the base directory for source repositories
@@ -148,20 +152,68 @@ function source-sync-all
     return $failed
 end
 
+function source-is-registry
+    # Check if a source is a registry (has modules.yaml at root)
+    # Usage: source-is-registry <source-path>
+    # Returns: 0 if registry, 1 if not
+
+    set -l source_path $argv[1]
+    test -f "$source_path/modules.yaml"
+end
+
+function source-registry-list-modules
+    # List module names from a registry's modules.yaml
+    # Usage: source-registry-list-modules <source-path>
+    # Returns: List of module names (one per line)
+
+    set -l source_path $argv[1]
+    set -l registry_file "$source_path/modules.yaml"
+
+    if not test -f "$registry_file"
+        return 1
+    end
+
+    # Get all keys under .modules
+    yq '.modules | keys | .[]' "$registry_file" 2>/dev/null
+end
+
+function source-registry-get-repo
+    # Get the git repo URL for a module from a registry
+    # Usage: source-registry-get-repo <source-path> <module-name>
+    # Returns: Git URL for the module
+
+    set -l source_path $argv[1]
+    set -l module_name $argv[2]
+    set -l registry_file "$source_path/modules.yaml"
+
+    if not test -f "$registry_file"
+        return 1
+    end
+
+    yq ".modules.$module_name.repo" "$registry_file" 2>/dev/null
+end
+
 function source-discover-modules
     # Discover all modules in a source repository
     # Usage: source-discover-modules <url>
     # Returns: List of module names (one per line)
     #
     # Checks for:
-    # 1. module.yaml at root (single-module repo)
-    # 2. */module.yaml in subdirectories (multi-module repo)
+    # 1. modules.yaml at root (registry repo)
+    # 2. module.yaml at root (single-module repo)
+    # 3. */module.yaml in subdirectories (multi-module repo)
 
     set -l url $argv[1]
     set -l source_path (source-get-path "$url")
 
     if not test -d "$source_path"
         return 1
+    end
+
+    # Check for registry repo (modules.yaml at root)
+    if source-is-registry "$source_path"
+        source-registry-list-modules "$source_path"
+        return 0
     end
 
     # Check for single-module repo (module.yaml at root)
@@ -185,6 +237,8 @@ function source-find-module
     # Find a module by name in all configured sources
     # Usage: source-find-module <module-name>
     # Returns: Path to module directory, or empty if not found
+    #
+    # For registry sources, this will clone the module repo if needed
 
     set -l module_name $argv[1]
 
@@ -198,6 +252,24 @@ function source-find-module
         set -l source_path (source-get-path "$url")
 
         if not test -d "$source_path"
+            continue
+        end
+
+        # Check if this is a registry source
+        if source-is-registry "$source_path"
+            set -l module_repo (source-registry-get-repo "$source_path" "$module_name")
+            if test -n "$module_repo" -a "$module_repo" != "null"
+                # Found in registry - clone to external modules if needed
+                set -l external_path (external-module-get-storage-path "$module_repo")
+                if not test -d "$external_path"
+                    # Clone the module
+                    external-module-fetch "$module_repo" >/dev/null
+                    or continue
+                end
+                # Return the external module path
+                echo "$external_path"
+                return 0
+            end
             continue
         end
 
