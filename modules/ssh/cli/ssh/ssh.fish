@@ -32,18 +32,28 @@ function load --description "Load SSH keys into agent"
 
     # Check if agent is accessible (handles both local agent and forwarded agent)
     if not ssh-add -l &>/dev/null
-        # Agent not accessible or not running
-        if test -n "$SSH_AUTH_SOCK"
-            # SSH_AUTH_SOCK is set but agent is not responding (possibly forwarded agent issue)
-            printf "Warning: SSH_AUTH_SOCK is set but agent is not responding\n"
-            printf "Attempting to start local agent...\n"
+        # Agent not accessible - try stable socket first (systemd ssh-agent or forwarded)
+        set -l stable_socket "$HOME/.ssh/agent.sock"
+        if test -S "$stable_socket"
+            set -Ux SSH_AUTH_SOCK "$stable_socket"
+            if ssh-add -l &>/dev/null
+                printf "Using stable socket at %s\n" "$stable_socket"
+            end
         end
 
-        # Start local ssh-agent
-        eval (ssh-agent -c) >/dev/null
-        set -Ux SSH_AGENT_PID $SSH_AGENT_PID
-        set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
-        printf "Started ssh-agent (PID: %s)\n" $SSH_AGENT_PID
+        # If still not accessible, start a new agent
+        if not ssh-add -l &>/dev/null
+            if test -n "$SSH_AUTH_SOCK"
+                printf "Warning: SSH_AUTH_SOCK is set but agent is not responding\n"
+                printf "Attempting to start local agent...\n"
+            end
+
+            # Start local ssh-agent
+            eval (ssh-agent -c) >/dev/null
+            set -Ux SSH_AGENT_PID $SSH_AGENT_PID
+            set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
+            printf "Started ssh-agent (PID: %s)\n" $SSH_AGENT_PID
+        end
     else
         # Agent is accessible
         if test -n "$SSH_CONNECTION"
