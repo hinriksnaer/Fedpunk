@@ -31,18 +31,24 @@ function load --description "Load SSH keys into agent"
     set -l key_name $argv[1]
 
     # Check if agent is accessible (handles both local agent and forwarded agent)
-    if not ssh-add -l &>/dev/null
+    # ssh-add -l returns: 0=keys listed, 1=no identities (connected), 2=can't connect
+    ssh-add -l &>/dev/null
+    set -l agent_status $status
+
+    if test $agent_status -eq 2
         # Agent not accessible - try stable socket first (systemd ssh-agent or forwarded)
         set -l stable_socket "$HOME/.ssh/agent.sock"
         if test -S "$stable_socket"
             set -Ux SSH_AUTH_SOCK "$stable_socket"
-            if ssh-add -l &>/dev/null
+            ssh-add -l &>/dev/null
+            set agent_status $status
+            if test $agent_status -ne 2
                 printf "Using stable socket at %s\n" "$stable_socket"
             end
         end
 
         # If still not accessible, start a new agent
-        if not ssh-add -l &>/dev/null
+        if test $agent_status -eq 2
             if test -n "$SSH_AUTH_SOCK"
                 printf "Warning: SSH_AUTH_SOCK is set but agent is not responding\n"
                 printf "Attempting to start local agent...\n"
