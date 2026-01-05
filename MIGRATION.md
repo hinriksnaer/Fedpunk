@@ -35,7 +35,7 @@ fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk --mode desktop
 ```
 
 - ✅ Minimal core (~500 KB)
-- ✅ Only 3 built-in modules: `fish`, `ssh`, `ssh-clusters`
+- ✅ Only 2 built-in modules: `fish` and `ssh`
 - ✅ External profiles (hyprpunk, custom)
 - ✅ Themes live in profiles
 - ✅ Desktop modules external

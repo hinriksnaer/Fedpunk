@@ -47,7 +47,7 @@ fedpunk module deploy ssh
 
 **What's installed:**
 - Core engine at `/usr/share/fedpunk`
-- Only 3 built-in modules: `fish`, `ssh`, and `ssh-clusters`
+- Only 2 built-in modules: `fish` and `ssh`
 - No profiles, no themes (external only)
 - Environment variables configured for all shells
 
@@ -77,10 +77,9 @@ Fedpunk uses a **minimal core + external modules** architecture:
 │  ├─ Dependency resolver (recursive DAG)     │
 │  └─ GNU Stow wrapper (symlink deployment)   │
 ├─────────────────────────────────────────────┤
-│  Built-in Modules (3 only)                  │
+│  Built-in Modules (2 only)                  │
 │  ├─ fish (Fish shell + Starship prompt)     │
-│  ├─ ssh (SSH configuration)                 │
-│  └─ ssh-clusters (SSH cluster management)   │
+│  └─ ssh (SSH configuration + agent)         │
 ├─────────────────────────────────────────────┤
 │  External Modules (git URLs or local)       │
 │  ├─ https://github.com/user/module.git      │
@@ -208,7 +207,7 @@ modules:
 
 ## Built-in Modules
 
-Fedpunk ships with only 3 minimal modules:
+Fedpunk ships with only 2 minimal modules:
 
 ### fish
 Modern Fish shell with Starship prompt:
@@ -222,22 +221,14 @@ fedpunk module deploy fish
 ```
 
 ### ssh
-SSH client configuration:
+SSH client configuration with agent management:
 - Opinionated SSH config
 - Connection multiplexing
+- Stable SSH agent socket (`~/.ssh/agent.sock`)
 - Key management CLI (`fedpunk ssh load`)
 
 ```fish
 fedpunk module deploy ssh
-```
-
-### ssh-clusters
-SSH cluster management (optional):
-- Cluster-based SSH configuration
-- Multi-host management
-
-```fish
-fedpunk module deploy ssh-clusters
 ```
 
 **That's it!** Everything else is external.

@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🎉 New Features
+
+#### SSH Agent Improvements
+- **Added** Stable SSH agent socket at `~/.ssh/agent.sock`
+- **Added** Fish config for automatic agent socket setup (`ssh-agent.fish`)
+- **Fixed** Exit codes for `ssh-add` agent detection
+- **Improved** Check for stable socket before starting new agent
+
+#### Module Sources
+- **Added** Source repository management for team module collections
+- **Added** `fedpunk module sources add <url>` - Add a source repository
+- **Added** `fedpunk module sources list` - List configured sources
+- **Added** `fedpunk module sources sync` - Clone/update all sources
+- **Added** `fedpunk module sources modules` - List modules from all sources
+- **Added** `fedpunk module sources remove <url>` - Remove a source
+- **Changed** Sources stored in `~/.config/fedpunk/sources/<repo-name>/`
+
+#### External Module Storage
+- **Changed** External modules now stored in `~/.config/fedpunk/modules/` instead of cache
+- **Improved** Easier editing and management of external modules
+- **Added** Module list commands for better visibility
+
+#### Package Dependencies
+- **Added** Rust and Cargo as required RPM dependencies
+- **Added** Node.js as required RPM dependency
+- **Fixed** Module deployment fails properly when cargo not found
+- **Fixed** Require nodejs module for npm packages
+
 ### 🎉 Major Architectural Changes
 
 #### Minimal Core Migration
@@ -23,10 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixed** Deployer to create `.active-config` symlink for plugin discovery
 - **Fixed** Fish module wrapper script removal during installation
 
-#### Core Modules (3 remaining)
+#### Core Modules (2 remaining)
 - **fish** - Fish shell with Starship prompt and modern tooling
-- **ssh** - SSH client configuration with CLI extensions
-- **ssh-clusters** - SSH cluster management (optional)
+- **ssh** - SSH client configuration with agent management and CLI extensions
 
 ### 🔧 Improvements
 
@@ -85,7 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **After Migration:**
 - Core size: ~500 KB
-- Built-in modules: 3 (fish, ssh, ssh-clusters)
+- Built-in modules: 2 (fish, ssh)
 - Built-in profiles: 0 (all external)
 - Themes: 0 (in external profiles)
 
@@ -96,11 +123,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ⚠️ Breaking Changes
 
+- **Removed** `ssh-clusters` module - use external profiles for cluster management
 - **Removed** `essentials` module - use `fish` instead
 - **Removed** Built-in profiles - use external profiles like hyprpunk
 - **Removed** Theme CLI commands from core - use profile-specific commands
 - **Removed** `install.fish` - use DNF package installation
 - **Changed** Installation method from git clone to DNF
+- **Changed** External modules storage from cache to `~/.config/fedpunk/modules/`
 
 ### 📖 Migration Guide
 
