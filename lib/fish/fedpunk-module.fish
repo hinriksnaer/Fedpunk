@@ -250,38 +250,41 @@ function fedpunk-module-install-packages
 
     # Cargo packages
     set -l cargo_packages (yaml-get-list "$module_yaml" "packages" "cargo")
-    for pkg in $cargo_packages
+    if test -n "$cargo_packages"
         # Ensure cargo is in PATH (in case it was just installed)
         if not command -v cargo >/dev/null 2>&1
             if test -f "$HOME/.cargo/bin/cargo"
                 set -gx PATH "$HOME/.cargo/bin" $PATH
+            else if test -f "/root/.cargo/bin/cargo"
+                set -gx PATH "/root/.cargo/bin" $PATH
             else
-                echo "Error: cargo not found. Please ensure rust module is installed first." >&2
-                continue
+                echo "Error: cargo not found. Install rust/cargo first." >&2
+                return 1
             end
         end
 
-        ui-spin --title "  Installing cargo: $pkg..." --tail 5 -- cargo install $pkg
+        for pkg in $cargo_packages
+            ui-spin --title "  Installing cargo: $pkg..." --tail 5 -- cargo install $pkg
+        end
     end
 
     # NPM packages
     set -l npm_packages (yaml-get-list "$module_yaml" "packages" "npm")
-    if test -n "$npm_packages"
-        # Ensure npm is available
+    for pkg in $npm_packages
+        # Ensure npm is in PATH (in case it was just installed)
         if not command -v npm >/dev/null 2>&1
-            echo "  npm not found, installing nodejs and npm..."
-            set -l FEDPUNK_AUTO_TAIL_SAVE $FEDPUNK_AUTO_TAIL
-            set -e FEDPUNK_AUTO_TAIL
-            ui-spin --title "  Installing nodejs and npm..." -- sudo dnf install -y nodejs npm
-            if test -n "$FEDPUNK_AUTO_TAIL_SAVE"
-                set -gx FEDPUNK_AUTO_TAIL $FEDPUNK_AUTO_TAIL_SAVE
+            # Check common user-installed Node.js locations
+            if test -f "$HOME/.local/share/fnm/aliases/default/bin/npm"
+                set -gx PATH "$HOME/.local/share/fnm/aliases/default/bin" $PATH
+            else if test -f "$HOME/.nvm/versions/node/"(ls -1 "$HOME/.nvm/versions/node/" 2>/dev/null | tail -1)"/bin/npm" 2>/dev/null
+                set -gx PATH "$HOME/.nvm/versions/node/"(ls -1 "$HOME/.nvm/versions/node/" | tail -1)"/bin" $PATH
+            else
+                echo "Error: npm not found. Please ensure nodejs module is installed first." >&2
+                continue
             end
         end
 
-        # Install npm packages
-        for pkg in $npm_packages
-            ui-spin --title "  Installing npm: $pkg..." --tail 3 -- sudo npm install -g $pkg
-        end
+        ui-spin --title "  Installing npm: $pkg..." --tail 3 -- sudo npm install -g $pkg
     end
 
     # Flatpak packages (requires flatpak module as dependency)

@@ -37,7 +37,7 @@ function fedpunk-ensure-user-space
     # If user space doesn't exist, create it
     if not test -d "$FEDPUNK_USER"
         echo "→ Setting up fedpunk user space..."
-        mkdir -p "$FEDPUNK_USER"/{profiles,cache/external}
+        mkdir -p "$FEDPUNK_USER"/{profiles,cache}
 
         # Copy example profile as starting point for dev profile
         if test -d "$FEDPUNK_SYSTEM/profiles/example"
@@ -69,12 +69,12 @@ function fedpunk-ensure-user-space
         end
     end
 
-    # Ensure cache directories exist
-    mkdir -p "$FEDPUNK_USER/cache/external"
+    # Ensure cache directories exist (for profiles)
+    mkdir -p "$FEDPUNK_USER/cache"
 
     # Ensure config directory exists (XDG standard location)
     if not test -d "$HOME/.config/fedpunk"
-        mkdir -p "$HOME/.config/fedpunk/profiles"
+        mkdir -p "$HOME/.config/fedpunk"/{profiles,modules}
     end
 
     return 0

@@ -31,19 +31,46 @@ function load --description "Load SSH keys into agent"
     set -l key_name $argv[1]
 
     # Check if agent is accessible (handles both local agent and forwarded agent)
-    if not ssh-add -l &>/dev/null
-        # Agent not accessible or not running
-        if test -n "$SSH_AUTH_SOCK"
-            # SSH_AUTH_SOCK is set but agent is not responding (possibly forwarded agent issue)
-            printf "Warning: SSH_AUTH_SOCK is set but agent is not responding\n"
-            printf "Attempting to start local agent...\n"
+    # ssh-add -l returns: 0=keys listed, 1=no identities (connected), 2=can't connect
+    ssh-add -l &>/dev/null
+    set -l agent_status $status
+
+    if test $agent_status -eq 2
+        # Agent not accessible - try stable socket first (systemd ssh-agent or forwarded)
+        set -l stable_socket "$HOME/.ssh/agent.sock"
+        if test -S "$stable_socket"
+            set -Ux SSH_AUTH_SOCK "$stable_socket"
+            ssh-add -l &>/dev/null
+            set agent_status $status
+            if test $agent_status -ne 2
+                printf "Using stable socket at %s\n" "$stable_socket"
+            end
         end
 
-        # Start local ssh-agent
-        eval (ssh-agent -c) >/dev/null
-        set -Ux SSH_AGENT_PID $SSH_AGENT_PID
-        set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
-        printf "Started ssh-agent (PID: %s)\n" $SSH_AGENT_PID
+        # If still not accessible, start a new agent
+        if test $agent_status -eq 2
+            if test -n "$SSH_AUTH_SOCK"
+                printf "Warning: SSH_AUTH_SOCK is set but agent is not responding\n"
+                printf "Attempting to start local agent...\n"
+            end
+
+            # Start local ssh-agent
+            eval (ssh-agent -c) >/dev/null
+
+            # Create stable socket symlink so other shells can find the agent
+            if test -n "$SSH_AUTH_SOCK"
+                rm -f "$stable_socket" 2>/dev/null
+                ln -sf "$SSH_AUTH_SOCK" "$stable_socket"
+                # Export the PID and use stable socket from now on
+                set -Ux SSH_AGENT_PID $SSH_AGENT_PID
+                set -Ux SSH_AUTH_SOCK "$stable_socket"
+                printf "Started ssh-agent (PID: %s)\n" $SSH_AGENT_PID
+                printf "Stable socket: %s\n" "$stable_socket"
+            else
+                printf "Error: ssh-agent did not set SSH_AUTH_SOCK\n" >&2
+                return 1
+            end
+        end
     else
         # Agent is accessible
         if test -n "$SSH_CONNECTION"

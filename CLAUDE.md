@@ -205,15 +205,43 @@ fedpunk profile deploy --mode desktop  # Uses saved profile: hyprpunk
 
 ### External Module Support
 
-Modules can be referenced from:
-- **System modules**: `modules/<name>/` (shipped with Fedpunk core - fish, ssh)
-- **Profile modules**: `<name>` (from active profile's modules/ directory)
-- **Local paths**: `~/gits/module` or `/absolute/path`
-- **Git URLs**: `https://github.com/org/repo.git` or `git@github.com:org/repo.git`
+Modules can be referenced from multiple sources with the following resolution priority:
 
-External modules are cached in `~/.local/share/fedpunk/cache/external/<host>/<org>/<repo>/`
+1. **Profile modules**: `<name>` (from active profile's modules/ directory)
+2. **Source modules**: `<name>` (from configured source repositories)
+3. **External modules**: `<name>` (direct git URLs cloned to ~/.config/fedpunk/modules/)
+4. **System modules**: `modules/<name>/` (shipped with Fedpunk core)
 
-**Note:** External **profiles** (not modules) from git URLs are cloned to `~/.config/fedpunk/profiles/<repo-name>/` instead, as they are user configuration (not cached dependencies).
+**Storage locations:**
+- **Sources** (multi-module repos): `~/.config/fedpunk/sources/<repo-name>/`
+- **External modules** (direct git URLs): `~/.config/fedpunk/modules/<repo-name>/`
+- **Profiles**: `~/.config/fedpunk/profiles/<repo-name>/`
+
+**Sources vs Direct Modules:**
+- **Sources**: Multi-module git repositories containing multiple modules. Added with `fedpunk source add <url>`, synced automatically before deployment. Useful for team module collections.
+- **Direct modules**: Single-module git URLs specified directly in `modules.enabled`. Cloned on first deploy.
+
+**Example config with sources:**
+```yaml
+# ~/.config/fedpunk/fedpunk.yaml
+sources:
+  - git@gitlab.com:org/fedpunk-modules.git
+
+modules:
+  enabled:
+    - thinkpad-fans                        # Resolved from sources
+    - fish                                 # Native module
+    - git@github.com:user/my-module.git    # Direct external module
+```
+
+**Source management commands:**
+```fish
+fedpunk module sources add <url>     # Add a source repository
+fedpunk module sources list          # List configured sources
+fedpunk module sources sync          # Clone/update all sources
+fedpunk module sources modules       # List modules from all sources
+fedpunk module sources remove <url>  # Remove a source
+```
 
 ### Parameter System
 
@@ -254,9 +282,10 @@ The module system is built on these Fish libraries:
 - **paths.fish** - Auto-detects DNF vs git installation, sets up environment variables
 - **installer.fish** - Orchestrates profile/mode selection and module deployment
 - **fedpunk-module.fish** - Main module management command (list, deploy, stow, etc.)
-- **module-resolver.fish** - Resolves module paths (system, profile, local, git URLs)
+- **module-resolver.fish** - Resolves module paths (profile, sources, external, system)
 - **module-ref-parser.fish** - Parses module references with parameters from mode.yaml
-- **external-modules.fish** - Handles cloning and caching of git-based modules
+- **sources.fish** - Manages multi-module source repositories (clone, update, discover)
+- **external-modules.fish** - Handles cloning of direct git URL modules
 - **param-injector.fish** - Generates Fish environment variables from parameters
 - **linker.fish** - GNU Stow wrapper for config deployment
 - **yaml-parser.fish** - YAML parsing using yq
@@ -355,7 +384,7 @@ bash test/test-rpm-install.sh   # Tests installation
 4. **Dependency cycles**: Module resolver detects circular dependencies. If you see this error, check your module.yaml dependency chains
 
 5. **External module/profile storage**:
-   - **Modules** (dependencies): Cloned to `~/.local/share/fedpunk/cache/external/`. To update, delete the cache directory
+   - **Modules** (dependencies): Cloned to `~/.config/fedpunk/modules/<repo-name>/`. Stored in config for easy editing without cache issues
    - **Profiles** (user config): Cloned to `~/.config/fedpunk/profiles/<repo-name>/`. Updated automatically with `git pull` on re-deploy
 
 6. **Parameter environment variables**: Parameters are UPPERCASE with module name prefix: `FEDPUNK_PARAM_<MODULE>_<PARAM>`

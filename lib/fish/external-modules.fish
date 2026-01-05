@@ -6,31 +6,30 @@ set -l lib_dir (dirname (status -f))
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/ui.fish"
 
-function external-module-cache-dir
-    # Get the cache directory for external modules
-    echo "$FEDPUNK_USER/cache/external"
+function external-module-storage-dir
+    # Get the storage directory for external modules
+    echo "$HOME/.config/fedpunk/modules"
 end
 
-function external-module-get-cache-path
-    # Get the cache path for a specific external module URL
-    # Usage: external-module-get-cache-path <url>
+function external-module-get-storage-path
+    # Get the storage path for a specific external module URL
+    # Usage: external-module-get-storage-path <url>
+    # Priority-based resolution handles name collisions: profile -> .config/modules -> native
     set -l url $argv[1]
 
-    # Extract components from URL
-    # https://github.com/org/repo.git -> github.com/org/repo
-    # git@github.com:org/repo.git -> github.com/org/repo
-    # file:///path/to/repo -> path/to/repo
+    # Extract repo name from URL (handles https://, git@, file:// formats)
+    # https://github.com/org/repo.git -> repo
+    # git@github.com:org/repo.git -> repo
+    # file:///path/to/repo -> repo
 
-    set -l cache_base (external-module-cache-dir)
+    set -l storage_base (external-module-storage-dir)
 
-    # Normalize the URL to a path
-    set -l normalized_url (string replace -r '^https?://' '' "$url")
-    set -l normalized_url (string replace -r '^git@' '' "$normalized_url")
-    set -l normalized_url (string replace -r '^file://' '' "$normalized_url")
-    set -l normalized_url (string replace ':' '/' "$normalized_url")
-    set -l normalized_url (string replace -r '\.git$' '' "$normalized_url")
+    # Remove .git suffix, then extract last path component
+    # Regex handles both / (HTTPS/file) and : (SSH) as separators
+    set -l repo_name (string replace -r '\.git$' '' "$url")
+    set -l repo_name (string replace -r '^.*[/:]' '' "$repo_name")
 
-    echo "$cache_base/$normalized_url"
+    echo "$storage_base/$repo_name"
 end
 
 function external-module-fetch
@@ -38,18 +37,18 @@ function external-module-fetch
     # Usage: external-module-fetch <url>
     set -l url $argv[1]
 
-    set -l cache_path (external-module-get-cache-path "$url")
-    set -l cache_dir (dirname "$cache_path")
+    set -l storage_path (external-module-get-storage-path "$url")
+    set -l storage_dir (dirname "$storage_path")
 
-    # Create cache directory if it doesn't exist
-    if not test -d "$cache_dir"
-        mkdir -p "$cache_dir"
+    # Create storage directory if it doesn't exist
+    if not test -d "$storage_dir"
+        mkdir -p "$storage_dir"
     end
 
-    if test -d "$cache_path"
+    if test -d "$storage_path"
         # Already cloned, pull latest
         ui-info "Updating external module: $url" >&2
-        pushd "$cache_path" >/dev/null
+        pushd "$storage_path" >/dev/null
         git pull --quiet
         or begin
             popd >/dev/null
@@ -60,7 +59,7 @@ function external-module-fetch
     else
         # Clone the repository
         ui-info "Fetching external module: $url" >&2
-        git clone --quiet "$url" "$cache_path"
+        git clone --quiet "$url" "$storage_path"
         or begin
             ui-error "Failed to clone external module: $url"
             return 1
@@ -68,11 +67,11 @@ function external-module-fetch
     end
 
     # Verify module.yaml exists
-    if not test -f "$cache_path/module.yaml"
+    if not test -f "$storage_path/module.yaml"
         ui-error "Invalid external module: module.yaml not found in $url"
         return 1
     end
 
-    echo "$cache_path"
+    echo "$storage_path"
     return 0
 end

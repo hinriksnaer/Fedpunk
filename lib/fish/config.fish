@@ -79,6 +79,8 @@ function fedpunk-config-init
     if not test -d "$config_dir"
         mkdir -p "$config_dir"
         mkdir -p "$config_dir/profiles"
+        mkdir -p "$config_dir/sources"
+        mkdir -p "$config_dir/modules"
     end
 
     # Create initial config with null values
@@ -86,6 +88,7 @@ function fedpunk-config-init
     printf "# Auto-generated on %s\n\n" (date) >> "$config_file"
     printf "profile: null\n" >> "$config_file"
     printf "mode: null\n" >> "$config_file"
+    printf "sources: []\n" >> "$config_file"
     printf "modules:\n" >> "$config_file"
     printf "  enabled: []\n" >> "$config_file"
     printf "  disabled: []\n" >> "$config_file"
@@ -133,6 +136,56 @@ function fedpunk-config-add-module
 
     # Add to enabled modules list
     yq -i ".modules.enabled += [\"$module_name\"]" "$config_file"
+end
+
+function fedpunk-config-add-source
+    # Add a git URL to the sources list
+    # Usage: fedpunk-config-add-source <git-url>
+    #
+    # Sources can be:
+    #   - Single module repo: git@gitlab.com:org/module.git (has module.yaml at root)
+    #   - Multi-module repo: git@gitlab.com:org/modules (has subdirs with module.yaml)
+
+    set -l source_url $argv[1]
+
+    if test -z "$source_url"
+        echo "Error: Source URL required" >&2
+        return 1
+    end
+
+    if not fedpunk-config-exists
+        fedpunk-config-init
+    end
+
+    set -l config_file (fedpunk-config-path)
+
+    # Ensure sources array exists
+    set -l has_sources (yq '.sources' "$config_file" 2>/dev/null)
+    if test -z "$has_sources" -o "$has_sources" = "null"
+        yq -i '.sources = []' "$config_file"
+    end
+
+    # Check if source is already in list
+    set -l current_sources (yq '.sources[]' "$config_file" 2>/dev/null)
+    if contains "$source_url" $current_sources
+        # Already added
+        return 0
+    end
+
+    # Add to sources list
+    yq -i ".sources += [\"$source_url\"]" "$config_file"
+end
+
+function fedpunk-config-list-sources
+    # List all configured sources
+    # Usage: fedpunk-config-list-sources
+
+    if not fedpunk-config-exists
+        return 1
+    end
+
+    set -l config_file (fedpunk-config-path)
+    yq '.sources[]' "$config_file" 2>/dev/null
 end
 
 function fedpunk-config-list-enabled-modules

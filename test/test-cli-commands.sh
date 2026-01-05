@@ -5,7 +5,7 @@
 # 1. fedpunk --help
 # 2. fedpunk --version
 # 3. fedpunk module --help
-# 4. fedpunk module list
+# 4. fedpunk module list available
 # 5. fedpunk config --help
 # 6. Module CLI extension auto-discovery (ssh)
 # 7. Configuration system (fedpunk apply)
@@ -60,14 +60,14 @@ else
 fi
 echo ""
 
-# Test 4: fedpunk module list
-echo "=== Test 4: fedpunk module list ==="
-if fedpunk module list | grep -q "fish\|ssh"; then
-    echo "  ✓ Module list shows available modules"
+# Test 4: fedpunk module list available
+echo "=== Test 4: fedpunk module list available ==="
+if fedpunk module list available | grep -q "fish\|ssh"; then
+    echo "  ✓ Module list available shows modules"
     echo "  → Available modules:"
-    fedpunk module list | sed 's/^/    /'
+    fedpunk module list available | sed 's/^/    /'
 else
-    echo "  ✗ Module list failed or empty" >&2
+    echo "  ✗ Module list available failed or empty" >&2
     exit 1
 fi
 echo ""
