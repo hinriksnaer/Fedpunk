@@ -56,9 +56,20 @@ function load --description "Load SSH keys into agent"
 
             # Start local ssh-agent
             eval (ssh-agent -c) >/dev/null
-            set -Ux SSH_AGENT_PID $SSH_AGENT_PID
-            set -Ux SSH_AUTH_SOCK $SSH_AUTH_SOCK
-            printf "Started ssh-agent (PID: %s)\n" $SSH_AGENT_PID
+
+            # Create stable socket symlink so other shells can find the agent
+            if test -n "$SSH_AUTH_SOCK"
+                rm -f "$stable_socket" 2>/dev/null
+                ln -sf "$SSH_AUTH_SOCK" "$stable_socket"
+                # Export the PID and use stable socket from now on
+                set -Ux SSH_AGENT_PID $SSH_AGENT_PID
+                set -Ux SSH_AUTH_SOCK "$stable_socket"
+                printf "Started ssh-agent (PID: %s)\n" $SSH_AGENT_PID
+                printf "Stable socket: %s\n" "$stable_socket"
+            else
+                printf "Error: ssh-agent did not set SSH_AUTH_SOCK\n" >&2
+                return 1
+            end
         end
     else
         # Agent is accessible
