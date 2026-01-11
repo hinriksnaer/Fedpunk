@@ -190,6 +190,10 @@ if [ $1 -eq 1 ]; then
         CONFIG_FILE="$CONFIG_DIR/fedpunk.yaml"
 
         # Create config directory
+        # Track if we're creating .config so we can fix its ownership too
+        if [ ! -d "$USER_HOME/.config" ]; then
+            CREATED_DOTCONFIG=1
+        fi
         mkdir -p "$CONFIG_DIR"
         mkdir -p "$CONFIG_DIR/profiles"
 
@@ -207,6 +211,10 @@ EOF
 
         # Set ownership to the actual user
         chown -R "$SUDO_USER:$SUDO_USER" "$CONFIG_DIR"
+        # Fix .config ownership if we created it (avoid leaving it owned by root)
+        if [ -n "$CREATED_DOTCONFIG" ]; then
+            chown "$SUDO_USER:$SUDO_USER" "$USER_HOME/.config"
+        fi
     fi
 
     echo "=========================================="
