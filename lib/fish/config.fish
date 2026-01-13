@@ -2,6 +2,12 @@
 # Fedpunk configuration file management
 # Handles reading/writing ~/.config/fedpunk/fedpunk.yaml
 
+function _yq_safe
+    # Run yq with clean environment to avoid shell pollution
+    # (e.g., kiwi_* vars in Fedora containers that echo to stdout)
+    env -i PATH="$PATH" HOME="$HOME" yq $argv
+end
+
 function fedpunk-config-path
     # Returns the path to the fedpunk config file
     echo "$HOME/.config/fedpunk/fedpunk.yaml"
@@ -32,7 +38,7 @@ function fedpunk-config-get
     end
 
     set -l config_file (fedpunk-config-path)
-    set -l value (yq ".$key" "$config_file" 2>/dev/null)
+    set -l value (_yq_safe ".$key" "$config_file" 2>/dev/null)
 
     if test -n "$value" -a "$value" != "null"
         echo $value
@@ -128,7 +134,7 @@ function fedpunk-config-add-module
     set -l config_file (fedpunk-config-path)
 
     # Check if module is already in enabled list
-    set -l current_modules (yq '.modules.enabled[]' "$config_file" 2>/dev/null)
+    set -l current_modules (_yq_safe '.modules.enabled[]' "$config_file" 2>/dev/null)
     if contains $module_name $current_modules
         # Already enabled, nothing to do
         return 0
@@ -160,13 +166,13 @@ function fedpunk-config-add-source
     set -l config_file (fedpunk-config-path)
 
     # Ensure sources array exists
-    set -l has_sources (yq '.sources' "$config_file" 2>/dev/null)
+    set -l has_sources (_yq_safe '.sources' "$config_file" 2>/dev/null)
     if test -z "$has_sources" -o "$has_sources" = "null"
         yq -i '.sources = []' "$config_file"
     end
 
     # Check if source is already in list
-    set -l current_sources (yq '.sources[]' "$config_file" 2>/dev/null)
+    set -l current_sources (_yq_safe '.sources[]' "$config_file" 2>/dev/null)
     if contains "$source_url" $current_sources
         # Already added
         return 0
@@ -185,7 +191,7 @@ function fedpunk-config-list-sources
     end
 
     set -l config_file (fedpunk-config-path)
-    yq '.sources[]' "$config_file" 2>/dev/null
+    _yq_safe '.sources[]' "$config_file" 2>/dev/null
 end
 
 function fedpunk-config-list-enabled-modules
@@ -206,7 +212,7 @@ function fedpunk-config-list-enabled-modules
     set -l config_file (fedpunk-config-path)
 
     # Get count of enabled modules
-    set -l count (yq '.modules.enabled | length' "$config_file" 2>/dev/null)
+    set -l count (_yq_safe '.modules.enabled | length' "$config_file" 2>/dev/null)
 
     if test -z "$count" -o "$count" = "null" -o "$count" = "0"
         return 1
@@ -216,14 +222,14 @@ function fedpunk-config-list-enabled-modules
     set -l i 0
     while test $i -lt $count
         # Check if it's an object (has .module key)
-        set -l ref_type (yq ".modules.enabled[$i] | type" "$config_file" 2>/dev/null)
+        set -l ref_type (_yq_safe ".modules.enabled[$i] | type" "$config_file" 2>/dev/null)
 
         if test "$ref_type" = "!!map"
             # It's an object, get the .module field
-            yq ".modules.enabled[$i].module" "$config_file" 2>/dev/null
+            _yq_safe ".modules.enabled[$i].module" "$config_file" 2>/dev/null
         else
             # It's a simple string
-            yq ".modules.enabled[$i]" "$config_file" 2>/dev/null
+            _yq_safe ".modules.enabled[$i]" "$config_file" 2>/dev/null
         end
 
         set i (math $i + 1)
