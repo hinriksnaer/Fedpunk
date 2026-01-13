@@ -12,6 +12,7 @@ source "$lib_dir/fedpunk-module.fish"
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/external-modules.fish"
 source "$lib_dir/param-injector.fish"
+source "$lib_dir/env-injector.fish"
 source "$lib_dir/sources.fish"
 
 #
@@ -322,7 +323,6 @@ function deployer-deploy-profile
         # Parse the result (path and repo name)
         set -l parts (string split " " -- $fetch_result)
         set profile_dir $parts[1]
-        set profile_to_save $parts[2]  # Save the repo name, not the URL
 
     else if string match -q '/*' "$profile_name"
         # It's an absolute path
@@ -349,6 +349,13 @@ function deployer-deploy-profile
             return 1
         end
     end
+
+    # Adjust what to save based on input type
+    # For paths, save just the profile name (not the full path, since paths aren't portable)
+    if string match -q '/*' "$profile_name"; or string match -q '~/*' "$profile_name"; or string match -q './*' "$profile_name"; or string match -q '../*' "$profile_name"
+        set profile_to_save (basename "$profile_dir")
+    end
+    # For git URLs and names, profile_to_save already equals profile_name (set at line 311)
 
     # Get mode (priority: arg > config > prompt)
     set -l mode_name ""
@@ -435,6 +442,9 @@ function deployer-deploy-profile
     # Generate parameter configuration
     param-generate-fish-config "$mode_file"
 
+    # Generate environment configuration (after params for interpolation)
+    env-generate-fish-config "$mode_file"
+
     # Deploy each module (fetching happens automatically when needed)
     for module_name in $modules
         ui-info "Deploying module: $module_name"
@@ -494,6 +504,10 @@ function deployer-deploy-from-config
             param-generate-fish-config
             or ui-warn "Failed to generate parameter configuration"
 
+            # Generate environment configuration
+            env-generate-fish-config
+            or ui-warn "Failed to generate environment configuration"
+
             # Deploy each additional module
             set -l module_refs (fedpunk-config-list-enabled-modules)
             for module_ref in $module_refs
@@ -523,6 +537,10 @@ function deployer-deploy-from-config
         # Generate parameter configuration from fedpunk.yaml
         param-generate-fish-config
         or ui-warn "Failed to generate parameter configuration"
+
+        # Generate environment configuration
+        env-generate-fish-config
+        or ui-warn "Failed to generate environment configuration"
 
         # Deploy each module (fetching happens automatically in fedpunk-module deploy)
         set -l module_refs (fedpunk-config-list-enabled-modules)

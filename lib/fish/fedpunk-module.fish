@@ -9,6 +9,7 @@ source "$script_dir/module-resolver.fish"
 source "$script_dir/linker.fish"
 source "$script_dir/param-prompter.fish"
 source "$script_dir/param-injector.fish"
+source "$script_dir/env-injector.fish"
 
 # Global variable to track deployed modules (prevents redeployment in same session)
 if not set -q FEDPUNK_DEPLOYED_MODULES
@@ -451,11 +452,18 @@ function fedpunk-module-deploy
         set -l fedpunk_config "$HOME/.config/fedpunk/fedpunk.yaml"
         if test -f "$fedpunk_config"
             param-generate-fish-config "$fedpunk_config" >/dev/null 2>&1
+            env-generate-fish-config "$fedpunk_config" >/dev/null 2>&1
 
             # Re-source the parameter config in current session
             set -l param_config "$HOME/.config/fish/conf.d/fedpunk-module-params.fish"
             if test -f "$param_config"
                 source "$param_config"
+            end
+
+            # Re-source the environment config in current session
+            set -l env_config "$HOME/.config/fish/conf.d/fedpunk-module-env.fish"
+            if test -f "$env_config"
+                source "$env_config"
             end
         end
     end
