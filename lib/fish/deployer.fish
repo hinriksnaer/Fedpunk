@@ -322,7 +322,6 @@ function deployer-deploy-profile
         # Parse the result (path and repo name)
         set -l parts (string split " " -- $fetch_result)
         set profile_dir $parts[1]
-        set profile_to_save $parts[2]  # Save the repo name, not the URL
 
     else if string match -q '/*' "$profile_name"
         # It's an absolute path
@@ -349,6 +348,13 @@ function deployer-deploy-profile
             return 1
         end
     end
+
+    # Adjust what to save based on input type
+    # For paths, save just the profile name (not the full path, since paths aren't portable)
+    if string match -q '/*' "$profile_name"; or string match -q '~/*' "$profile_name"; or string match -q './*' "$profile_name"; or string match -q '../*' "$profile_name"
+        set profile_to_save (basename "$profile_dir")
+    end
+    # For git URLs and names, profile_to_save already equals profile_name (set at line 311)
 
     # Get mode (priority: arg > config > prompt)
     set -l mode_name ""
