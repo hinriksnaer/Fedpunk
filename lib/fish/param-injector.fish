@@ -3,6 +3,7 @@
 
 # Source dependencies
 set -l lib_dir (dirname (status -f))
+source "$lib_dir/yq-utils.fish"
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/module-resolver.fish"
 source "$lib_dir/yaml-parser.fish"
@@ -25,7 +26,7 @@ function param-parse-module-at-index
     # Get the module reference at the given index
     # Build yq path - concatenate to avoid Fish array syntax interpretation
     set -l item_path "$modules_path""[$index]"
-    set -l ref_type (yq eval "$item_path | type" "$yaml_file" 2>/dev/null)
+    set -l ref_type (_yq_safe_eval "$item_path | type" "$yaml_file" 2>/dev/null)
 
     # Handle empty/null ref_type
     if test -z "$ref_type" -o "$ref_type" = "null" -o "$ref_type" = "!!null"
@@ -36,7 +37,7 @@ function param-parse-module-at-index
     switch "$ref_type"
         case "!!str"
             # Simple string reference (e.g., "essentials" or "https://...")
-            set -l module_ref (yq eval "$item_path" "$yaml_file" 2>/dev/null)
+            set -l module_ref (_yq_safe_eval "$item_path" "$yaml_file" 2>/dev/null)
             if test -n "$module_ref" -a "$module_ref" != "null"
                 echo "$module_ref"
                 return 0
@@ -45,7 +46,7 @@ function param-parse-module-at-index
 
         case "!!map"
             # Object with module and params
-            set -l module_ref (yq eval "$item_path.module" "$yaml_file" 2>/dev/null)
+            set -l module_ref (_yq_safe_eval "$item_path.module" "$yaml_file" 2>/dev/null)
             if test "$module_ref" = "null" -o -z "$module_ref"
                 echo "Error: Object reference missing 'module' key at index $index" >&2
                 return 1
@@ -55,9 +56,9 @@ function param-parse-module-at-index
             echo "$module_ref"
 
             # Then output parameters as KEY=VALUE pairs
-            set -l param_keys (yq eval "$item_path.params | keys | .[]" "$yaml_file" 2>/dev/null)
+            set -l param_keys (_yq_safe_eval "$item_path.params | keys | .[]" "$yaml_file" 2>/dev/null)
             for key in $param_keys
-                set -l value (yq eval "$item_path.params.$key" "$yaml_file" 2>/dev/null)
+                set -l value (_yq_safe_eval "$item_path.params.$key" "$yaml_file" 2>/dev/null)
                 echo "$key=$value"
             end
             return 0
@@ -106,7 +107,7 @@ function param-generate-fish-config
 
     # Determine which path to use (.modules[] or .modules.enabled[])
     set -l modules_path ".modules"
-    set -l enabled_count (yq eval '.modules.enabled | length' "$yaml_path" 2>/dev/null)
+    set -l enabled_count (_yq_safe_eval '.modules.enabled | length' "$yaml_path" 2>/dev/null)
 
     # If .modules.enabled exists and has items, use it
     if test -n "$enabled_count" -a "$enabled_count" != "null" -a "$enabled_count" != "0"
@@ -114,7 +115,7 @@ function param-generate-fish-config
     end
 
     # Get count of modules
-    set -l count (yq eval "$modules_path | length" "$yaml_path" 2>/dev/null)
+    set -l count (_yq_safe_eval "$modules_path | length" "$yaml_path" 2>/dev/null)
 
     if test "$count" = "0" -o "$count" = "null"
         # No modules, create empty file
@@ -143,7 +144,7 @@ function param-generate-fish-config
         # Get module name from module.yaml (preferred) or fallback to extracted name
         set -l module_name
         if test -n "$module_path" -a -f "$module_path/module.yaml"
-            set module_name (yq eval '.module.name' "$module_path/module.yaml" 2>/dev/null)
+            set module_name (_yq_safe_eval '.module.name' "$module_path/module.yaml" 2>/dev/null)
         end
 
         # Fallback to extracted name if module.yaml doesn't have a name

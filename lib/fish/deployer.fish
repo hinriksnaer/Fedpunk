@@ -427,7 +427,7 @@ function deployer-deploy-profile
     end
 
     # Get modules array from YAML (modules is a top-level array)
-    set -l modules (yq '.modules[]' "$mode_file" 2>/dev/null)
+    set -l modules (_yq_safe '.modules[]' "$mode_file" 2>/dev/null)
     if test -z "$modules"
         ui-error "No modules defined in mode: $mode_name"
         return 1

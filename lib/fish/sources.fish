@@ -174,7 +174,7 @@ function source-registry-list-modules
     end
 
     # Get all keys under .modules
-    yq '.modules | keys | .[]' "$registry_file" 2>/dev/null
+    _yq_safe '.modules | keys | .[]' "$registry_file" 2>/dev/null
 end
 
 function source-registry-get-repo
@@ -190,7 +190,7 @@ function source-registry-get-repo
         return 1
     end
 
-    yq ".modules.$module_name.repo" "$registry_file" 2>/dev/null
+    _yq_safe ".modules.$module_name.repo" "$registry_file" 2>/dev/null
 end
 
 function source-discover-modules

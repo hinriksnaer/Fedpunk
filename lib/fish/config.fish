@@ -2,11 +2,9 @@
 # Fedpunk configuration file management
 # Handles reading/writing ~/.config/fedpunk/fedpunk.yaml
 
-function _yq_safe
-    # Run yq with clean environment to avoid shell pollution
-    # (e.g., kiwi_* vars in Fedora containers that echo to stdout)
-    env -i PATH="$PATH" HOME="$HOME" yq $argv
-end
+# Source yq utilities for clean environment execution
+set -l lib_dir (dirname (status -f))
+source "$lib_dir/yq-utils.fish"
 
 function fedpunk-config-path
     # Returns the path to the fedpunk config file

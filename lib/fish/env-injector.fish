@@ -3,6 +3,7 @@
 
 # Source dependencies
 set -l lib_dir (dirname (status -f))
+source "$lib_dir/yq-utils.fish"
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/module-resolver.fish"
 source "$lib_dir/yaml-parser.fish"
@@ -19,16 +20,16 @@ function env-get-module-environment
     end
 
     # Check if environment section exists
-    set -l has_env (yq '.environment // null' "$yaml_file" 2>/dev/null)
+    set -l has_env (_yq_safe '.environment // null' "$yaml_file" 2>/dev/null)
     if test -z "$has_env" -o "$has_env" = "null"
         return 0  # No environment section
     end
 
     # Get all keys from environment section
-    set -l env_keys (yq '.environment | keys | .[]' "$yaml_file" 2>/dev/null)
+    set -l env_keys (_yq_safe '.environment | keys | .[]' "$yaml_file" 2>/dev/null)
 
     for key in $env_keys
-        set -l value (yq ".environment.$key" "$yaml_file" 2>/dev/null)
+        set -l value (_yq_safe ".environment.$key" "$yaml_file" 2>/dev/null)
         if test -n "$value" -a "$value" != "null"
             echo "$key=$value"
         end
@@ -51,16 +52,16 @@ function env-get-user-environment
     end
 
     # Check if environment section exists
-    set -l has_env (yq '.environment // null' "$yaml_path" 2>/dev/null)
+    set -l has_env (_yq_safe '.environment // null' "$yaml_path" 2>/dev/null)
     if test -z "$has_env" -o "$has_env" = "null"
         return 0
     end
 
     # Get all keys from environment section
-    set -l env_keys (yq '.environment | keys | .[]' "$yaml_path" 2>/dev/null)
+    set -l env_keys (_yq_safe '.environment | keys | .[]' "$yaml_path" 2>/dev/null)
 
     for key in $env_keys
-        set -l value (yq ".environment.$key" "$yaml_path" 2>/dev/null)
+        set -l value (_yq_safe ".environment.$key" "$yaml_path" 2>/dev/null)
         if test -n "$value" -a "$value" != "null"
             echo "$key=$value"
         end
@@ -99,26 +100,26 @@ function env-generate-fish-config
     if test -f "$yaml_path"
         # Determine which path to use (.modules[] or .modules.enabled[])
         set -l modules_path ".modules"
-        set -l enabled_count (yq '.modules.enabled | length' "$yaml_path" 2>/dev/null)
+        set -l enabled_count (_yq_safe '.modules.enabled | length' "$yaml_path" 2>/dev/null)
 
         if test -n "$enabled_count" -a "$enabled_count" != "null" -a "$enabled_count" != "0"
             set modules_path ".modules.enabled"
         end
 
-        set -l count (yq "$modules_path | length" "$yaml_path" 2>/dev/null)
+        set -l count (_yq_safe "$modules_path | length" "$yaml_path" 2>/dev/null)
 
         if test "$count" != "0" -a "$count" != "null" -a -n "$count"
             for i in (seq 0 (math $count - 1))
                 # Get module reference
                 set -l item_path "$modules_path""[$i]"
-                set -l ref_type (yq "$item_path | type" "$yaml_path" 2>/dev/null)
+                set -l ref_type (_yq_safe "$item_path | type" "$yaml_path" 2>/dev/null)
 
                 set -l module_ref
                 switch "$ref_type"
                     case '*str'
-                        set module_ref (yq "$item_path" "$yaml_path" 2>/dev/null)
+                        set module_ref (_yq_safe "$item_path" "$yaml_path" 2>/dev/null)
                     case '*map'
-                        set module_ref (yq "$item_path.module" "$yaml_path" 2>/dev/null)
+                        set module_ref (_yq_safe "$item_path.module" "$yaml_path" 2>/dev/null)
                 end
 
                 if test -z "$module_ref" -o "$module_ref" = "null"

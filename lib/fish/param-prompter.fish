@@ -4,6 +4,7 @@
 
 # Source dependencies
 set -l lib_dir (dirname (status -f))
+source "$lib_dir/yq-utils.fish"
 source "$lib_dir/ui.fish"
 source "$lib_dir/yaml-parser.fish"
 source "$lib_dir/module-resolver.fish"
@@ -48,22 +49,22 @@ function param-load-module-definition
     end
 
     # Check if parameters section exists
-    set -l has_params (yq eval '.parameters | length' "$module_yaml" 2>/dev/null)
+    set -l has_params (_yq_safe_eval '.parameters | length' "$module_yaml" 2>/dev/null)
     if test "$has_params" = "0" -o "$has_params" = "null"
         return 0
     end
 
     # Get parameter keys
-    set -l param_keys (yq eval '.parameters | keys | .[]' "$module_yaml" 2>/dev/null)
+    set -l param_keys (_yq_safe_eval '.parameters | keys | .[]' "$module_yaml" 2>/dev/null)
 
     for key in $param_keys
-        set -l param_type (yq eval ".parameters.$key.type" "$module_yaml" 2>/dev/null)
-        set -l param_desc (yq eval ".parameters.$key.description" "$module_yaml" 2>/dev/null)
-        set -l param_default (yq eval ".parameters.$key.default" "$module_yaml" 2>/dev/null)
-        set -l param_required (yq eval ".parameters.$key.required" "$module_yaml" 2>/dev/null)
+        set -l param_type (_yq_safe_eval ".parameters.$key.type" "$module_yaml" 2>/dev/null)
+        set -l param_desc (_yq_safe_eval ".parameters.$key.description" "$module_yaml" 2>/dev/null)
+        set -l param_default (_yq_safe_eval ".parameters.$key.default" "$module_yaml" 2>/dev/null)
+        set -l param_required (_yq_safe_eval ".parameters.$key.required" "$module_yaml" 2>/dev/null)
 
         # Check for options (for enum/choice types)
-        set -l param_options (yq eval ".parameters.$key.options | join(\",\")" "$module_yaml" 2>/dev/null)
+        set -l param_options (_yq_safe_eval ".parameters.$key.options | join(\",\")" "$module_yaml" 2>/dev/null)
         if test "$param_options" = "null" -o -z "$param_options"
             set param_options ""
         end
@@ -86,20 +87,20 @@ function param-get-current-value
     end
 
     # Search through enabled modules for this module
-    set -l count (yq eval '.modules.enabled | length' "$config_path" 2>/dev/null)
+    set -l count (_yq_safe_eval '.modules.enabled | length' "$config_path" 2>/dev/null)
     if test "$count" = "0" -o "$count" = "null"
         return 1
     end
 
     for i in (seq 0 (math $count - 1))
-        set -l ref_type (yq eval ".modules.enabled[$i] | type" "$config_path" 2>/dev/null)
+        set -l ref_type (_yq_safe_eval ".modules.enabled[$i] | type" "$config_path" 2>/dev/null)
 
         if test "$ref_type" = "!!map"
-            set -l mod_ref (yq eval ".modules.enabled[$i].module" "$config_path" 2>/dev/null)
+            set -l mod_ref (_yq_safe_eval ".modules.enabled[$i].module" "$config_path" 2>/dev/null)
             set -l mod_name (module-ref-extract-name "$mod_ref")
 
             if test "$mod_name" = "$module_name"
-                set -l value (yq eval ".modules.enabled[$i].params.$param_key" "$config_path" 2>/dev/null)
+                set -l value (_yq_safe_eval ".modules.enabled[$i].params.$param_key" "$config_path" 2>/dev/null)
                 if test "$value" != "null" -a -n "$value"
                     echo "$value"
                     return 0
@@ -166,21 +167,21 @@ function param-save-to-config
     set -l module_name (module-ref-extract-name "$module_ref")
 
     # Check if module already exists in enabled list
-    set -l count (yq eval '.modules.enabled | length' "$config_path" 2>/dev/null)
+    set -l count (_yq_safe_eval '.modules.enabled | length' "$config_path" 2>/dev/null)
     set -l module_index -1
 
     if test "$count" != "0" -a "$count" != "null"
         for i in (seq 0 (math $count - 1))
-            set -l ref_type (yq eval ".modules.enabled[$i] | type" "$config_path" 2>/dev/null)
+            set -l ref_type (_yq_safe_eval ".modules.enabled[$i] | type" "$config_path" 2>/dev/null)
 
             if test "$ref_type" = "!!str"
-                set -l existing_ref (yq eval ".modules.enabled[$i]" "$config_path" 2>/dev/null)
+                set -l existing_ref (_yq_safe_eval ".modules.enabled[$i]" "$config_path" 2>/dev/null)
                 if test "$existing_ref" = "$module_ref"
                     set module_index $i
                     break
                 end
             else if test "$ref_type" = "!!map"
-                set -l existing_ref (yq eval ".modules.enabled[$i].module" "$config_path" 2>/dev/null)
+                set -l existing_ref (_yq_safe_eval ".modules.enabled[$i].module" "$config_path" 2>/dev/null)
                 if test "$existing_ref" = "$module_ref"
                     set module_index $i
                     break
@@ -191,7 +192,7 @@ function param-save-to-config
 
     if test $module_index -ge 0
         # Module exists - check if it's a string or map
-        set -l ref_type (yq eval ".modules.enabled[$module_index] | type" "$config_path" 2>/dev/null)
+        set -l ref_type (_yq_safe_eval ".modules.enabled[$module_index] | type" "$config_path" 2>/dev/null)
 
         if test "$ref_type" = "!!str"
             # Convert from string to map
@@ -287,7 +288,7 @@ function param-prompt-all-modules
     end
 
     # Get count of modules
-    set -l count (yq eval '.modules | length' "$mode_yaml" 2>/dev/null)
+    set -l count (_yq_safe_eval '.modules | length' "$mode_yaml" 2>/dev/null)
 
     if test "$count" = "0" -o "$count" = "null"
         return 0
@@ -295,13 +296,13 @@ function param-prompt-all-modules
 
     # Process each module
     for i in (seq 0 (math $count - 1))
-        set -l ref_type (yq eval ".modules[$i] | type" "$mode_yaml" 2>/dev/null)
+        set -l ref_type (_yq_safe_eval ".modules[$i] | type" "$mode_yaml" 2>/dev/null)
         set -l module_ref ""
 
         if test "$ref_type" = "!!str"
-            set module_ref (yq eval ".modules[$i]" "$mode_yaml" 2>/dev/null)
+            set module_ref (_yq_safe_eval ".modules[$i]" "$mode_yaml" 2>/dev/null)
         else if test "$ref_type" = "!!map"
-            set module_ref (yq eval ".modules[$i].module" "$mode_yaml" 2>/dev/null)
+            set module_ref (_yq_safe_eval ".modules[$i].module" "$mode_yaml" 2>/dev/null)
         end
 
         if test -n "$module_ref" -a "$module_ref" != "null"
