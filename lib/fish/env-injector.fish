@@ -78,19 +78,21 @@ function env-generate-fish-config
     # 2. User-defined environment variables (fedpunk.yaml)
     #
     # Generates:
-    # - /etc/fish/conf.d/fedpunk-env.fish (system-wide fish config)
-    # - /etc/profile.d/fedpunk-env.sh (system-wide bash/sh config)
+    # - ~/.config/fish/conf.d/fedpunk-module-env.fish (user fish config)
+    # - ~/.config/fedpunk/profile.d/fedpunk-env.sh (user bash/sh config - source from .bashrc)
 
     set -l yaml_path $argv[1]
-    set -l fish_config "/etc/fish/conf.d/fedpunk-env.fish"
-    set -l bash_config "/etc/profile.d/fedpunk-env.sh"
+    set -l fish_config "$HOME/.config/fish/conf.d/fedpunk-module-env.fish"
+    set -l bash_config "$HOME/.config/fedpunk/profile.d/fedpunk-env.sh"
 
     # Ensure directories exist
-    if not test -d "/etc/fish/conf.d"
-        mkdir -p "/etc/fish/conf.d"
+    set -l fish_dir (dirname "$fish_config")
+    set -l bash_dir (dirname "$bash_config")
+    if not test -d "$fish_dir"
+        mkdir -p "$fish_dir"
     end
-    if not test -d "/etc/profile.d"
-        mkdir -p "/etc/profile.d"
+    if not test -d "$bash_dir"
+        mkdir -p "$bash_dir"
     end
 
     # Track env vars: keys and values separately (Fish lacks associative arrays)
@@ -240,11 +242,11 @@ function env-generate-fish-config
 
     # Write fish config
     printf "%s\n" $fish_lines > "$fish_config"
-    echo "  -> Generated environment config: $fish_config"
+    echo "Generated environment config: $fish_config"
 
-    # Write bash config
+    # Write bash config (user must source from .bashrc if using bash)
     printf "%s\n" $bash_lines > "$bash_config"
-    echo "  -> Generated environment config: $bash_config"
+    echo "Generated environment config: $bash_config"
 
     return 0
 end
