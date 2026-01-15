@@ -131,8 +131,8 @@ function fedpunk-config-add-module
 
     set -l config_file (fedpunk-config-path)
 
-    # Check if module is already in enabled list
-    set -l current_modules (_yq_safe '.modules.enabled[]' "$config_file" 2>/dev/null)
+    # Check if module is already in enabled list (handles both string and object formats)
+    set -l current_modules (fedpunk-config-list-enabled-modules 2>/dev/null)
     if contains $module_name $current_modules
         # Already enabled, nothing to do
         return 0
