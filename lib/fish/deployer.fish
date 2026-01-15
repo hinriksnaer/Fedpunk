@@ -439,13 +439,7 @@ function deployer-deploy-profile
     source-sync-all
     or ui-warn "Some sources failed to sync"
 
-    # Generate parameter configuration
-    param-generate-fish-config "$mode_file"
-
-    # Generate environment configuration (after params for interpolation)
-    env-generate-fish-config "$mode_file"
-
-    # Deploy each module (fetching happens automatically when needed)
+    # Deploy each module first (fetching happens automatically when needed)
     for module_name in $modules
         ui-info "Deploying module: $module_name"
         fedpunk-module deploy "$module_name"
@@ -454,6 +448,12 @@ function deployer-deploy-profile
             return 1
         end
     end
+
+    # Generate parameter configuration (after deployment so modules are resolved)
+    param-generate-fish-config "$mode_file"
+
+    # Generate environment configuration (after deployment so modules are resolved)
+    env-generate-fish-config "$mode_file"
 
     # Update metadata
     fedpunk-config-update-metadata
@@ -500,15 +500,7 @@ function deployer-deploy-from-config
             ui-info ""
             ui-info "Deploying additional modules from configuration..."
 
-            # Generate parameter config for modules (if not already done)
-            param-generate-fish-config
-            or ui-warn "Failed to generate parameter configuration"
-
-            # Generate environment configuration
-            env-generate-fish-config
-            or ui-warn "Failed to generate environment configuration"
-
-            # Deploy each additional module
+            # Deploy each additional module first (so modules are in place for env generation)
             set -l module_refs (fedpunk-config-list-enabled-modules)
             for module_ref in $module_refs
                 ui-info "Deploying: $module_ref"
@@ -517,6 +509,14 @@ function deployer-deploy-from-config
                     return 1
                 end
             end
+
+            # Generate parameter config for modules (after deployment so modules are resolved)
+            param-generate-fish-config
+            or ui-warn "Failed to generate parameter configuration"
+
+            # Generate environment configuration (after deployment so modules are resolved)
+            env-generate-fish-config
+            or ui-warn "Failed to generate environment configuration"
         end
 
         # Update metadata
@@ -534,15 +534,7 @@ function deployer-deploy-from-config
         source-sync-all
         or ui-warn "Some sources failed to sync"
 
-        # Generate parameter configuration from fedpunk.yaml
-        param-generate-fish-config
-        or ui-warn "Failed to generate parameter configuration"
-
-        # Generate environment configuration
-        env-generate-fish-config
-        or ui-warn "Failed to generate environment configuration"
-
-        # Deploy each module (fetching happens automatically in fedpunk-module deploy)
+        # Deploy each module first (fetching happens automatically in fedpunk-module deploy)
         set -l module_refs (fedpunk-config-list-enabled-modules)
 
         if test -z "$module_refs"
@@ -559,6 +551,14 @@ function deployer-deploy-from-config
                 return 1
             end
         end
+
+        # Generate parameter configuration from fedpunk.yaml (after deployment so modules are resolved)
+        param-generate-fish-config
+        or ui-warn "Failed to generate parameter configuration"
+
+        # Generate environment configuration (after deployment so modules are resolved)
+        env-generate-fish-config
+        or ui-warn "Failed to generate environment configuration"
 
         # Update metadata
         fedpunk-config-update-metadata
