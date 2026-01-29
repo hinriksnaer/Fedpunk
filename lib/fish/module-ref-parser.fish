@@ -2,6 +2,10 @@
 # Module reference parser - handles simple names, paths, URLs, and objects with params
 # Parses module references from mode.yaml
 
+# Source yq utilities for clean environment execution
+set -l lib_dir (dirname (status -f))
+source "$lib_dir/yq-utils.fish"
+
 function module-ref-parse
     # Parse a module reference (can be string or object with params)
     # Usage: module-ref-parse <yaml-file> <index>
@@ -21,18 +25,18 @@ function module-ref-parse
     end
 
     # Get the module reference at the given index
-    set -l ref_type (yq eval ".modules[$index] | type" "$yaml_file" 2>/dev/null)
+    set -l ref_type (_yq_safe_eval ".modules[$index] | type" "$yaml_file" 2>/dev/null)
 
     switch "$ref_type"
         case "!!str"
             # Simple string reference (e.g., "essentials" or "https://...")
-            set -l module_ref (yq eval ".modules[$index]" "$yaml_file" 2>/dev/null)
+            set -l module_ref (_yq_safe_eval ".modules[$index]" "$yaml_file" 2>/dev/null)
             echo "$module_ref"
             return 0
 
         case "!!map"
             # Object with module and params
-            set -l module_ref (yq eval ".modules[$index].module" "$yaml_file" 2>/dev/null)
+            set -l module_ref (_yq_safe_eval ".modules[$index].module" "$yaml_file" 2>/dev/null)
             if test "$module_ref" = "null" -o -z "$module_ref"
                 echo "Error: Object reference missing 'module' key at index $index" >&2
                 return 1
@@ -42,9 +46,9 @@ function module-ref-parse
             echo "$module_ref"
 
             # Then output parameters as KEY=VALUE pairs
-            set -l param_keys (yq eval ".modules[$index].params | keys | .[]" "$yaml_file" 2>/dev/null)
+            set -l param_keys (_yq_safe_eval ".modules[$index].params | keys | .[]" "$yaml_file" 2>/dev/null)
             for key in $param_keys
-                set -l value (yq eval ".modules[$index].params.$key" "$yaml_file" 2>/dev/null)
+                set -l value (_yq_safe_eval ".modules[$index].params.$key" "$yaml_file" 2>/dev/null)
                 echo "$key=$value"
             end
             return 0
@@ -111,7 +115,7 @@ function module-ref-list-all
     end
 
     # Get count of modules
-    set -l count (yq eval '.modules | length' "$yaml_file" 2>/dev/null)
+    set -l count (_yq_safe_eval '.modules | length' "$yaml_file" 2>/dev/null)
 
     if test "$count" = "0" -o "$count" = "null"
         return 0

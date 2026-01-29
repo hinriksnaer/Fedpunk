@@ -2,6 +2,10 @@
 # Simple YAML parser for fedpunk module system using yq
 # Handles basic YAML parsing needed for module.yaml and mode files
 
+# Source yq utilities for clean environment execution
+set -l lib_dir (dirname (status -f))
+source "$lib_dir/yq-utils.fish"
+
 function yaml-get-value
     # Get a simple value from YAML
     # Usage: yaml-get-value <file> <section> <key>
@@ -22,7 +26,7 @@ function yaml-get-value
     set -l path ".$section.$key"
 
     # Use yq to get the value
-    set -l value (yq "$path" "$file" 2>/dev/null)
+    set -l value (_yq_safe "$path" "$file" 2>/dev/null)
 
     # Only output if value exists and is not null
     if test -n "$value" -a "$value" != "null"
@@ -50,7 +54,7 @@ function yaml-get-array
 
     # Use yq with eval to get array values, one per line
     # The -o=tsv ensures tab-separated output (one item per line for arrays)
-    yq eval "$path" "$file" 2>&1 | while read -l item
+    _yq_safe_eval "$path" "$file" 2>&1 | while read -l item
         # Skip empty lines and null values
         if test -n "$item" -a "$item" != "null"
             echo $item
@@ -104,7 +108,7 @@ function yaml-section-exists
     end
 
     # Check if section exists and is not null
-    set -l result (yq -r ".$section // empty" "$file" 2>/dev/null)
+    set -l result (_yq_safe -r ".$section // empty" "$file" 2>/dev/null)
     test -n "$result" -a "$result" != "null"
 end
 
@@ -118,5 +122,5 @@ function yaml-list-sections
     end
 
     # Get all top-level keys
-    yq -r 'keys | .[]' "$file" 2>/dev/null
+    _yq_safe -r 'keys | .[]' "$file" 2>/dev/null
 end

@@ -3,6 +3,7 @@
 
 # Source dependencies
 set -l lib_dir (dirname (status -f))
+source "$lib_dir/paths.fish"
 source "$lib_dir/module-ref-parser.fish"
 source "$lib_dir/external-modules.fish"
 source "$lib_dir/sources.fish"
