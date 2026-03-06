@@ -117,6 +117,10 @@ end
 function fedpunk-config-add-module
     # Add a module to the enabled list
     # Usage: fedpunk-config-add-module <module-name>
+    #
+    # Checks for duplicates in:
+    # 1. modules.enabled in fedpunk.yaml
+    # 2. Profile's mode.yaml modules (if profile is configured)
 
     set -l module_name $argv[1]
 
@@ -133,9 +137,20 @@ function fedpunk-config-add-module
 
     # Check if module is already in enabled list (handles both string and object formats)
     set -l current_modules (fedpunk-config-list-enabled-modules 2>/dev/null)
-    if contains $module_name $current_modules
-        # Already enabled, nothing to do
-        return 0
+    if test -n "$current_modules"
+        if contains -- $module_name $current_modules
+            # Already enabled, nothing to do
+            return 0
+        end
+    end
+
+    # Check if module is part of the active profile's mode.yaml
+    set -l profile_modules (fedpunk-config-list-profile-modules 2>/dev/null)
+    if test -n "$profile_modules"
+        if contains -- $module_name $profile_modules
+            # Already part of profile, nothing to add
+            return 0
+        end
     end
 
     # Add to enabled modules list
@@ -231,5 +246,49 @@ function fedpunk-config-list-enabled-modules
         end
 
         set i (math $i + 1)
+    end
+end
+
+function fedpunk-config-list-profile-modules
+    # List module names from the active profile's mode.yaml
+    # Returns: module names (one per line)
+
+    if not fedpunk-config-exists
+        return 1
+    end
+
+    set -l profile (fedpunk-config-get profile 2>/dev/null)
+    set -l mode (fedpunk-config-get mode 2>/dev/null)
+
+    if test -z "$profile" -o "$profile" = "null" -o -z "$mode" -o "$mode" = "null"
+        return 1
+    end
+
+    # Find profile directory
+    set -l profile_dir ""
+    for search_path in "$HOME/.config/fedpunk/profiles" "$FEDPUNK_USER/profiles" "$FEDPUNK_SYSTEM/profiles"
+        if test -d "$search_path/$profile"
+            set profile_dir "$search_path/$profile"
+            break
+        end
+    end
+
+    if test -z "$profile_dir"
+        return 1
+    end
+
+    set -l mode_file "$profile_dir/modes/$mode/mode.yaml"
+    if not test -f "$mode_file"
+        return 1
+    end
+
+    # Extract module names (handles both string and object formats)
+    for m in (_yq_safe '.modules[]' "$mode_file" 2>/dev/null)
+        if string match -q '{*' "$m"
+            # Object format - extract module field
+            echo "$m" | yq '.module' 2>/dev/null
+        else if test -n "$m" -a "$m" != "null"
+            echo "$m"
+        end
     end
 end
