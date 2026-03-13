@@ -1,11 +1,14 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 echo "==> Cleaning old builds..."
 rm -rf /tmp/fedpunk-test /tmp/unstable.tar.gz
 
-echo "==> Creating tarball from git..."
-git archive --format=tar.gz --prefix=Fedpunk-unstable/ -o /tmp/unstable.tar.gz HEAD
+echo "==> Creating tarball from source..."
+tar -czf /tmp/unstable.tar.gz -C "$(dirname "$REPO_DIR")" --transform "s|^$(basename "$REPO_DIR")|Fedpunk-unstable|" "$(basename "$REPO_DIR")"
 
 echo "==> Building RPM..."
 rpmbuild -bb fedpunk.spec --define "_sourcedir /tmp" --define "_rpmdir /tmp/fedpunk-test"
