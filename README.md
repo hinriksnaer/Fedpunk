@@ -125,10 +125,24 @@ profile:
 **Directory structure:**
 ```
 ~/.config/fedpunk/
-├── fedpunk.yaml       # Main configuration
-├── profiles/          # Cloned profile repositories
-├── sources/           # Cloned source repositories
-└── modules/           # Cloned external modules
+├── fedpunk.yaml              # Main configuration (profile, modules, environment)
+├── profiles/                 # Cloned profile repositories
+│   └── hyprpunk/             # Example: deployed profile
+│       ├── modes/
+│       │   ├── desktop/
+│       │   │   └── mode.yaml
+│       │   └── container/
+│       │       └── mode.yaml
+│       └── modules/          # Profile-specific modules
+├── sources/                  # Multi-module source repositories
+│   └── company-modules/      # Example: team module collection
+│       ├── jira/
+│       ├── slack/
+│       └── vpn/
+├── modules/                  # Individual external modules (from git URLs)
+│   └── my-custom-module/
+└── profile.d/                # Generated shell configs
+    └── fedpunk-env.sh        # Environment variables for bash/sh
 ```
 
 ---
@@ -311,17 +325,31 @@ fedpunk module deploy fish
 
 ---
 
-## External Profiles
+## Profiles
 
-Profiles are complete environments maintained in external repositories. Examples:
+Profiles are complete environments that bundle modules, modes, and configurations. They can be deployed from git URLs or local paths.
 
-### hyprpunk
-Full desktop environment with Hyprland, themes, and desktop modules:
+### Profile Management
+
 ```fish
+# List available profiles
+fedpunk profile list
+
+# Show current active profile
+fedpunk profile current
+
+# Deploy a profile from git URL
 fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk --mode desktop
+
+# Deploy with a specific mode
+fedpunk profile deploy https://github.com/user/profile.git --mode container
+
+# Re-apply current profile (pulls updates if from git)
+fedpunk apply
 ```
 
-**Create your own profile:**
+### Profile Structure
+
 ```
 my-profile/
 ├── modes/
@@ -329,10 +357,47 @@ my-profile/
 │   │   └── mode.yaml      # Module list for desktop
 │   └── container/
 │       └── mode.yaml      # Module list for containers
-├── modules/               # Profile-specific modules
+├── modules/               # Profile-specific modules (optional)
 │   └── custom-module/
+│       ├── module.yaml
+│       └── config/
 └── README.md
 ```
+
+### mode.yaml
+
+Each mode defines which modules to deploy:
+
+```yaml
+mode:
+  name: desktop
+  description: Full desktop environment
+
+modules:
+  - fish                                  # Built-in module
+  - custom-module                         # Profile module (from modules/)
+  - ~/gits/my-module                      # Local path
+  - https://github.com/org/module.git     # External git URL
+
+  # Module with parameters
+  - module: https://github.com/org/jira.git
+    params:
+      team_name: "platform"
+      jira_url: "https://company.atlassian.net"
+```
+
+### Example: hyprpunk
+
+Full desktop environment with Hyprland, themes, and desktop modules:
+
+```fish
+fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk --mode desktop
+```
+
+When deploying from a git URL:
+1. Profile is cloned to `~/.config/fedpunk/profiles/<name>/`
+2. Profile name and source are saved to `fedpunk.yaml`
+3. Running `fedpunk apply` will pull updates automatically
 
 ---
 
