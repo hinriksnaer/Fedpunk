@@ -171,14 +171,15 @@ function fedpunk-config-get-profile-name
     end
 
     set -l config_file (fedpunk-config-path)
+    set -l value ""
 
     # Handle both old (string) and new (object) formats
     set -l profile_type (_yq_safe '.profile | type' "$config_file" 2>/dev/null)
     if test "$profile_type" = "!!map"
-        set -l value (_yq_safe '.profile.name' "$config_file" 2>/dev/null)
+        set value (_yq_safe '.profile.name' "$config_file" 2>/dev/null)
     else
         # Legacy: profile is a string, extract name from URL if needed
-        set -l value (_yq_safe '.profile' "$config_file" 2>/dev/null)
+        set value (_yq_safe '.profile' "$config_file" 2>/dev/null)
     end
 
     if test -n "$value" -a "$value" != "null"
@@ -196,14 +197,15 @@ function fedpunk-config-get-profile-source
     end
 
     set -l config_file (fedpunk-config-path)
+    set -l value ""
 
     # Handle both old (string) and new (object) formats
     set -l profile_type (_yq_safe '.profile | type' "$config_file" 2>/dev/null)
     if test "$profile_type" = "!!map"
-        set -l value (_yq_safe '.profile.source' "$config_file" 2>/dev/null)
+        set value (_yq_safe '.profile.source' "$config_file" 2>/dev/null)
     else
         # Legacy: profile is a string, could be URL or name
-        set -l value (_yq_safe '.profile' "$config_file" 2>/dev/null)
+        set value (_yq_safe '.profile' "$config_file" 2>/dev/null)
         # Only return if it looks like a URL
         if not string match -qr '^https?://|^git@|^ssh://' "$value"
             return 1
