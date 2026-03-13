@@ -57,8 +57,9 @@ sudo dnf copr enable hinriksnaer/fedpunk
 # Install Fedpunk core
 sudo dnf install fedpunk
 
-# Deploy the fish module
+# Deploy core modules
 fedpunk module deploy fish
+fedpunk module deploy ssh
 
 # Deploy external modules
 fedpunk module deploy https://github.com/user/module.git
@@ -66,7 +67,7 @@ fedpunk module deploy https://github.com/user/module.git
 
 **What's installed:**
 - Core engine at `/usr/share/fedpunk`
-- Only 1 built-in module: `fish`
+- 2 built-in modules: `fish` and `ssh`
 - No profiles, no themes (external only)
 - Environment variables configured for all shells
 
@@ -308,7 +309,7 @@ Sources are stored in `~/.config/fedpunk/sources/<repo-name>/` and synced automa
 
 ## Built-in Modules
 
-Fedpunk ships with only 1 minimal module:
+Fedpunk ships with 2 minimal modules:
 
 ### fish
 Modern Fish shell with Starship prompt:
@@ -316,6 +317,17 @@ Modern Fish shell with Starship prompt:
 - Starship cross-shell prompt
 - Fisher plugin manager
 - Basic Fish configuration
+
+```fish
+fedpunk module deploy fish
+```
+
+### ssh
+SSH client configuration with agent management:
+- Opinionated SSH config
+- Connection multiplexing
+- Stable SSH agent socket (`~/.ssh/agent.sock`)
+- Key management CLI (`fedpunk ssh load`)
 
 ```fish
 fedpunk module deploy fish
@@ -412,8 +424,9 @@ When deploying from a git URL:
 │  ├─ Dependency resolver (recursive DAG)     │
 │  └─ GNU Stow wrapper (symlink deployment)   │
 ├─────────────────────────────────────────────┤
-│  Built-in Modules (1 only)                  │
-│  └─ fish (Fish shell + Starship prompt)     │
+│  Built-in Modules (2 only)                  │
+│  ├─ fish (Fish shell + Starship prompt)     │
+│  └─ ssh (SSH configuration + agent)         │
 ├─────────────────────────────────────────────┤
 │  External Modules (git URLs or local)       │
 │  ├─ https://github.com/user/module.git      │
