@@ -91,8 +91,10 @@ Fedpunk stores its configuration at `~/.config/fedpunk/fedpunk.yaml`:
 ```yaml
 # ~/.config/fedpunk/fedpunk.yaml
 
-profile: hyprpunk              # Active profile (from git or local)
-mode: desktop                  # Active mode (desktop, container, etc)
+profile:
+  name: hyprpunk                                      # Profile name (for local lookup)
+  source: https://github.com/hinriksnaer/hyprpunk.git # Git URL (for fetching/updates)
+  mode: desktop                                       # Active mode (desktop, container, etc)
 
 sources:                       # Multi-module git repositories
   - git@gitlab.com:org/fedpunk-modules.git
@@ -108,6 +110,14 @@ modules:
   disabled: []                 # Modules to skip during deployment
 
 last_deployed: 2024-03-13T10:30:00+00:00
+```
+
+For local profiles (no git source):
+```yaml
+profile:
+  name: my-local-profile
+  source: null
+  mode: desktop
 ```
 
 **Directory structure:**
@@ -384,7 +394,6 @@ my-profile/
 
 **Core Documentation:**
 - [`CLAUDE.md`](CLAUDE.md) - Full project architecture and development guide
-- [`docs/MODULE_DEVELOPMENT.md`](docs/MODULE_DEVELOPMENT.md) - Creating modules
 
 **External Profiles:**
 - [hyprpunk](https://github.com/hinriksnaer/hyprpunk) - Desktop environment with Hyprland

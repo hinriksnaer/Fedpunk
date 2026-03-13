@@ -167,7 +167,6 @@ chmod 0755 %{buildroot}%{_bindir}/fedpunk
 %files
 %license LICENSE
 %doc README.md
-%doc docs/
 
 %{_datadir}/%{name}/
 %{_sysconfdir}/profile.d/fedpunk.sh

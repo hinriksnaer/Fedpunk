@@ -116,20 +116,25 @@ else
     exit 1
 fi
 
-# Verify git URL is preserved in config
-SAVED_PROFILE=$(run_fish "fedpunk-config-get profile" 2>/dev/null)
+# Verify profile name and source are preserved in config
+SAVED_NAME=$(run_fish "fedpunk-config-get-profile-name" 2>/dev/null)
+SAVED_SOURCE=$(run_fish "fedpunk-config-get-profile-source" 2>/dev/null)
 
-if [ "$SAVED_PROFILE" = "$TEST_PROFILE_URL" ]; then
-    echo "  SUCCESS: Git URL preserved in config"
-elif [ "$SAVED_PROFILE" = "$PROFILE_NAME" ]; then
-    echo "  FAIL: Config saved name instead of URL" >&2
-    echo "    Expected: $TEST_PROFILE_URL" >&2
-    echo "    Got: $SAVED_PROFILE" >&2
-    exit 1
+if [ "$SAVED_NAME" = "$PROFILE_NAME" ]; then
+    echo "  SUCCESS: Profile name preserved in config"
 else
-    echo "  FAIL: Unexpected value in config" >&2
+    echo "  FAIL: Unexpected profile name in config" >&2
+    echo "    Expected: $PROFILE_NAME" >&2
+    echo "    Got: $SAVED_NAME" >&2
+    exit 1
+fi
+
+if [ "$SAVED_SOURCE" = "$TEST_PROFILE_URL" ]; then
+    echo "  SUCCESS: Git URL preserved as source in config"
+else
+    echo "  FAIL: Unexpected source in config" >&2
     echo "    Expected: $TEST_PROFILE_URL" >&2
-    echo "    Got: $SAVED_PROFILE" >&2
+    echo "    Got: $SAVED_SOURCE" >&2
     exit 1
 fi
 echo ""
@@ -194,7 +199,7 @@ EOF
 run_fish "deployer-deploy-from-config" 2>&1 | grep -v "sudo\|password" | head -5 || true
 
 # Verify name is preserved
-SAVED_PROFILE=$(run_fish "fedpunk-config-get profile" 2>/dev/null)
+SAVED_PROFILE=$(run_fish "fedpunk-config-get-profile-name" 2>/dev/null)
 
 if [ "$SAVED_PROFILE" = "local-test" ]; then
     echo "  SUCCESS: Profile name preserved in config"
@@ -229,7 +234,7 @@ echo "  Path-based profile created at: $PATH_PROFILE_DIR"
 run_fish "deployer-deploy-profile '$PATH_PROFILE_DIR' --mode test" 2>&1 | grep -v "sudo\|password" | head -5 || true
 
 # Verify basename is saved (not full path)
-SAVED_PROFILE=$(run_fish "fedpunk-config-get profile" 2>/dev/null)
+SAVED_PROFILE=$(run_fish "fedpunk-config-get-profile-name" 2>/dev/null)
 
 if [ "$SAVED_PROFILE" = "custom-path-profile" ]; then
     echo "  SUCCESS: Profile basename saved (not full path)"

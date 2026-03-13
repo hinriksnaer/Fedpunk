@@ -11,4 +11,12 @@ echo "==> Building RPM..."
 rpmbuild -bb fedpunk.spec --define "_sourcedir /tmp" --define "_rpmdir /tmp/fedpunk-test"
 
 echo "==> Launching container..."
-podman run -it --rm -v "/tmp/fedpunk-test:/rpms:z" fedora:43 bash -c 'dnf install -y /rpms/noarch/fedpunk-*.rpm && bash'
+podman run -it --rm -v "/tmp/fedpunk-test:/rpms:z" fedora:latest bash -c '
+    dnf install -y /rpms/noarch/fedpunk-*.rpm fish sudo >/dev/null 2>&1
+    useradd -m -s /usr/bin/fish dev
+    echo "dev ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo ""
+    echo "Fedpunk installed. Try: fedpunk module list"
+    echo ""
+    exec su - dev
+'
