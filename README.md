@@ -21,7 +21,7 @@
 [![Fedora](https://img.shields.io/badge/Fedora-40+-blue.svg)](https://getfedora.org/)
 [![Fish Shell](https://img.shields.io/badge/Shell-Fish-green.svg)](https://fishshell.com/)
 
-[Quick Start](#quick-start) • [Architecture](#architecture) • [Modules](#module-system) • [Documentation](#documentation)
+[Quick Start](#quick-start) • [Modules](#module-system) • [Profiles](#external-profiles) • [Documentation](#documentation)
 
 ---
 
@@ -29,26 +29,18 @@
 
 ## What is Fedpunk?
 
-Fedpunk is a **minimal configuration engine** for Fedora Linux. It provides the core infrastructure for deploying and managing system configurations through a modular, external-first architecture.
+Fedpunk is **end-to-end system orchestration** for Fedora Linux. It handles everything needed to configure and reproduce your environment:
 
-**Core capabilities:**
-- **Modular Architecture** - Self-contained modules with automatic dependency resolution
-- **External Module Support** - Deploy from git URLs, local paths, or built-in modules
-- **YAML Configuration** - Simple, declarative module definitions
-- **Parameter System** - Interactive prompting with persistent configuration
-- **GNU Stow Integration** - Symlink-based deployment (instant, no generation)
-- **Fish-First** - Modern shell with intelligent completions
+- **Dotfiles** - Symlink-based deployment via GNU Stow (edit once, apply everywhere)
+- **Packages** - DNF, COPR, Cargo, NPM, and Flatpak from declarative YAML
+- **Environment Variables** - Auto-generated Fish config from module parameters
+- **Custom CLI** - Drop Fish functions into `cli/` and they're available system-wide
+- **Lifecycle Scripts** - Run custom logic before/after deployment
+- **Dependencies** - Automatic resolution with topological sorting
 
-**What Fedpunk is NOT:**
-- ❌ A desktop environment (use external profiles like [hyprpunk](https://github.com/hinriksnaer/hyprpunk))
-- ❌ A theme manager (themes live in profiles)
-- ❌ A complete dotfile collection (minimal core only)
+Each module is self-contained and reproducible. Deploy from git URLs, local paths, or built-in modules with full dependency tracking.
 
-**What Fedpunk IS:**
-- ✅ A configuration engine
-- ✅ A module deployment system
-- ✅ A foundation for building profiles
-- ✅ A git-native configuration manager
+Use external profiles like [hyprpunk](https://github.com/hinriksnaer/hyprpunk) to deploy complete desktop environments built on Fedpunk.
 
 ---
 
@@ -89,50 +81,6 @@ sudo dnf install fedpunk
 ```
 
 ⚠️ **Warning:** Unstable builds may contain breaking changes.
-
----
-
-## Architecture
-
-Fedpunk uses a **minimal core + external modules** architecture:
-
-```
-┌─────────────────────────────────────────────┐
-│  Core Engine (/usr/share/fedpunk)           │
-│  ├─ Module system (YAML-based)              │
-│  ├─ External module loader (git URLs)       │
-│  ├─ Parameter system (interactive prompts)  │
-│  ├─ Dependency resolver (recursive DAG)     │
-│  └─ GNU Stow wrapper (symlink deployment)   │
-├─────────────────────────────────────────────┤
-│  Built-in Modules (2 only)                  │
-│  ├─ fish (Fish shell + Starship prompt)     │
-│  └─ ssh (SSH configuration + agent)         │
-├─────────────────────────────────────────────┤
-│  External Modules (git URLs or local)       │
-│  ├─ https://github.com/user/module.git      │
-│  ├─ ~/gits/my-custom-module                 │
-│  └─ Stored in ~/.config/fedpunk/modules/    │
-├─────────────────────────────────────────────┤
-│  User Configuration (~/.config/fedpunk)     │
-│  ├─ fedpunk.yaml (module config + params)   │
-│  └─ profiles/ (external profiles cloned)    │
-└─────────────────────────────────────────────┘
-```
-
-### Key Design Decisions
-
-**External-First**
-All profiles, themes, and most modules are external. The core is minimal (~500 KB without git).
-
-**Git-Native**
-External modules are git repositories. Clone, cache, and deploy seamlessly.
-
-**YAML Configuration**
-Simple, readable module definitions with dependency declarations.
-
-**Parameter System**
-Interactive prompts for module configuration, saved to `fedpunk.yaml`.
 
 ---
 
@@ -345,10 +293,44 @@ my-profile/
 │   │   └── mode.yaml      # Module list for desktop
 │   └── container/
 │       └── mode.yaml      # Module list for containers
-├── plugins/               # Profile-specific modules
+├── modules/               # Profile-specific modules
 │   └── custom-module/
 └── README.md
 ```
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│  Core Engine (/usr/share/fedpunk)           │
+│  ├─ Module system (YAML-based)              │
+│  ├─ External module loader (git URLs)       │
+│  ├─ Parameter system (env var injection)    │
+│  ├─ Dependency resolver (recursive DAG)     │
+│  └─ GNU Stow wrapper (symlink deployment)   │
+├─────────────────────────────────────────────┤
+│  Built-in Modules (2 only)                  │
+│  ├─ fish (Fish shell + Starship prompt)     │
+│  └─ ssh (SSH configuration + agent)         │
+├─────────────────────────────────────────────┤
+│  External Modules (git URLs or local)       │
+│  ├─ https://github.com/user/module.git      │
+│  ├─ ~/gits/my-custom-module                 │
+│  └─ Stored in ~/.config/fedpunk/modules/    │
+├─────────────────────────────────────────────┤
+│  User Configuration (~/.config/fedpunk)     │
+│  ├─ fedpunk.yaml (module config + params)   │
+│  └─ profiles/ (external profiles cloned)    │
+└─────────────────────────────────────────────┘
+```
+
+**Module Resolution Priority:**
+1. Profile modules (`profiles/<name>/modules/`)
+2. Source repositories (`~/.config/fedpunk/sources/`)
+3. External git URLs (`~/.config/fedpunk/modules/`)
+4. Built-in modules (`modules/`)
 
 ---
 
