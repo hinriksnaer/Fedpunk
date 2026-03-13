@@ -228,15 +228,17 @@ fedpunk module unstow mymodule
 Use the module template to get started:
 
 ```bash
-# Clone the template
-git clone https://github.com/hinriksnaer/fedpunk-module-template my-module
-cd my-module
+# Copy the template
+cp -r /usr/share/fedpunk/examples/module-template my-module
+# Or from git clone:
+cp -r ~/.local/share/fedpunk/examples/module-template my-module
 
+cd my-module
 # Edit module.yaml, add configs, deploy
 fedpunk module deploy .
 ```
 
-See [fedpunk-module-template](https://github.com/hinriksnaer/fedpunk-module-template) for full documentation on:
+See [examples/module-template](examples/module-template) for full documentation on:
 - Module structure and `module.yaml` schema
 - Config files (stowed to `$HOME`)
 - Custom CLI commands

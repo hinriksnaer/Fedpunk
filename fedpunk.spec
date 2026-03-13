@@ -60,6 +60,7 @@ install -d %{buildroot}%{_datadir}/%{name}/bin
 install -d %{buildroot}%{_datadir}/%{name}/lib/fish
 install -d %{buildroot}%{_datadir}/%{name}/modules
 install -d %{buildroot}%{_datadir}/%{name}/cli
+install -d %{buildroot}%{_datadir}/%{name}/examples
 install -d %{buildroot}%{_sysconfdir}/profile.d
 install -d %{buildroot}%{_sysconfdir}/fish/conf.d
 install -d %{buildroot}%{_bindir}
@@ -76,6 +77,11 @@ done
 
 # Profiles are external only - no built-in profiles
 # Themes are external only - no built-in themes
+
+# Install examples (module templates, etc.)
+if [ -d "examples" ]; then
+    cp -r examples/* %{buildroot}%{_datadir}/%{name}/examples/
+fi
 
 # Install CLI commands (symlinked to user space at runtime)
 cp -r cli/* %{buildroot}%{_datadir}/%{name}/cli/
