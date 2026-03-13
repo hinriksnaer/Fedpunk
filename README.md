@@ -84,6 +84,46 @@ sudo dnf install fedpunk
 
 ---
 
+## Configuration
+
+Fedpunk stores its configuration at `~/.config/fedpunk/fedpunk.yaml`:
+
+```yaml
+# ~/.config/fedpunk/fedpunk.yaml
+
+profile: hyprpunk              # Active profile (from git or local)
+mode: desktop                  # Active mode (desktop, container, etc)
+
+sources:                       # Multi-module git repositories
+  - git@gitlab.com:org/fedpunk-modules.git
+
+modules:
+  enabled:                     # Modules to deploy
+    - fish                     # Simple module reference
+    - ssh
+    - module: jira             # Module with parameters
+      params:
+        jira_url: "https://company.atlassian.net"
+        team_name: "platform"
+  disabled: []                 # Modules to skip during deployment
+
+params:                        # Global parameter values
+  git_email: "user@example.com"
+
+last_deployed: 2024-03-13T10:30:00+00:00
+```
+
+**Directory structure:**
+```
+~/.config/fedpunk/
+├── fedpunk.yaml       # Main configuration
+├── profiles/          # Cloned profile repositories
+├── sources/           # Cloned source repositories
+└── modules/           # Cloned external modules
+```
+
+---
+
 ## Module System
 
 Every module is self-contained with metadata, dependencies, and lifecycle hooks:
