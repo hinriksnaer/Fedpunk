@@ -107,9 +107,6 @@ modules:
         team_name: "platform"
   disabled: []                 # Modules to skip during deployment
 
-params:                        # Global parameter values
-  git_email: "user@example.com"
-
 last_deployed: 2024-03-13T10:30:00+00:00
 ```
 
