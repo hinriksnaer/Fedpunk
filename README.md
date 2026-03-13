@@ -57,9 +57,8 @@ sudo dnf copr enable hinriksnaer/fedpunk
 # Install Fedpunk core
 sudo dnf install fedpunk
 
-# Deploy core modules
+# Deploy the fish module
 fedpunk module deploy fish
-fedpunk module deploy ssh
 
 # Deploy external modules
 fedpunk module deploy https://github.com/user/module.git
@@ -67,7 +66,7 @@ fedpunk module deploy https://github.com/user/module.git
 
 **What's installed:**
 - Core engine at `/usr/share/fedpunk`
-- Only 2 built-in modules: `fish` and `ssh`
+- Only 1 built-in module: `fish`
 - No profiles, no themes (external only)
 - Environment variables configured for all shells
 
@@ -102,7 +101,6 @@ sources:                       # Multi-module git repositories
 modules:
   enabled:                     # Modules to deploy
     - fish                     # Simple module reference
-    - ssh
     - module: jira             # Module with parameters
       params:
         jira_url: "https://company.atlassian.net"
@@ -296,7 +294,7 @@ Sources are stored in `~/.config/fedpunk/sources/<repo-name>/` and synced automa
 
 ## Built-in Modules
 
-Fedpunk ships with only 2 minimal modules:
+Fedpunk ships with only 1 minimal module:
 
 ### fish
 Modern Fish shell with Starship prompt:
@@ -307,17 +305,6 @@ Modern Fish shell with Starship prompt:
 
 ```fish
 fedpunk module deploy fish
-```
-
-### ssh
-SSH client configuration with agent management:
-- Opinionated SSH config
-- Connection multiplexing
-- Stable SSH agent socket (`~/.ssh/agent.sock`)
-- Key management CLI (`fedpunk ssh load`)
-
-```fish
-fedpunk module deploy ssh
 ```
 
 **That's it!** Everything else is external.
@@ -366,9 +353,8 @@ my-profile/
 │  ├─ Dependency resolver (recursive DAG)     │
 │  └─ GNU Stow wrapper (symlink deployment)   │
 ├─────────────────────────────────────────────┤
-│  Built-in Modules (2 only)                  │
-│  ├─ fish (Fish shell + Starship prompt)     │
-│  └─ ssh (SSH configuration + agent)         │
+│  Built-in Modules (1 only)                  │
+│  └─ fish (Fish shell + Starship prompt)     │
 ├─────────────────────────────────────────────┤
 │  External Modules (git URLs or local)       │
 │  ├─ https://github.com/user/module.git      │

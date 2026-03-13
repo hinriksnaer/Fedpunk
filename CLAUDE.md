@@ -171,7 +171,6 @@ mode:
 
 modules:
   - fish                                  # System module
-  - ssh                                   # System module
   - custom-module                         # Profile module
   - ~/gits/my-module                      # Local path
   - https://github.com/org/module.git     # External git URL
