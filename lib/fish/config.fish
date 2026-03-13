@@ -222,16 +222,20 @@ end
 function fedpunk-config-init
     # Initialize config file with null values
     # Creates directory structure if needed
+    # IMPORTANT: Never overwrites existing config file
 
     set -l config_file (fedpunk-config-path)
     set -l config_dir (dirname "$config_file")
 
-    # Ensure directory exists
-    if not test -d "$config_dir"
-        mkdir -p "$config_dir"
-        mkdir -p "$config_dir/profiles"
-        mkdir -p "$config_dir/sources"
-        mkdir -p "$config_dir/modules"
+    # Ensure directories exist (safe to run multiple times)
+    test -d "$config_dir"; or mkdir -p "$config_dir"
+    test -d "$config_dir/profiles"; or mkdir -p "$config_dir/profiles"
+    test -d "$config_dir/sources"; or mkdir -p "$config_dir/sources"
+    test -d "$config_dir/modules"; or mkdir -p "$config_dir/modules"
+
+    # Never overwrite existing config
+    if test -f "$config_file"
+        return 0
     end
 
     # Create initial config with null values
