@@ -131,20 +131,17 @@ function param-generate-fish-config
         # In Fish, command substitution creates an array (one element per line)
         # First element is module reference, rest are params
         set -l module_ref $parse_result[1]
-        set -l params $parse_result[2..-1]
-
-        # Skip if no params
-        if test (count $params) -eq 0
-            continue
-        end
+        set -l user_params $parse_result[2..-1]
 
         # Resolve module path to get the actual module.yaml
         set -l module_path (module-resolve-path "$module_ref" 2>/dev/null)
 
         # Get module name from module.yaml (preferred) or fallback to extracted name
         set -l module_name
+        set -l module_yaml ""
         if test -n "$module_path" -a -f "$module_path/module.yaml"
-            set module_name (_yq_safe_eval '.module.name' "$module_path/module.yaml" 2>/dev/null)
+            set module_yaml "$module_path/module.yaml"
+            set module_name (_yq_safe_eval '.module.name' "$module_yaml" 2>/dev/null)
         end
 
         # Fallback to extracted name if module.yaml doesn't have a name
@@ -154,29 +151,74 @@ function param-generate-fish-config
 
         set -l module_name_upper (string upper (string replace -a '-' '_' "$module_name"))
 
+        # Collect all params: defaults from module.yaml + user overrides
+        set -l param_keys
+        set -l param_values
+
+        # First, get defaults from module's parameters: section
+        if test -n "$module_yaml"
+            set -l def_keys (_yq_safe_eval '.parameters | keys | .[]' "$module_yaml" 2>/dev/null)
+            for key in $def_keys
+                set -l default_val (_yq_safe_eval ".parameters.$key.default" "$module_yaml" 2>/dev/null)
+                if test -n "$default_val" -a "$default_val" != "null"
+                    set -a param_keys "$key"
+                    set -a param_values "$default_val"
+                end
+            end
+        end
+
+        # Then, apply user-provided params (override defaults)
+        for param in $user_params
+            set -l parts (string split -m 1 '=' -- $param)
+            if test (count $parts) -eq 2
+                set -l key $parts[1]
+                set -l value $parts[2]
+
+                # Check if key already exists (from defaults)
+                set -l found_idx 0
+                for idx in (seq (count $param_keys))
+                    if test "$param_keys[$idx]" = "$key"
+                        set found_idx $idx
+                        break
+                    end
+                end
+
+                if test $found_idx -gt 0
+                    # Override existing default
+                    set param_values[$found_idx] "$value"
+                else
+                    # Add new param
+                    set -a param_keys "$key"
+                    set -a param_values "$value"
+                end
+            end
+        end
+
+        # Skip if no params at all
+        if test (count $param_keys) -eq 0
+            continue
+        end
+
         # Add comment for this module
         set -a config_lines ""
         set -a config_lines "# Parameters for: $module_name"
 
         # Add each parameter
-        for param in $params
-            set -l parts (string split '=' -- $param)
-            if test (count $parts) -eq 2
-                set -l key $parts[1]
-                set -l value $parts[2]
+        for idx in (seq (count $param_keys))
+            set -l key $param_keys[$idx]
+            set -l value $param_values[$idx]
 
-                # Convert key to uppercase
-                set -l key_upper (string upper (string replace -a '-' '_' "$key"))
+            # Convert key to uppercase
+            set -l key_upper (string upper (string replace -a '-' '_' "$key"))
 
-                # Build env var name: FEDPUNK_PARAM_<MODULE>_<KEY>
-                set -l env_var_name "FEDPUNK_PARAM_$module_name_upper"_"$key_upper"
+            # Build env var name: FEDPUNK_PARAM_<MODULE>_<KEY>
+            set -l env_var_name "FEDPUNK_PARAM_$module_name_upper"_"$key_upper"
 
-                # Escape value for Fish string
-                set -l escaped_value (string replace -a '\\' '\\\\' "$value")
-                set -l escaped_value (string replace -a '"' '\\"' "$escaped_value")
+            # Escape value for Fish string
+            set -l escaped_value (string replace -a '\\' '\\\\' "$value")
+            set escaped_value (string replace -a '"' '\\"' "$escaped_value")
 
-                set -a config_lines "set -gx $env_var_name \"$escaped_value\""
-            end
+            set -a config_lines "set -gx $env_var_name \"$escaped_value\""
         end
     end
 

@@ -167,8 +167,15 @@ fi
 # Check for default value (debug_mode should use default "false")
 if grep -q 'FEDPUNK_PARAM_TEST_PARAMS_MODULE_DEBUG_MODE' "$FISH_PARAMS_CONFIG"; then
     echo "  SUCCESS: DEBUG_MODE param found (using default)"
+    if grep -q '"false"' "$FISH_PARAMS_CONFIG"; then
+        echo "  SUCCESS: DEBUG_MODE has default value 'false'"
+    else
+        echo "  FAIL: DEBUG_MODE has wrong value" >&2
+        exit 1
+    fi
 else
-    echo "  INFO: DEBUG_MODE param not found (defaults may not be injected)"
+    echo "  FAIL: DEBUG_MODE param not found (defaults not injected)" >&2
+    exit 1
 fi
 
 echo ""
