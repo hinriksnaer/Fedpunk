@@ -42,7 +42,7 @@ fedpunk module run-lifecycle <name> <hook>  # Run specific lifecycle hook
 bash test/build-rpm.sh
 
 # Test RPM installation
-bash test/test-rpm-install.sh
+bash test/ci/test-rpm-install.sh
 
 # Run specific workflow tests locally (requires container runtime)
 # See .github/workflows/ for available tests:
@@ -337,7 +337,7 @@ Key features:
 **Building locally:**
 ```bash
 bash test/build-rpm.sh          # Builds RPM in ~/rpmbuild/
-bash test/test-rpm-install.sh   # Tests installation
+bash test/ci/test-rpm-install.sh   # Tests installation
 ```
 
 ## Important Conventions

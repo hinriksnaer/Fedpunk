@@ -38,13 +38,13 @@ bash test/build-rpm-copr-mode.sh
 bash test/build-rpm.sh
 
 # Test RPM installation
-bash test/test-rpm-install.sh
+bash test/ci/test-rpm-install.sh
 
 # Test core module deployment
-bash test/test-core-modules.sh
+bash test/ci/test-core-modules.sh
 
 # Test CLI functionality
-bash test/test-cli-commands.sh
+bash test/ci/test-cli-commands.sh
 ```
 
 ---
