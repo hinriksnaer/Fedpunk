@@ -104,6 +104,10 @@ parameters:          # Optional: define module parameters
     default: value
     required: false
 
+environment:         # Environment variables (exported to shell)
+  MY_VAR: "value"
+  API_URL: "https://api.example.com"
+
 lifecycle:
   before: []         # Hook names to run before stow
   after:
@@ -130,10 +134,11 @@ stow:
 3. **External Module Resolution** - Clone/cache git URLs, resolve local paths, locate profile modules
 4. **Dependency Resolution** - Recursive topological sort, prevents duplicates
 5. **Parameter Injection** - Generate Fish config for module parameters
-6. **Package Installation** - DNF, COPR, Cargo, NPM, Flatpak from module.yaml
-7. **Lifecycle: before** - Pre-deployment hooks
-8. **GNU Stow Deployment** - Symlink `config/` directories to `$HOME`
-9. **Lifecycle: after** - Post-deployment hooks (services, etc.)
+6. **Environment Injection** - Generate Fish/Bash config for module environment variables
+7. **Package Installation** - DNF, COPR, Cargo, NPM, Flatpak from module.yaml
+8. **Lifecycle: before** - Pre-deployment hooks
+9. **GNU Stow Deployment** - Symlink `config/` directories to `$HOME`
+10. **Lifecycle: after** - Post-deployment hooks (services, etc.)
 
 **Key Design Decision:** GNU Stow provides instant deployment via symlinks. Editing a file in `modules/neovim/config/.config/nvim/` immediately affects `~/.config/nvim/` with no generation step.
 
@@ -287,6 +292,7 @@ The module system is built on these Fish libraries:
 - **sources.fish** - Manages multi-module source repositories (clone, update, discover)
 - **external-modules.fish** - Handles cloning of direct git URL modules
 - **param-injector.fish** - Generates Fish environment variables from parameters
+- **env-injector.fish** - Generates Fish/Bash config from module environment variables
 - **linker.fish** - GNU Stow wrapper for config deployment
 - **yaml-parser.fish** - YAML parsing using yq
 - **ui.fish** - gum wrapper for consistent UI (choose, confirm, input, etc.)
