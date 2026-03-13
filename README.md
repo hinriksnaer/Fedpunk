@@ -254,6 +254,46 @@ echo "setting=value" > my-module/config/.config/my-tool/config.conf
 fedpunk module deploy ~/path/to/my-module
 ```
 
+### Module CLI Commands
+
+Modules can provide custom CLI commands that become available as `fedpunk <command>`:
+
+```
+my-module/
+├── module.yaml
+├── config/
+└── cli/
+    └── mycommand/
+        └── mycommand.fish    # Provides: fedpunk mycommand
+```
+
+**Example CLI file** (`cli/mycommand/mycommand.fish`):
+```fish
+#!/usr/bin/env fish
+
+function mycommand --description "My custom command"
+    # Main command - routes to subcommands
+end
+
+function subcommand --description "A subcommand"
+    # fedpunk mycommand subcommand
+    echo "Running subcommand"
+end
+
+function another --description "Another subcommand"
+    # fedpunk mycommand another
+    echo "Running another"
+end
+```
+
+**Usage after deployment:**
+```fish
+fedpunk mycommand subcommand
+fedpunk mycommand another
+```
+
+The ssh module provides a real example: `fedpunk ssh load`, `fedpunk ssh list`, `fedpunk ssh edit`.
+
 ---
 
 ## External Modules
@@ -444,6 +484,30 @@ When deploying from a git URL:
 2. Source repositories (`~/.config/fedpunk/sources/`)
 3. External git URLs (`~/.config/fedpunk/modules/`)
 4. Built-in modules (`modules/`)
+
+---
+
+## TUI Support
+
+Fedpunk uses [gum](https://github.com/charmbracelet/gum) for interactive terminal UI elements:
+
+- **Spinners** - Progress indicators for long-running operations (package installs, git clones)
+- **Selection menus** - Interactive prompts for profile/mode selection
+- **Input prompts** - Parameter collection with defaults and validation
+- **Styled output** - Consistent colors for success, error, warning, and info messages
+
+The UI gracefully degrades in non-interactive environments (CI, scripts, SSH without TTY).
+
+**UI functions available to modules:**
+```fish
+ui-spin --title "Installing..." -- command args    # Spinner with progress
+ui-choose --header "Select option" opt1 opt2 opt3  # Selection menu
+ui-input --placeholder "Enter value"               # Text input
+ui-confirm "Proceed?"                              # Yes/no prompt
+ui-success "Done!"                                 # Styled success message
+ui-error "Failed"                                  # Styled error message
+ui-info "Note: ..."                                # Styled info message
+```
 
 ---
 
