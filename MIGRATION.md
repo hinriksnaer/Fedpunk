@@ -242,7 +242,6 @@ fedpunk profile deploy ~/my-custom-profile --mode dev
 
 ### External Profiles
 - [hyprpunk](https://github.com/hinriksnaer/hyprpunk) - Full Hyprland desktop with themes
-- [fedpunk-minimal](https://github.com/hinriksnaer/fedpunk-minimal) - Minimal reference profile
 
 ### Migration Documents
 - [HYPRPUNK_MIGRATION_COMPLETE.md](HYPRPUNK_MIGRATION_COMPLETE.md) - Technical migration details

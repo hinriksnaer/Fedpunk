@@ -321,12 +321,6 @@ Full desktop environment with Hyprland, themes, and desktop modules:
 fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk --mode desktop
 ```
 
-### fedpunk-minimal
-Minimal reference profile for containers:
-```fish
-fedpunk profile deploy https://github.com/hinriksnaer/fedpunk-minimal --mode container
-```
-
 **Create your own profile:**
 ```
 my-profile/
@@ -391,7 +385,6 @@ my-profile/
 
 **External Profiles:**
 - [hyprpunk](https://github.com/hinriksnaer/hyprpunk) - Desktop environment with Hyprland
-- [fedpunk-minimal](https://github.com/hinriksnaer/fedpunk-minimal) - Minimal reference profile
 
 ---
 

@@ -119,7 +119,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🔗 Related Repositories
 
 - [hyprpunk](https://github.com/hinriksnaer/hyprpunk) - Full Hyprland desktop environment (external profile)
-- [fedpunk-minimal](https://github.com/hinriksnaer/fedpunk-minimal) - Minimal reference profile
 
 ### ⚠️ Breaking Changes
 
