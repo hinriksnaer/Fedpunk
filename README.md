@@ -97,7 +97,7 @@ profile:
   mode: desktop                                       # Active mode (desktop, container, etc)
 
 sources:                       # Multi-module git repositories
-  - git@gitlab.com:org/fedpunk-modules.git
+  - https://gitlab.com/org/fedpunk-modules.git
 
 modules:
   enabled:                     # Modules to deploy
@@ -244,7 +244,7 @@ Deploy modules from any git repository:
 fedpunk module deploy https://github.com/user/module.git
 
 # GitHub SSH
-fedpunk module deploy git@github.com:user/module.git
+fedpunk module deploy https://github.com/user/module.git
 
 # GitLab
 fedpunk module deploy https://gitlab.com/user/module.git
@@ -267,7 +267,7 @@ For teams with shared module collections, use source repositories:
 
 ```fish
 # Add a source repository (contains multiple modules)
-fedpunk module sources add git@gitlab.com:org/fedpunk-modules.git
+fedpunk module sources add https://gitlab.com/org/fedpunk-modules.git
 
 # List configured sources
 fedpunk module sources list
@@ -279,7 +279,7 @@ fedpunk module sources sync
 fedpunk module sources modules
 
 # Remove a source
-fedpunk module sources remove git@gitlab.com:org/fedpunk-modules.git
+fedpunk module sources remove https://gitlab.com/org/fedpunk-modules.git
 ```
 
 Sources are stored in `~/.config/fedpunk/sources/<repo-name>/` and synced automatically before deployment.
