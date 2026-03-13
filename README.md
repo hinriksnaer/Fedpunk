@@ -225,74 +225,23 @@ fedpunk module unstow mymodule
 
 ### Creating Custom Modules
 
-1. **Create module structure:**
+Use the module template to get started:
+
 ```bash
-mkdir -p my-module/{config,cli,scripts}
+# Clone the template
+git clone https://github.com/hinriksnaer/fedpunk-module-template my-module
+cd my-module
+
+# Edit module.yaml, add configs, deploy
+fedpunk module deploy .
 ```
 
-2. **Write module.yaml:**
-```yaml
-module:
-  name: my-module
-  description: My custom module
-  dependencies: []
-
-packages:
-  dnf:
-    - tool1
-    - tool2
-```
-
-3. **Add configs:**
-```bash
-mkdir -p my-module/config/.config/my-tool
-echo "setting=value" > my-module/config/.config/my-tool/config.conf
-```
-
-4. **Deploy:**
-```fish
-fedpunk module deploy ~/path/to/my-module
-```
-
-### Module CLI Commands
-
-Modules can provide custom CLI commands that become available as `fedpunk <command>`:
-
-```
-my-module/
-├── module.yaml
-├── config/
-└── cli/
-    └── mycommand/
-        └── mycommand.fish    # Provides: fedpunk mycommand
-```
-
-**Example CLI file** (`cli/mycommand/mycommand.fish`):
-```fish
-#!/usr/bin/env fish
-
-function mycommand --description "My custom command"
-    # Main command - routes to subcommands
-end
-
-function subcommand --description "A subcommand"
-    # fedpunk mycommand subcommand
-    echo "Running subcommand"
-end
-
-function another --description "Another subcommand"
-    # fedpunk mycommand another
-    echo "Running another"
-end
-```
-
-**Usage after deployment:**
-```fish
-fedpunk mycommand subcommand
-fedpunk mycommand another
-```
-
-The ssh module provides a real example: `fedpunk ssh load`, `fedpunk ssh list`, `fedpunk ssh edit`.
+See [fedpunk-module-template](https://github.com/hinriksnaer/fedpunk-module-template) for full documentation on:
+- Module structure and `module.yaml` schema
+- Config files (stowed to `$HOME`)
+- Custom CLI commands
+- Lifecycle scripts
+- Parameters and environment variables
 
 ---
 
