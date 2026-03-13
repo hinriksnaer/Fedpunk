@@ -140,18 +140,19 @@ stow:
 9. **GNU Stow Deployment** - Symlink `config/` directories to `$HOME`
 10. **Lifecycle: after** - Post-deployment hooks (services, etc.)
 
-**Key Design Decision:** GNU Stow provides instant deployment via symlinks. Editing a file in `modules/neovim/config/.config/nvim/` immediately affects `~/.config/nvim/` with no generation step.
+**Key Design Decision:** GNU Stow provides instant deployment via symlinks. Editing a file in a module's `config/` directory immediately affects the stowed location with no generation step.
 
 ### Profile System
 
-**Three built-in profiles:**
-- `default` - General-purpose setup (recommended for most users)
-- `dev` - Personal reference implementation (example of advanced features)
-- `example` - Template for creating custom profiles
+**Profiles are external only.** Fedpunk core ships with no built-in profiles. Deploy profiles from git URLs:
 
-**Each profile supports multiple modes:**
+```fish
+fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk --mode desktop
 ```
-profiles/default/
+
+**Profile structure** (cloned to `~/.config/fedpunk/profiles/<name>/`):
+```
+my-profile/
 ├── modes/
 │   ├── desktop/
 │   │   └── mode.yaml      # Full desktop environment
@@ -299,34 +300,12 @@ The module system is built on these Fish libraries:
 
 ## Theme System
 
-12 curated themes with live reload (no restart required):
+**Themes are provided by external profiles.** Fedpunk core has no built-in themes.
 
-**Theme switching:**
-```fish
-fedpunk-theme-set <name>    # Switch to specific theme
-fedpunk-theme-next          # Cycle forward
-fedpunk-theme-prev          # Cycle backward
-```
-
-**Keyboard shortcuts:**
-- `Super+T` - Theme selection menu
-- `Super+Shift+T` - Next theme
-- `Super+Shift+Y` - Previous theme
-
-**Theme structure:**
-```
-themes/<theme-name>/
-├── kitty.conf          # Terminal colors (omarchy format)
-├── hyprland.conf       # Compositor colors
-├── rofi.rasi           # Launcher styling
-├── btop.theme          # System monitor
-├── mako.ini            # Notifications
-├── neovim.lua          # Editor colorscheme
-├── waybar.css          # Status bar
-└── backgrounds/        # Wallpapers
-```
-
-Themes update across all applications via live reload (SIGUSR1/SIGUSR2 signals, hyprctl reload, Neovim RPC).
+For theme support, use a profile like [hyprpunk](https://github.com/hinriksnaer/hyprpunk) which provides:
+- Theme switching commands (`hyprpunk-theme-set`, etc.)
+- Live reload across applications
+- Curated theme collections
 
 ## RPM Packaging
 
