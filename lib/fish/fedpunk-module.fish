@@ -433,15 +433,10 @@ function fedpunk-module-deploy
         return 1
     end
 
-    echo "DEBUG: Module path resolved: $module_path" >&2
-    echo "DEBUG: isatty stdin: "(isatty stdin; echo $status) >&2
-
     # 1. Prompt for required parameters (if interactive)
     if isatty stdin
-        echo "DEBUG: Checking parameters for $module_name at $module_path" >&2
         param-prompt-required "$module_name" "$module_path"
         set -l prompt_status $status
-        echo "DEBUG: param-prompt-required returned: $prompt_status" >&2
 
         if test $prompt_status -ne 0
             echo "Failed to collect required parameters for $module_name" >&2
