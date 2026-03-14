@@ -29,7 +29,8 @@ export XDG_DATA_HOME="$HOME/.local/share"
 mkdir -p "$HOME"
 
 # Use LOCAL git repository (not system installation)
-export FEDPUNK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export FEDPUNK_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 export FEDPUNK_SYSTEM="$FEDPUNK_ROOT"
 export FEDPUNK_USER="$HOME/.local/share/fedpunk"
 
@@ -91,19 +92,12 @@ echo "=== Test 1: Git URL preserved in config ==="
 
 CONFIG_FILE="$HOME/.config/fedpunk/fedpunk.yaml"
 mkdir -p "$(dirname "$CONFIG_FILE")"
+mkdir -p "$HOME/.local/share/fedpunk"
 
-# Manually write config with git URL
-cat > "$CONFIG_FILE" <<EOF
-profile: $TEST_PROFILE_URL
-mode: test
-modules:
-  enabled: []
-EOF
+echo "  Deploying profile from URL: $TEST_PROFILE_URL"
 
-echo "  Config created with profile URL: $TEST_PROFILE_URL"
-
-# Deploy using our local version
-run_fish "deployer-deploy-from-config" 2>&1 | grep -v "sudo\|password" | head -10 || true
+# Deploy using URL directly (this sets up config correctly)
+run_fish "deployer-deploy-profile '$TEST_PROFILE_URL' --mode test" 2>&1 | grep -v "sudo\|password" | head -10 || true
 
 # Verify profile was cloned
 PROFILE_NAME="test-profile-repo"
@@ -152,8 +146,8 @@ git commit -q -m "Update test profile"
 ORIGINAL_COMMIT=$(git rev-parse HEAD)
 echo "  Profile updated (commit: ${ORIGINAL_COMMIT:0:8})"
 
-# Re-apply
-run_fish "deployer-deploy-from-config" 2>&1 | grep -v "sudo\|password" | head -5 || true
+# Re-apply using saved config (should use saved source URL)
+run_fish "deployer-deploy-profile --mode test" 2>&1 | grep -v "sudo\|password" | head -5 || true
 
 # Verify the cloned repo has the latest commit
 cd "$CLONED_PROFILE"
@@ -190,8 +184,10 @@ echo "  Local profile created: local-test"
 
 # Update config to use name (not URL)
 cat > "$CONFIG_FILE" <<EOF
-profile: local-test
-mode: test
+profile:
+  name: local-test
+  source: null
+  mode: test
 modules:
   enabled: []
 EOF

@@ -54,6 +54,7 @@ jobs:
           - test-external-modules
           - test-sources-management
           - test-template-module
+          - test-profile-git-urls
 
     steps:
       - name: Install dependencies
