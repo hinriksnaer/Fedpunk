@@ -6,6 +6,9 @@
 # 2. Module with environment: section generates Bash config
 # 3. Environment variables are correctly exported
 # 4. User environment in fedpunk.yaml overrides module environment
+# 5. Bash shell actually loads environment variables when sourcing config
+# 6. Fish shell actually loads environment variables when sourcing config
+# 7. Zsh shell actually loads environment variables when sourcing config
 
 set -e
 
@@ -193,6 +196,147 @@ fi
 echo ""
 
 #
+# Test 6: Verify Bash shell actually loads environment variables
+#
+echo "=== Test 6: Bash shell environment loading ==="
+
+# Test that sourcing the bash config file actually sets the variables
+BASH_TEST_OUTPUT=$(bash -c "
+export HOME='$HOME'
+source '$BASH_ENV_CONFIG' 2>/dev/null
+echo \"TEST_VAR_ONE=\$TEST_VAR_ONE\"
+echo \"TEST_VAR_TWO=\$TEST_VAR_TWO\"
+echo \"TEST_PATH_VAR=\$TEST_PATH_VAR\"
+echo \"USER_CUSTOM_VAR=\$USER_CUSTOM_VAR\"
+" 2>&1)
+
+if echo "$BASH_TEST_OUTPUT" | grep -q "TEST_VAR_ONE=overridden"; then
+    echo "  SUCCESS: TEST_VAR_ONE loaded in Bash shell"
+else
+    echo "  FAIL: TEST_VAR_ONE not loaded in Bash shell" >&2
+    echo "  Output: $BASH_TEST_OUTPUT" >&2
+    exit 1
+fi
+
+if echo "$BASH_TEST_OUTPUT" | grep -q "TEST_VAR_TWO=world"; then
+    echo "  SUCCESS: TEST_VAR_TWO loaded in Bash shell"
+else
+    echo "  FAIL: TEST_VAR_TWO not loaded in Bash shell" >&2
+    exit 1
+fi
+
+if echo "$BASH_TEST_OUTPUT" | grep -q "TEST_PATH_VAR=/custom/path"; then
+    echo "  SUCCESS: TEST_PATH_VAR loaded in Bash shell"
+else
+    echo "  FAIL: TEST_PATH_VAR not loaded in Bash shell" >&2
+    exit 1
+fi
+
+if echo "$BASH_TEST_OUTPUT" | grep -q "USER_CUSTOM_VAR=user-value"; then
+    echo "  SUCCESS: USER_CUSTOM_VAR loaded in Bash shell"
+else
+    echo "  FAIL: USER_CUSTOM_VAR not loaded in Bash shell" >&2
+    exit 1
+fi
+echo ""
+
+#
+# Test 7: Verify Fish shell auto-loads environment variables
+#
+echo "=== Test 7: Fish shell environment loading ==="
+
+# Test that Fish auto-loads from conf.d
+FISH_TEST_OUTPUT=$(fish -c "
+set -gx HOME '$HOME'
+set -gx XDG_CONFIG_HOME '$HOME/.config'
+source '$FISH_ENV_CONFIG' 2>/dev/null
+echo \"TEST_VAR_ONE=\$TEST_VAR_ONE\"
+echo \"TEST_VAR_TWO=\$TEST_VAR_TWO\"
+echo \"TEST_PATH_VAR=\$TEST_PATH_VAR\"
+echo \"USER_CUSTOM_VAR=\$USER_CUSTOM_VAR\"
+" 2>&1)
+
+if echo "$FISH_TEST_OUTPUT" | grep -q "TEST_VAR_ONE=overridden"; then
+    echo "  SUCCESS: TEST_VAR_ONE loaded in Fish shell"
+else
+    echo "  FAIL: TEST_VAR_ONE not loaded in Fish shell" >&2
+    echo "  Output: $FISH_TEST_OUTPUT" >&2
+    exit 1
+fi
+
+if echo "$FISH_TEST_OUTPUT" | grep -q "TEST_VAR_TWO=world"; then
+    echo "  SUCCESS: TEST_VAR_TWO loaded in Fish shell"
+else
+    echo "  FAIL: TEST_VAR_TWO not loaded in Fish shell" >&2
+    exit 1
+fi
+
+if echo "$FISH_TEST_OUTPUT" | grep -q "TEST_PATH_VAR=/custom/path"; then
+    echo "  SUCCESS: TEST_PATH_VAR loaded in Fish shell"
+else
+    echo "  FAIL: TEST_PATH_VAR not loaded in Fish shell" >&2
+    exit 1
+fi
+
+if echo "$FISH_TEST_OUTPUT" | grep -q "USER_CUSTOM_VAR=user-value"; then
+    echo "  SUCCESS: USER_CUSTOM_VAR loaded in Fish shell"
+else
+    echo "  FAIL: USER_CUSTOM_VAR not loaded in Fish shell" >&2
+    exit 1
+fi
+echo ""
+
+#
+# Test 8: Verify Zsh shell loads environment variables
+#
+echo "=== Test 8: Zsh shell environment loading ==="
+
+# Test that sourcing the bash config file works in Zsh too (it's a POSIX sh file)
+# Check if zsh is available
+if command -v zsh >/dev/null 2>&1; then
+    ZSH_TEST_OUTPUT=$(zsh -c "
+    export HOME='$HOME'
+    source '$BASH_ENV_CONFIG' 2>/dev/null
+    echo \"TEST_VAR_ONE=\$TEST_VAR_ONE\"
+    echo \"TEST_VAR_TWO=\$TEST_VAR_TWO\"
+    echo \"TEST_PATH_VAR=\$TEST_PATH_VAR\"
+    echo \"USER_CUSTOM_VAR=\$USER_CUSTOM_VAR\"
+    " 2>&1)
+
+    if echo "$ZSH_TEST_OUTPUT" | grep -q "TEST_VAR_ONE=overridden"; then
+        echo "  SUCCESS: TEST_VAR_ONE loaded in Zsh shell"
+    else
+        echo "  FAIL: TEST_VAR_ONE not loaded in Zsh shell" >&2
+        echo "  Output: $ZSH_TEST_OUTPUT" >&2
+        exit 1
+    fi
+
+    if echo "$ZSH_TEST_OUTPUT" | grep -q "TEST_VAR_TWO=world"; then
+        echo "  SUCCESS: TEST_VAR_TWO loaded in Zsh shell"
+    else
+        echo "  FAIL: TEST_VAR_TWO not loaded in Zsh shell" >&2
+        exit 1
+    fi
+
+    if echo "$ZSH_TEST_OUTPUT" | grep -q "TEST_PATH_VAR=/custom/path"; then
+        echo "  SUCCESS: TEST_PATH_VAR loaded in Zsh shell"
+    else
+        echo "  FAIL: TEST_PATH_VAR not loaded in Zsh shell" >&2
+        exit 1
+    fi
+
+    if echo "$ZSH_TEST_OUTPUT" | grep -q "USER_CUSTOM_VAR=user-value"; then
+        echo "  SUCCESS: USER_CUSTOM_VAR loaded in Zsh shell"
+    else
+        echo "  FAIL: USER_CUSTOM_VAR not loaded in Zsh shell" >&2
+        exit 1
+    fi
+else
+    echo "  SKIP: Zsh not installed"
+fi
+echo ""
+
+#
 # Summary
 #
 echo "========================================="
@@ -204,4 +348,7 @@ echo "  - Module environment: section works"
 echo "  - Fish config generated correctly"
 echo "  - Bash config generated correctly"
 echo "  - User environment overrides module"
+echo "  - Bash shell loads environment variables"
+echo "  - Fish shell loads environment variables"
+echo "  - Zsh shell loads environment variables"
 echo ""
