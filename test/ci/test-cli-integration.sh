@@ -229,15 +229,15 @@ stow:
 EOF
 echo "e2e-test" > "$TEST_E2E/config/.config/e2e/marker.txt"
 
-# Deploy
-run_fish "fedpunk-module deploy test-e2e" 2>&1 | head -10 || true
+# Deploy using stow only (skip packages which need sudo in CI)
+run_fish "fedpunk-module stow test-e2e" 2>&1 | head -10 || true
 
 # Verify
 if [ -f "$HOME/.config/e2e/marker.txt" ] || [ -L "$HOME/.config/e2e/marker.txt" ]; then
     CONTENT=$(cat "$HOME/.config/e2e/marker.txt" 2>/dev/null || echo "")
     [ "$CONTENT" = "e2e-test" ] && check_result 0 "E2E: Deploy verified" || check_result 1 "E2E: Content mismatch"
 else
-    check_result 1 "E2E: Deploy failed"
+    check_result 1 "E2E: Stow failed"
 fi
 
 # Unstow
