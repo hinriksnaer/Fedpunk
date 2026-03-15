@@ -1,8 +1,8 @@
 #!/usr/bin/env fish
 # CLI Dispatcher Tests
 #
-# Run: fish tests/cli-dispatcher.fish
-# Or:  cd $FEDPUNK_ROOT && fish tests/cli-dispatcher.fish
+# Run: fish test/unit/cli-dispatcher.fish
+# Or:  cd $FEDPUNK_ROOT && fish test/unit/cli-dispatcher.fish
 
 set -g FEDPUNK_ROOT (dirname (dirname (status -f)))
 set -g FEDPUNK_BIN "$FEDPUNK_ROOT/bin/fedpunk"

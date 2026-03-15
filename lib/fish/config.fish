@@ -72,26 +72,179 @@ function fedpunk-config-set
     yq -i ".$key = \"$value\"" "$config_file"
 end
 
+function fedpunk-config-set-profile
+    # Set profile name, source, and mode
+    # Usage: fedpunk-config-set-profile <name> [source] [mode]
+    set -l name $argv[1]
+    set -l source $argv[2]
+    set -l mode $argv[3]
+
+    if test -z "$name"
+        echo "Error: profile name required" >&2
+        return 1
+    end
+
+    if not fedpunk-config-exists
+        fedpunk-config-init
+    end
+
+    set -l config_file (fedpunk-config-path)
+
+    # Ensure profile is an object (migrate from string if needed)
+    set -l profile_type (_yq_safe '.profile | type' "$config_file" 2>/dev/null)
+    if test "$profile_type" != "!!map"
+        yq -i '.profile = {"name": null, "source": null, "mode": null}' "$config_file"
+    end
+
+    yq -i ".profile.name = \"$name\"" "$config_file"
+
+    if test -n "$source"
+        yq -i ".profile.source = \"$source\"" "$config_file"
+    else
+        yq -i ".profile.source = null" "$config_file"
+    end
+
+    if test -n "$mode"
+        yq -i ".profile.mode = \"$mode\"" "$config_file"
+    end
+end
+
+function fedpunk-config-set-profile-mode
+    # Set profile mode
+    # Usage: fedpunk-config-set-profile-mode <mode>
+    set -l mode $argv[1]
+
+    if test -z "$mode"
+        echo "Error: mode required" >&2
+        return 1
+    end
+
+    if not fedpunk-config-exists
+        fedpunk-config-init
+    end
+
+    set -l config_file (fedpunk-config-path)
+
+    # Ensure profile is an object
+    set -l profile_type (_yq_safe '.profile | type' "$config_file" 2>/dev/null)
+    if test "$profile_type" != "!!map"
+        yq -i '.profile = {"name": null, "source": null, "mode": null}' "$config_file"
+    end
+
+    yq -i ".profile.mode = \"$mode\"" "$config_file"
+end
+
+function fedpunk-config-get-profile-mode
+    # Get profile mode from config
+    # Returns: mode if set, empty otherwise
+    if not fedpunk-config-exists
+        return 1
+    end
+
+    set -l config_file (fedpunk-config-path)
+
+    # Handle both old (top-level mode) and new (profile.mode) formats
+    set -l profile_type (_yq_safe '.profile | type' "$config_file" 2>/dev/null)
+    if test "$profile_type" = "!!map"
+        set -l value (_yq_safe '.profile.mode' "$config_file" 2>/dev/null)
+        if test -n "$value" -a "$value" != "null"
+            echo $value
+            return 0
+        end
+    end
+
+    # Fallback to legacy top-level mode
+    set -l value (_yq_safe '.mode' "$config_file" 2>/dev/null)
+    if test -n "$value" -a "$value" != "null"
+        echo $value
+        return 0
+    end
+
+    return 1
+end
+
+function fedpunk-config-get-profile-name
+    # Get profile name from config
+    # Returns: profile name if set, empty otherwise
+    if not fedpunk-config-exists
+        return 1
+    end
+
+    set -l config_file (fedpunk-config-path)
+    set -l value ""
+
+    # Handle both old (string) and new (object) formats
+    set -l profile_type (_yq_safe '.profile | type' "$config_file" 2>/dev/null)
+    if test "$profile_type" = "!!map"
+        set value (_yq_safe '.profile.name' "$config_file" 2>/dev/null)
+    else
+        # Legacy: profile is a string, extract name from URL if needed
+        set value (_yq_safe '.profile' "$config_file" 2>/dev/null)
+    end
+
+    if test -n "$value" -a "$value" != "null"
+        echo $value
+        return 0
+    end
+    return 1
+end
+
+function fedpunk-config-get-profile-source
+    # Get profile source (git URL or path) from config
+    # Returns: source if set, empty otherwise
+    if not fedpunk-config-exists
+        return 1
+    end
+
+    set -l config_file (fedpunk-config-path)
+    set -l value ""
+
+    # Handle both old (string) and new (object) formats
+    set -l profile_type (_yq_safe '.profile | type' "$config_file" 2>/dev/null)
+    if test "$profile_type" = "!!map"
+        set value (_yq_safe '.profile.source' "$config_file" 2>/dev/null)
+    else
+        # Legacy: profile is a string, could be URL or name
+        set value (_yq_safe '.profile' "$config_file" 2>/dev/null)
+        # Only return if it looks like a URL
+        if not string match -qr '^https?://|^git@|^ssh://' "$value"
+            return 1
+        end
+    end
+
+    if test -n "$value" -a "$value" != "null"
+        echo $value
+        return 0
+    end
+    return 1
+end
+
 function fedpunk-config-init
     # Initialize config file with null values
     # Creates directory structure if needed
+    # IMPORTANT: Never overwrites existing config file
 
     set -l config_file (fedpunk-config-path)
     set -l config_dir (dirname "$config_file")
 
-    # Ensure directory exists
-    if not test -d "$config_dir"
-        mkdir -p "$config_dir"
-        mkdir -p "$config_dir/profiles"
-        mkdir -p "$config_dir/sources"
-        mkdir -p "$config_dir/modules"
+    # Ensure directories exist (safe to run multiple times)
+    test -d "$config_dir"; or mkdir -p "$config_dir"
+    test -d "$config_dir/profiles"; or mkdir -p "$config_dir/profiles"
+    test -d "$config_dir/sources"; or mkdir -p "$config_dir/sources"
+    test -d "$config_dir/modules"; or mkdir -p "$config_dir/modules"
+
+    # Never overwrite existing config
+    if test -f "$config_file"
+        return 0
     end
 
     # Create initial config with null values
     printf "# Fedpunk Configuration\n" > "$config_file"
     printf "# Auto-generated on %s\n\n" (date) >> "$config_file"
-    printf "profile: null\n" >> "$config_file"
-    printf "mode: null\n" >> "$config_file"
+    printf "profile:\n" >> "$config_file"
+    printf "  name: null\n" >> "$config_file"
+    printf "  source: null\n" >> "$config_file"
+    printf "  mode: null\n" >> "$config_file"
     printf "sources: []\n" >> "$config_file"
     printf "modules:\n" >> "$config_file"
     printf "  enabled: []\n" >> "$config_file"
@@ -257,8 +410,8 @@ function fedpunk-config-list-profile-modules
         return 1
     end
 
-    set -l profile (fedpunk-config-get profile 2>/dev/null)
-    set -l mode (fedpunk-config-get mode 2>/dev/null)
+    set -l profile (fedpunk-config-get-profile-name 2>/dev/null)
+    set -l mode (fedpunk-config-get-profile-mode 2>/dev/null)
 
     if test -z "$profile" -o "$profile" = "null" -o -z "$mode" -o "$mode" = "null"
         return 1

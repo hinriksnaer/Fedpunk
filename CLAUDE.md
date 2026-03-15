@@ -42,7 +42,7 @@ fedpunk module run-lifecycle <name> <hook>  # Run specific lifecycle hook
 bash test/build-rpm.sh
 
 # Test RPM installation
-bash test/test-rpm-install.sh
+bash test/ci/test-rpm-install.sh
 
 # Run specific workflow tests locally (requires container runtime)
 # See .github/workflows/ for available tests:
@@ -104,6 +104,10 @@ parameters:          # Optional: define module parameters
     default: value
     required: false
 
+environment:         # Environment variables (exported to shell)
+  MY_VAR: "value"
+  API_URL: "https://api.example.com"
+
 lifecycle:
   before: []         # Hook names to run before stow
   after:
@@ -130,23 +134,25 @@ stow:
 3. **External Module Resolution** - Clone/cache git URLs, resolve local paths, locate profile modules
 4. **Dependency Resolution** - Recursive topological sort, prevents duplicates
 5. **Parameter Injection** - Generate Fish config for module parameters
-6. **Package Installation** - DNF, COPR, Cargo, NPM, Flatpak from module.yaml
-7. **Lifecycle: before** - Pre-deployment hooks
-8. **GNU Stow Deployment** - Symlink `config/` directories to `$HOME`
-9. **Lifecycle: after** - Post-deployment hooks (services, etc.)
+6. **Environment Injection** - Generate Fish/Bash config for module environment variables
+7. **Package Installation** - DNF, COPR, Cargo, NPM, Flatpak from module.yaml
+8. **Lifecycle: before** - Pre-deployment hooks
+9. **GNU Stow Deployment** - Symlink `config/` directories to `$HOME`
+10. **Lifecycle: after** - Post-deployment hooks (services, etc.)
 
-**Key Design Decision:** GNU Stow provides instant deployment via symlinks. Editing a file in `modules/neovim/config/.config/nvim/` immediately affects `~/.config/nvim/` with no generation step.
+**Key Design Decision:** GNU Stow provides instant deployment via symlinks. Editing a file in a module's `config/` directory immediately affects the stowed location with no generation step.
 
 ### Profile System
 
-**Three built-in profiles:**
-- `default` - General-purpose setup (recommended for most users)
-- `dev` - Personal reference implementation (example of advanced features)
-- `example` - Template for creating custom profiles
+**Profiles are external only.** Fedpunk core ships with no built-in profiles. Deploy profiles from git URLs:
 
-**Each profile supports multiple modes:**
+```fish
+fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk --mode desktop
 ```
-profiles/default/
+
+**Profile structure** (cloned to `~/.config/fedpunk/profiles/<name>/`):
+```
+my-profile/
 ├── modes/
 │   ├── desktop/
 │   │   └── mode.yaml      # Full desktop environment
@@ -287,40 +293,19 @@ The module system is built on these Fish libraries:
 - **sources.fish** - Manages multi-module source repositories (clone, update, discover)
 - **external-modules.fish** - Handles cloning of direct git URL modules
 - **param-injector.fish** - Generates Fish environment variables from parameters
+- **env-injector.fish** - Generates Fish/Bash config from module environment variables
 - **linker.fish** - GNU Stow wrapper for config deployment
 - **yaml-parser.fish** - YAML parsing using yq
 - **ui.fish** - gum wrapper for consistent UI (choose, confirm, input, etc.)
 
 ## Theme System
 
-12 curated themes with live reload (no restart required):
+**Themes are provided by external profiles.** Fedpunk core has no built-in themes.
 
-**Theme switching:**
-```fish
-fedpunk-theme-set <name>    # Switch to specific theme
-fedpunk-theme-next          # Cycle forward
-fedpunk-theme-prev          # Cycle backward
-```
-
-**Keyboard shortcuts:**
-- `Super+T` - Theme selection menu
-- `Super+Shift+T` - Next theme
-- `Super+Shift+Y` - Previous theme
-
-**Theme structure:**
-```
-themes/<theme-name>/
-├── kitty.conf          # Terminal colors (omarchy format)
-├── hyprland.conf       # Compositor colors
-├── rofi.rasi           # Launcher styling
-├── btop.theme          # System monitor
-├── mako.ini            # Notifications
-├── neovim.lua          # Editor colorscheme
-├── waybar.css          # Status bar
-└── backgrounds/        # Wallpapers
-```
-
-Themes update across all applications via live reload (SIGUSR1/SIGUSR2 signals, hyprctl reload, Neovim RPC).
+For theme support, use a profile like [hyprpunk](https://github.com/hinriksnaer/hyprpunk) which provides:
+- Theme switching commands (`hyprpunk-theme-set`, etc.)
+- Live reload across applications
+- Curated theme collections
 
 ## RPM Packaging
 
@@ -337,7 +322,7 @@ Key features:
 **Building locally:**
 ```bash
 bash test/build-rpm.sh          # Builds RPM in ~/rpmbuild/
-bash test/test-rpm-install.sh   # Tests installation
+bash test/ci/test-rpm-install.sh   # Tests installation
 ```
 
 ## Important Conventions

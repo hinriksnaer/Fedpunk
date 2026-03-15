@@ -35,8 +35,8 @@ function installed --description "List installed modules"
     end
 
     # 2. Get modules from active profile's mode.yaml
-    set -l profile_name (fedpunk-config-get profile 2>/dev/null)
-    set -l mode_name (fedpunk-config-get mode 2>/dev/null)
+    set -l profile_name (fedpunk-config-get-profile-name 2>/dev/null)
+    set -l mode_name (fedpunk-config-get-profile-mode 2>/dev/null)
     if test -n "$profile_name" -a -n "$mode_name" -a "$profile_name" != "null" -a "$mode_name" != "null"
         # Find profile directory
         set -l profile_dir ""

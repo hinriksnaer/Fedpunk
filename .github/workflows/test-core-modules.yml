@@ -42,7 +42,7 @@ jobs:
           PATH: /root/.local/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         run: |
           source /etc/profile.d/fedpunk.sh
-          bash test/test-core-modules.sh
+          bash test/ci/test-core-modules.sh
 
       - name: Verify installation summary
         run: |

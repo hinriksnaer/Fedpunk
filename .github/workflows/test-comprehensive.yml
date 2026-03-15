@@ -1,0 +1,147 @@
+name: Comprehensive Tests
+
+on:
+  push:
+    branches: [ main, unstable ]
+  pull_request:
+    branches: [ main, unstable ]
+  workflow_dispatch:
+
+jobs:
+  # Fast unit tests - run in parallel
+  unit-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - test-module-ref-parser
+          - test-yaml-reproducibility
+          - test-module-params
+          - test-module-environment
+          - test-disabled-modules
+          - test-config-preservation
+
+    steps:
+      - name: Install dependencies
+        run: dnf install -y git fish yq jq
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Run ${{ matrix.test }}
+        env:
+          HOME: /root
+        run: |
+          chmod +x test/ci/${{ matrix.test }}.sh
+          timeout 60 bash test/ci/${{ matrix.test }}.sh
+
+  # Module system tests - slightly slower
+  module-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - test-stow-conflicts
+          - test-lifecycle-hooks
+          - test-external-modules
+          - test-sources-management
+          - test-template-module
+          - test-profile-git-urls
+
+    steps:
+      - name: Install dependencies
+        run: dnf install -y git fish yq jq stow
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Run ${{ matrix.test }}
+        env:
+          HOME: /root
+        run: |
+          chmod +x test/ci/${{ matrix.test }}.sh
+          timeout 90 bash test/ci/${{ matrix.test }}.sh
+
+  # CLI integration test
+  cli-integration:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+
+    steps:
+      - name: Install dependencies
+        run: dnf install -y git fish yq jq stow
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Run CLI integration tests
+        env:
+          HOME: /root
+        run: |
+          chmod +x test/ci/test-cli-integration.sh
+          timeout 120 bash test/ci/test-cli-integration.sh
+
+  # Dependency resolution test (creates temp modules)
+  dependency-resolution:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:43
+
+    steps:
+      - name: Install dependencies
+        run: dnf install -y git fish yq jq stow
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Run dependency resolution tests
+        env:
+          HOME: /root
+        run: |
+          chmod +x test/ci/test-dependency-resolution.sh
+          timeout 120 bash test/ci/test-dependency-resolution.sh
+
+  # Summary job - depends on all tests
+  test-summary:
+    needs: [unit-tests, module-tests, cli-integration, dependency-resolution]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "========================================="
+          echo "Comprehensive Test Summary"
+          echo "========================================="
+          echo ""
+          echo "Unit tests: ${{ needs.unit-tests.result }}"
+          echo "Module tests: ${{ needs.module-tests.result }}"
+          echo "CLI integration: ${{ needs.cli-integration.result }}"
+          echo "Dependency resolution: ${{ needs.dependency-resolution.result }}"
+          echo ""
+
+          if [[ "${{ needs.unit-tests.result }}" == "success" && \
+                "${{ needs.module-tests.result }}" == "success" && \
+                "${{ needs.cli-integration.result }}" == "success" && \
+                "${{ needs.dependency-resolution.result }}" == "success" ]]; then
+            echo "All tests passed!"
+            exit 0
+          else
+            echo "Some tests failed!"
+            exit 1
+          fi

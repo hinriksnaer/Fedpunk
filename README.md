@@ -21,7 +21,7 @@
 [![Fedora](https://img.shields.io/badge/Fedora-40+-blue.svg)](https://getfedora.org/)
 [![Fish Shell](https://img.shields.io/badge/Shell-Fish-green.svg)](https://fishshell.com/)
 
-[Quick Start](#quick-start) • [Architecture](#architecture) • [Modules](#module-system) • [Documentation](#documentation)
+[Quick Start](#quick-start) • [Modules](#module-system) • [Profiles](#external-profiles) • [Documentation](#documentation)
 
 ---
 
@@ -29,26 +29,18 @@
 
 ## What is Fedpunk?
 
-Fedpunk is a **minimal configuration engine** for Fedora Linux. It provides the core infrastructure for deploying and managing system configurations through a modular, external-first architecture.
+Fedpunk is **end-to-end system orchestration** for Fedora Linux. It handles everything needed to configure and reproduce your environment:
 
-**Core capabilities:**
-- **Modular Architecture** - Self-contained modules with automatic dependency resolution
-- **External Module Support** - Deploy from git URLs, local paths, or built-in modules
-- **YAML Configuration** - Simple, declarative module definitions
-- **Parameter System** - Interactive prompting with persistent configuration
-- **GNU Stow Integration** - Symlink-based deployment (instant, no generation)
-- **Fish-First** - Modern shell with intelligent completions
+- **Dotfiles** - Symlink-based deployment via GNU Stow (edit once, apply everywhere)
+- **Packages** - DNF, COPR, Cargo, NPM, and Flatpak from declarative YAML
+- **Environment Variables** - Auto-generated Fish config from module parameters
+- **Custom CLI** - Drop Fish functions into `cli/` and they're available system-wide
+- **Lifecycle Scripts** - Run custom logic before/after deployment
+- **Dependencies** - Automatic resolution with topological sorting
 
-**What Fedpunk is NOT:**
-- ❌ A desktop environment (use external profiles like [hyprpunk](https://github.com/hinriksnaer/hyprpunk))
-- ❌ A theme manager (themes live in profiles)
-- ❌ A complete dotfile collection (minimal core only)
+Each module is self-contained and reproducible. Deploy from git URLs, local paths, or built-in modules with full dependency tracking.
 
-**What Fedpunk IS:**
-- ✅ A configuration engine
-- ✅ A module deployment system
-- ✅ A foundation for building profiles
-- ✅ A git-native configuration manager
+Use external profiles like [hyprpunk](https://github.com/hinriksnaer/hyprpunk) to deploy complete desktop environments built on Fedpunk.
 
 ---
 
@@ -75,7 +67,7 @@ fedpunk module deploy https://github.com/user/module.git
 
 **What's installed:**
 - Core engine at `/usr/share/fedpunk`
-- Only 2 built-in modules: `fish` and `ssh`
+- 2 built-in modules: `fish` and `ssh`
 - No profiles, no themes (external only)
 - Environment variables configured for all shells
 
@@ -92,47 +84,67 @@ sudo dnf install fedpunk
 
 ---
 
-## Architecture
+## Configuration
 
-Fedpunk uses a **minimal core + external modules** architecture:
+Fedpunk stores its configuration at `~/.config/fedpunk/fedpunk.yaml`:
 
+```yaml
+# ~/.config/fedpunk/fedpunk.yaml
+
+profile:
+  name: hyprpunk                                      # Profile name (for local lookup)
+  source: https://github.com/hinriksnaer/hyprpunk.git # Git URL (for fetching/updates)
+  mode: desktop                                       # Active mode (desktop, container, etc)
+
+sources:                       # Multi-module git repositories
+  - https://gitlab.com/org/fedpunk-modules.git
+
+modules:
+  enabled:                     # Modules to deploy
+    - fish                     # Simple module reference
+    - module: jira             # Module with parameters
+      params:
+        jira_url: "https://company.atlassian.net"
+        team_name: "platform"
+  disabled: []                 # Modules to skip during deployment
+
+environment:                   # User environment variables (override module defaults)
+  MY_CUSTOM_VAR: "value"
+  DEBUG_MODE: "true"
+
+last_deployed: 2024-03-13T10:30:00+00:00
 ```
-┌─────────────────────────────────────────────┐
-│  Core Engine (/usr/share/fedpunk)           │
-│  ├─ Module system (YAML-based)              │
-│  ├─ External module loader (git URLs)       │
-│  ├─ Parameter system (interactive prompts)  │
-│  ├─ Dependency resolver (recursive DAG)     │
-│  └─ GNU Stow wrapper (symlink deployment)   │
-├─────────────────────────────────────────────┤
-│  Built-in Modules (2 only)                  │
-│  ├─ fish (Fish shell + Starship prompt)     │
-│  └─ ssh (SSH configuration + agent)         │
-├─────────────────────────────────────────────┤
-│  External Modules (git URLs or local)       │
-│  ├─ https://github.com/user/module.git      │
-│  ├─ ~/gits/my-custom-module                 │
-│  └─ Stored in ~/.config/fedpunk/modules/    │
-├─────────────────────────────────────────────┤
-│  User Configuration (~/.config/fedpunk)     │
-│  ├─ fedpunk.yaml (module config + params)   │
-│  └─ profiles/ (external profiles cloned)    │
-└─────────────────────────────────────────────┘
+
+For local profiles (no git source):
+```yaml
+profile:
+  name: my-local-profile
+  source: null
+  mode: desktop
 ```
 
-### Key Design Decisions
-
-**External-First**
-All profiles, themes, and most modules are external. The core is minimal (~500 KB without git).
-
-**Git-Native**
-External modules are git repositories. Clone, cache, and deploy seamlessly.
-
-**YAML Configuration**
-Simple, readable module definitions with dependency declarations.
-
-**Parameter System**
-Interactive prompts for module configuration, saved to `fedpunk.yaml`.
+**Directory structure:**
+```
+~/.config/fedpunk/
+├── fedpunk.yaml              # Main configuration (profile, modules, environment)
+├── profiles/                 # Cloned profile repositories
+│   └── hyprpunk/             # Example: deployed profile
+│       ├── modes/
+│       │   ├── desktop/
+│       │   │   └── mode.yaml
+│       │   └── container/
+│       │       └── mode.yaml
+│       └── modules/          # Profile-specific modules
+├── sources/                  # Multi-module source repositories
+│   └── company-modules/      # Example: team module collection
+│       ├── jira/
+│       ├── slack/
+│       └── vpn/
+├── modules/                  # Individual external modules (from git URLs)
+│   └── my-custom-module/
+└── profile.d/                # Generated shell configs
+    └── fedpunk-env.sh        # Environment variables for bash/sh
+```
 
 ---
 
@@ -167,6 +179,10 @@ parameters:
     description: API key for service
     required: true
     prompt: true      # Prompt user if missing
+
+environment:           # Environment variables (exported to shell)
+  MY_API_URL: "https://api.example.com"
+  DEBUG_MODE: "false"
 
 lifecycle:
   install:
@@ -209,34 +225,25 @@ fedpunk module unstow mymodule
 
 ### Creating Custom Modules
 
-1. **Create module structure:**
+Use the module template to get started:
+
 ```bash
-mkdir -p my-module/{config,cli,scripts}
+# Copy the template
+cp -r /usr/share/fedpunk/examples/module-template my-module
+# Or from git clone:
+cp -r ~/.local/share/fedpunk/examples/module-template my-module
+
+cd my-module
+# Edit module.yaml, add configs, deploy
+fedpunk module deploy .
 ```
 
-2. **Write module.yaml:**
-```yaml
-module:
-  name: my-module
-  description: My custom module
-  dependencies: []
-
-packages:
-  dnf:
-    - tool1
-    - tool2
-```
-
-3. **Add configs:**
-```bash
-mkdir -p my-module/config/.config/my-tool
-echo "setting=value" > my-module/config/.config/my-tool/config.conf
-```
-
-4. **Deploy:**
-```fish
-fedpunk module deploy ~/path/to/my-module
-```
+See [examples/module-template](examples/module-template) for full documentation on:
+- Module structure and `module.yaml` schema
+- Config files (stowed to `$HOME`)
+- Custom CLI commands
+- Lifecycle scripts
+- Parameters and environment variables
 
 ---
 
@@ -249,7 +256,7 @@ Deploy modules from any git repository:
 fedpunk module deploy https://github.com/user/module.git
 
 # GitHub SSH
-fedpunk module deploy git@github.com:user/module.git
+fedpunk module deploy https://github.com/user/module.git
 
 # GitLab
 fedpunk module deploy https://gitlab.com/user/module.git
@@ -272,7 +279,7 @@ For teams with shared module collections, use source repositories:
 
 ```fish
 # Add a source repository (contains multiple modules)
-fedpunk module sources add git@gitlab.com:org/fedpunk-modules.git
+fedpunk module sources add https://gitlab.com/org/fedpunk-modules.git
 
 # List configured sources
 fedpunk module sources list
@@ -284,7 +291,7 @@ fedpunk module sources sync
 fedpunk module sources modules
 
 # Remove a source
-fedpunk module sources remove git@gitlab.com:org/fedpunk-modules.git
+fedpunk module sources remove https://gitlab.com/org/fedpunk-modules.git
 ```
 
 Sources are stored in `~/.config/fedpunk/sources/<repo-name>/` and synced automatically before deployment.
@@ -293,7 +300,7 @@ Sources are stored in `~/.config/fedpunk/sources/<repo-name>/` and synced automa
 
 ## Built-in Modules
 
-Fedpunk ships with only 2 minimal modules:
+Fedpunk ships with 2 minimal modules:
 
 ### fish
 Modern Fish shell with Starship prompt:
@@ -314,30 +321,38 @@ SSH client configuration with agent management:
 - Key management CLI (`fedpunk ssh load`)
 
 ```fish
-fedpunk module deploy ssh
+fedpunk module deploy fish
 ```
 
 **That's it!** Everything else is external.
 
 ---
 
-## External Profiles
+## Profiles
 
-Profiles are complete environments maintained in external repositories. Examples:
+Profiles are complete environments that bundle modules, modes, and configurations. They can be deployed from git URLs or local paths.
 
-### hyprpunk
-Full desktop environment with Hyprland, themes, and desktop modules:
+### Profile Management
+
 ```fish
+# List available profiles
+fedpunk profile list
+
+# Show current active profile
+fedpunk profile current
+
+# Deploy a profile from git URL
 fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk --mode desktop
+
+# Deploy with a specific mode
+fedpunk profile deploy https://github.com/user/profile.git --mode container
+
+# Re-apply current profile (pulls updates if from git)
+fedpunk apply
 ```
 
-### fedpunk-minimal
-Minimal reference profile for containers:
-```fish
-fedpunk profile deploy https://github.com/hinriksnaer/fedpunk-minimal --mode container
-```
+### Profile Structure
 
-**Create your own profile:**
 ```
 my-profile/
 ├── modes/
@@ -345,9 +360,104 @@ my-profile/
 │   │   └── mode.yaml      # Module list for desktop
 │   └── container/
 │       └── mode.yaml      # Module list for containers
-├── plugins/               # Profile-specific modules
+├── modules/               # Profile-specific modules (optional)
 │   └── custom-module/
+│       ├── module.yaml
+│       └── config/
 └── README.md
+```
+
+### mode.yaml
+
+Each mode defines which modules to deploy:
+
+```yaml
+mode:
+  name: desktop
+  description: Full desktop environment
+
+modules:
+  - fish                                  # Built-in module
+  - custom-module                         # Profile module (from modules/)
+  - ~/gits/my-module                      # Local path
+  - https://github.com/org/module.git     # External git URL
+
+  # Module with parameters
+  - module: https://github.com/org/jira.git
+    params:
+      team_name: "platform"
+      jira_url: "https://company.atlassian.net"
+```
+
+### Example: hyprpunk
+
+Full desktop environment with Hyprland, themes, and desktop modules:
+
+```fish
+fedpunk profile deploy https://github.com/hinriksnaer/hyprpunk --mode desktop
+```
+
+When deploying from a git URL:
+1. Profile is cloned to `~/.config/fedpunk/profiles/<name>/`
+2. Profile name and source are saved to `fedpunk.yaml`
+3. Running `fedpunk apply` will pull updates automatically
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│  Core Engine (/usr/share/fedpunk)           │
+│  ├─ Module system (YAML-based)              │
+│  ├─ External module loader (git URLs)       │
+│  ├─ Parameter system (env var injection)    │
+│  ├─ Dependency resolver (recursive DAG)     │
+│  └─ GNU Stow wrapper (symlink deployment)   │
+├─────────────────────────────────────────────┤
+│  Built-in Modules (2 only)                  │
+│  ├─ fish (Fish shell + Starship prompt)     │
+│  └─ ssh (SSH configuration + agent)         │
+├─────────────────────────────────────────────┤
+│  External Modules (git URLs or local)       │
+│  ├─ https://github.com/user/module.git      │
+│  ├─ ~/gits/my-custom-module                 │
+│  └─ Stored in ~/.config/fedpunk/modules/    │
+├─────────────────────────────────────────────┤
+│  User Configuration (~/.config/fedpunk)     │
+│  ├─ fedpunk.yaml (module config + params)   │
+│  └─ profiles/ (external profiles cloned)    │
+└─────────────────────────────────────────────┘
+```
+
+**Module Resolution Priority:**
+1. Profile modules (`profiles/<name>/modules/`)
+2. Source repositories (`~/.config/fedpunk/sources/`)
+3. External git URLs (`~/.config/fedpunk/modules/`)
+4. Built-in modules (`modules/`)
+
+---
+
+## TUI Support
+
+Fedpunk uses [gum](https://github.com/charmbracelet/gum) for interactive terminal UI elements:
+
+- **Spinners** - Progress indicators for long-running operations (package installs, git clones)
+- **Selection menus** - Interactive prompts for profile/mode selection
+- **Input prompts** - Parameter collection with defaults and validation
+- **Styled output** - Consistent colors for success, error, warning, and info messages
+
+The UI gracefully degrades in non-interactive environments (CI, scripts, SSH without TTY).
+
+**UI functions available to modules:**
+```fish
+ui-spin --title "Installing..." -- command args    # Spinner with progress
+ui-choose --header "Select option" opt1 opt2 opt3  # Selection menu
+ui-input --placeholder "Enter value"               # Text input
+ui-confirm "Proceed?"                              # Yes/no prompt
+ui-success "Done!"                                 # Styled success message
+ui-error "Failed"                                  # Styled error message
+ui-info "Note: ..."                                # Styled info message
 ```
 
 ---
@@ -365,11 +475,9 @@ my-profile/
 
 **Core Documentation:**
 - [`CLAUDE.md`](CLAUDE.md) - Full project architecture and development guide
-- [`docs/MODULE_DEVELOPMENT.md`](docs/MODULE_DEVELOPMENT.md) - Creating modules
 
 **External Profiles:**
 - [hyprpunk](https://github.com/hinriksnaer/hyprpunk) - Desktop environment with Hyprland
-- [fedpunk-minimal](https://github.com/hinriksnaer/fedpunk-minimal) - Minimal reference profile
 
 ---
 

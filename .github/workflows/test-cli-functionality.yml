@@ -42,7 +42,7 @@ jobs:
           PATH: /root/.local/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         run: |
           source /etc/profile.d/fedpunk.sh
-          bash test/test-cli-commands.sh
+          bash test/ci/test-cli-commands.sh
 
       - name: Verify CLI summary
         run: |

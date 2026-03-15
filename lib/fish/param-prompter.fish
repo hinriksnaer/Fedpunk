@@ -8,32 +8,19 @@ source "$lib_dir/yq-utils.fish"
 source "$lib_dir/ui.fish"
 source "$lib_dir/yaml-parser.fish"
 source "$lib_dir/module-resolver.fish"
+source "$lib_dir/config.fish"
 
 function param-get-fedpunk-config-path
-    # Get the path to fedpunk.yaml, creating directory if needed
-    set -l config_path "$HOME/.config/fedpunk/fedpunk.yaml"
-    set -l config_dir (dirname "$config_path")
-
-    if not test -d "$config_dir"
-        mkdir -p "$config_dir"
-    end
-
-    echo "$config_path"
+    # Get the path to fedpunk.yaml
+    # Directory creation is handled by fedpunk-config-init
+    echo (fedpunk-config-path)
 end
 
 function param-init-fedpunk-config
     # Initialize fedpunk.yaml if it doesn't exist
-    set -l config_path (param-get-fedpunk-config-path)
-
-    if not test -f "$config_path"
-        echo "# Fedpunk declarative configuration" > "$config_path"
-        echo "# This file stores module parameters and enabled modules" >> "$config_path"
-        echo "" >> "$config_path"
-        echo "modules:" >> "$config_path"
-        echo "  enabled: []" >> "$config_path"
-    end
-
-    echo "$config_path"
+    # Uses canonical fedpunk-config-init (never overwrites existing)
+    fedpunk-config-init
+    echo (fedpunk-config-path)
 end
 
 function param-load-module-definition

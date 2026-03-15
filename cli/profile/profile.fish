@@ -24,7 +24,7 @@ function list --description "List available profiles"
         source "$FEDPUNK_SYSTEM/lib/fish/config.fish"
     end
 
-    set -l active_profile (fedpunk-config-get "profile" 2>/dev/null)
+    set -l active_profile (fedpunk-config-get-profile-name 2>/dev/null)
 
     printf "Available profiles:\n"
     for line in (profile-list-all)

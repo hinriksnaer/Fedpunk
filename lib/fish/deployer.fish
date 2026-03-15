@@ -133,7 +133,7 @@ function deployer-prompt-mode
     # If only one mode, use it
     if test (count $modes) -eq 1
         set -l mode $modes[1]
-        fedpunk-config-set "mode" "$mode"
+        fedpunk-config-set-profile-mode "$mode"
         echo $mode
         return 0
     end
@@ -147,7 +147,7 @@ function deployer-prompt-mode
     end
 
     # Save to config
-    fedpunk-config-set "mode" "$selected"
+    fedpunk-config-set-profile-mode "$selected"
 
     echo $selected
 end
@@ -295,12 +295,17 @@ function deployer-deploy-profile
         set -gx FEDPUNK_CONFLICT_MODE "$conflict_arg"
     end
 
-    # Get profile (priority: arg > config > prompt)
+    # Get profile (priority: arg > config.source > config.name > prompt)
     set -l profile_name ""
     if test -n "$profile_arg"
         set profile_name "$profile_arg"
-    else if set -l saved_profile (fedpunk-config-get "profile")
-        set profile_name "$saved_profile"
+    else if set -l saved_source (fedpunk-config-get-profile-source)
+        # Git profile - use source URL to fetch updates
+        set profile_name "$saved_source"
+        ui-info "Using saved profile source: $profile_name"
+    else if set -l saved_name (fedpunk-config-get-profile-name)
+        # Local profile - use name
+        set profile_name "$saved_name"
         ui-info "Using saved profile: $profile_name"
     else
         set profile_name (deployer-prompt-profile)
@@ -309,7 +314,8 @@ function deployer-deploy-profile
 
     # Check if profile_name is a git URL or local path
     set -l profile_dir ""
-    set -l profile_to_save "$profile_name"  # By default, save what was provided
+    set -l profile_name_to_save ""   # The name used to locate profile locally
+    set -l profile_source_to_save "" # The source URL (for git profiles)
 
     if string match -qr '^https?://|^git@|^ssh://|^file://' "$profile_name"
         # It's a git URL - fetch it
@@ -323,11 +329,15 @@ function deployer-deploy-profile
         # Parse the result (path and repo name)
         set -l parts (string split " " -- $fetch_result)
         set profile_dir $parts[1]
+        set profile_name_to_save (basename "$profile_dir")
+        set profile_source_to_save "$profile_name"
 
     else if string match -q '/*' "$profile_name"
         # It's an absolute path
         if test -d "$profile_name"
             set profile_dir "$profile_name"
+            set profile_name_to_save (basename "$profile_dir")
+            # No source for local paths
         else
             ui-error "Profile directory not found: $profile_name"
             return 1
@@ -337,6 +347,8 @@ function deployer-deploy-profile
         set -l expanded_path (eval echo "$profile_name")
         if test -d "$expanded_path"
             set profile_dir "$expanded_path"
+            set profile_name_to_save (basename "$profile_dir")
+            # No source for local paths
         else
             ui-error "Profile directory not found: $expanded_path"
             return 1
@@ -348,20 +360,15 @@ function deployer-deploy-profile
             ui-error "Profile not found: $profile_name"
             return 1
         end
+        set profile_name_to_save "$profile_name"
+        # No source for local profiles
     end
-
-    # Adjust what to save based on input type
-    # For paths, save just the profile name (not the full path, since paths aren't portable)
-    if string match -q '/*' "$profile_name"; or string match -q '~/*' "$profile_name"; or string match -q './*' "$profile_name"; or string match -q '../*' "$profile_name"
-        set profile_to_save (basename "$profile_dir")
-    end
-    # For git URLs and names, profile_to_save already equals profile_name (set at line 311)
 
     # Get mode (priority: arg > config > prompt)
     set -l mode_name ""
     if test -n "$mode_arg"
         set mode_name "$mode_arg"
-    else if set -l saved_mode (fedpunk-config-get "mode")
+    else if set -l saved_mode (fedpunk-config-get-profile-mode)
         set mode_name "$saved_mode"
         ui-info "Using saved mode: $mode_name"
     else
@@ -395,8 +402,7 @@ function deployer-deploy-profile
     end
 
     # Save selections to config
-    fedpunk-config-set "profile" "$profile_to_save"
-    fedpunk-config-set "mode" "$mode_name"
+    fedpunk-config-set-profile "$profile_name_to_save" "$profile_source_to_save" "$mode_name"
 
     # Create .active-config symlink for plugin discovery
     set -l active_config_link "$FEDPUNK_USER/.active-config"
@@ -477,8 +483,8 @@ function deployer-deploy-from-config
         return 1
     end
 
-    set -l profile (fedpunk-config-get "profile")
-    set -l mode (fedpunk-config-get "mode")
+    set -l profile (fedpunk-config-get-profile-name)
+    set -l mode (fedpunk-config-get-profile-mode)
 
     # Check what's available in the config
     set -l has_profile (test -n "$profile" -a "$profile" != "null"; and echo true; or echo false)

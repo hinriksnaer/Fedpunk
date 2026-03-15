@@ -29,7 +29,8 @@ export XDG_DATA_HOME="$HOME/.local/share"
 mkdir -p "$HOME"
 
 # Use LOCAL git repository (not system installation)
-export FEDPUNK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export FEDPUNK_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 export FEDPUNK_SYSTEM="$FEDPUNK_ROOT"
 export FEDPUNK_USER="$HOME/.local/share/fedpunk"
 
@@ -91,19 +92,12 @@ echo "=== Test 1: Git URL preserved in config ==="
 
 CONFIG_FILE="$HOME/.config/fedpunk/fedpunk.yaml"
 mkdir -p "$(dirname "$CONFIG_FILE")"
+mkdir -p "$HOME/.local/share/fedpunk"
 
-# Manually write config with git URL
-cat > "$CONFIG_FILE" <<EOF
-profile: $TEST_PROFILE_URL
-mode: test
-modules:
-  enabled: []
-EOF
+echo "  Deploying profile from URL: $TEST_PROFILE_URL"
 
-echo "  Config created with profile URL: $TEST_PROFILE_URL"
-
-# Deploy using our local version
-run_fish "deployer-deploy-from-config" 2>&1 | grep -v "sudo\|password" | head -10 || true
+# Deploy using URL directly (this sets up config correctly)
+run_fish "deployer-deploy-profile '$TEST_PROFILE_URL' --mode test" 2>&1 | grep -v "sudo\|password" | head -10 || true
 
 # Verify profile was cloned
 PROFILE_NAME="test-profile-repo"
@@ -116,20 +110,25 @@ else
     exit 1
 fi
 
-# Verify git URL is preserved in config
-SAVED_PROFILE=$(run_fish "fedpunk-config-get profile" 2>/dev/null)
+# Verify profile name and source are preserved in config
+SAVED_NAME=$(run_fish "fedpunk-config-get-profile-name" 2>/dev/null)
+SAVED_SOURCE=$(run_fish "fedpunk-config-get-profile-source" 2>/dev/null)
 
-if [ "$SAVED_PROFILE" = "$TEST_PROFILE_URL" ]; then
-    echo "  SUCCESS: Git URL preserved in config"
-elif [ "$SAVED_PROFILE" = "$PROFILE_NAME" ]; then
-    echo "  FAIL: Config saved name instead of URL" >&2
-    echo "    Expected: $TEST_PROFILE_URL" >&2
-    echo "    Got: $SAVED_PROFILE" >&2
-    exit 1
+if [ "$SAVED_NAME" = "$PROFILE_NAME" ]; then
+    echo "  SUCCESS: Profile name preserved in config"
 else
-    echo "  FAIL: Unexpected value in config" >&2
+    echo "  FAIL: Unexpected profile name in config" >&2
+    echo "    Expected: $PROFILE_NAME" >&2
+    echo "    Got: $SAVED_NAME" >&2
+    exit 1
+fi
+
+if [ "$SAVED_SOURCE" = "$TEST_PROFILE_URL" ]; then
+    echo "  SUCCESS: Git URL preserved as source in config"
+else
+    echo "  FAIL: Unexpected source in config" >&2
     echo "    Expected: $TEST_PROFILE_URL" >&2
-    echo "    Got: $SAVED_PROFILE" >&2
+    echo "    Got: $SAVED_SOURCE" >&2
     exit 1
 fi
 echo ""
@@ -147,8 +146,8 @@ git commit -q -m "Update test profile"
 ORIGINAL_COMMIT=$(git rev-parse HEAD)
 echo "  Profile updated (commit: ${ORIGINAL_COMMIT:0:8})"
 
-# Re-apply
-run_fish "deployer-deploy-from-config" 2>&1 | grep -v "sudo\|password" | head -5 || true
+# Re-apply using saved config (should use saved source URL)
+run_fish "deployer-deploy-profile --mode test" 2>&1 | grep -v "sudo\|password" | head -5 || true
 
 # Verify the cloned repo has the latest commit
 cd "$CLONED_PROFILE"
@@ -185,8 +184,10 @@ echo "  Local profile created: local-test"
 
 # Update config to use name (not URL)
 cat > "$CONFIG_FILE" <<EOF
-profile: local-test
-mode: test
+profile:
+  name: local-test
+  source: null
+  mode: test
 modules:
   enabled: []
 EOF
@@ -194,7 +195,7 @@ EOF
 run_fish "deployer-deploy-from-config" 2>&1 | grep -v "sudo\|password" | head -5 || true
 
 # Verify name is preserved
-SAVED_PROFILE=$(run_fish "fedpunk-config-get profile" 2>/dev/null)
+SAVED_PROFILE=$(run_fish "fedpunk-config-get-profile-name" 2>/dev/null)
 
 if [ "$SAVED_PROFILE" = "local-test" ]; then
     echo "  SUCCESS: Profile name preserved in config"
@@ -229,7 +230,7 @@ echo "  Path-based profile created at: $PATH_PROFILE_DIR"
 run_fish "deployer-deploy-profile '$PATH_PROFILE_DIR' --mode test" 2>&1 | grep -v "sudo\|password" | head -5 || true
 
 # Verify basename is saved (not full path)
-SAVED_PROFILE=$(run_fish "fedpunk-config-get profile" 2>/dev/null)
+SAVED_PROFILE=$(run_fish "fedpunk-config-get-profile-name" 2>/dev/null)
 
 if [ "$SAVED_PROFILE" = "custom-path-profile" ]; then
     echo "  SUCCESS: Profile basename saved (not full path)"

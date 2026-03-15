@@ -1,4 +1,4 @@
-[submodule "config/neovim/.config/nvim"]
-	path = config/neovim/.config/nvim
-	url = https://github.com/hinriksnaer/nvim.git
+[submodule "examples/module-template"]
+	path = examples/module-template
+	url = https://github.com/hinriksnaer/fedpunk-module-template.git
 	branch = main
