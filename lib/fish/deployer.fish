@@ -45,10 +45,26 @@ function deployer-deploy-module
         fedpunk-config-init
     end
 
-    # Add module reference to config (URL for external modules, name for local)
-    # This ensures param-save-to-config can find the module later
-    # Previously normalized URLs to names, causing duplicate entries when params were added
-    fedpunk-config-add-module "$module_ref"
+    # Normalize module reference before storing
+    # - URLs: Keep as-is (fixes duplicate entry bug)
+    # - Paths: Convert to absolute (fixes relative path resolution)
+    # - Names: Keep as-is
+    set -l config_ref "$module_ref"
+
+    # Check if it's a path (contains / but not a URL)
+    if string match -q '*/*' "$module_ref"; and not module-ref-is-url "$module_ref"
+        # It's a path - convert to absolute
+        set -l expanded_path (string replace -r '^~' "$HOME" "$module_ref")
+
+        # If not already absolute, make it absolute relative to PWD
+        if not string match -q '/*' "$expanded_path"
+            set expanded_path (realpath "$expanded_path" 2>/dev/null; or echo "$PWD/$expanded_path")
+        end
+
+        set config_ref "$expanded_path"
+    end
+
+    fedpunk-config-add-module "$config_ref"
 
     # Use existing fedpunk-module deploy (already handles local + git)
     if fedpunk-module deploy "$module_ref"
