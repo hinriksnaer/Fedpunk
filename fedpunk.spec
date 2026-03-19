@@ -122,6 +122,12 @@ if [ -d "$FEDPUNK_SYSTEM/cli" ]; then
         *) export PATH="$FEDPUNK_SYSTEM/cli:$PATH" ;;
     esac
 fi
+
+# Auto-load user module environment variables
+# This makes module environment variables available in all shells without manual configuration
+if [ -f "$HOME/.config/fedpunk/profile.d/fedpunk-env.sh" ]; then
+    . "$HOME/.config/fedpunk/profile.d/fedpunk-env.sh"
+fi
 EOF
 
 # Create /etc/fish/conf.d script for Fish shell
