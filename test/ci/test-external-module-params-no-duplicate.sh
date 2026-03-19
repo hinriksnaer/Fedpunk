@@ -112,16 +112,14 @@ echo ""
 #
 # Test 2: Simulate the bug scenario - deployer-deploy-module with params
 #
-echo "=== Test 2: Simulate deployer-deploy-module bug scenario ==="
+echo "=== Test 2: Deploy module with parameters (testing fix) ==="
 
 # Initialize config
 run_fish "fedpunk-config-init" 2>&1 || true
 
-# Simulate the buggy behavior:
-# Step 1: deployer-deploy-module adds NORMALIZED NAME (line 58)
-NORMALIZED_NAME="test-params-ext-module"
-run_fish "fedpunk-config-add-module '$NORMALIZED_NAME'" 2>&1 || true
-echo "  Step 1: Added normalized name to config: $NORMALIZED_NAME"
+# Step 1: deployer-deploy-module adds module URL (FIXED behavior)
+run_fish "fedpunk-config-add-module '$TEST_MODULE_URL'" 2>&1 || true
+echo "  Step 1: Added module URL to config: $TEST_MODULE_URL"
 
 # Step 2: param-save-to-config tries to find using URL (not name)
 # This is what happens when fedpunk-module deploy calls param-prompt-required
@@ -131,7 +129,7 @@ param-save-to-config '$TEST_MODULE_URL' 'auth_mode' 'enabled'
 " 2>&1 || true
 
 echo "  Step 2: Saved params using URL: $TEST_MODULE_URL"
-echo "  (This is where the duplicate gets created if bug exists)"
+echo "  (Should update existing entry, not create duplicate)"
 echo ""
 
 #
