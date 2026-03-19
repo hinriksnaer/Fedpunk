@@ -45,17 +45,10 @@ function deployer-deploy-module
         fedpunk-config-init
     end
 
-    # Normalize git URLs to module names for consistent config storage
-    # git@gitlab.com:org/thinkpad-fans.git -> thinkpad-fans
-    set -l module_name "$module_ref"
-    if module-ref-is-url "$module_ref"
-        # Extract repo name from URL (same logic as external-module-get-storage-path)
-        set module_name (string replace -r '\.git$' '' "$module_ref")
-        set module_name (string replace -r '^.*[/:]' '' "$module_name")
-    end
-
-    # Add normalized module name to config
-    fedpunk-config-add-module "$module_name"
+    # Add module reference to config (URL for external modules, name for local)
+    # This ensures param-save-to-config can find the module later
+    # Previously normalized URLs to names, causing duplicate entries when params were added
+    fedpunk-config-add-module "$module_ref"
 
     # Use existing fedpunk-module deploy (already handles local + git)
     if fedpunk-module deploy "$module_ref"
